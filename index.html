@@ -206,8 +206,9 @@ const KEY="cbio_reg_v3";
 let S={hh:[],w:[],c:[],v:[],r:[],d:[],staff:[],cen:[],cfg:JSON.parse(JSON.stringify(DEFAULT_CFG)),sess:{role:"chv",id:null},lang:"en",mode:null,auth:null}; // mode: null (welcome screen), "example" or "live"
 let VIX=null; // index of visits by person and by household
 const TYPES=["hh","w","c","v","r","d","staff","cen"];
+const DEMO=location.hash==="#demo"; // a link ending in #demo always opens the example data, with its own storage, and leaves a signed-in worker untouched
 const IDB={db:null,
-  open(){return new Promise(res=>{try{const r=indexedDB.open("cbio-register",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>{IDB.db=r.result;res(true);};r.onerror=()=>res(false);}catch(e){res(false);}});},
+  open(){return new Promise(res=>{try{const r=indexedDB.open(DEMO?"cbio-register-demo":"cbio-register",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>{IDB.db=r.result;res(true);};r.onerror=()=>res(false);}catch(e){res(false);}});},
   get(k){return new Promise(res=>{if(!IDB.db){try{return res(JSON.parse(localStorage.getItem(KEY+"_"+k)));}catch(e){return res(null);}}
     try{const r=IDB.db.transaction("kv").objectStore("kv").get(k);r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null);}catch(e){res(null);}});},
   set(k,v){if(!IDB.db){try{localStorage.setItem(KEY+"_"+k,JSON.stringify(v));}catch(e){}return;}try{IDB.db.transaction("kv","readwrite").objectStore("kv").put(v,k);}catch(e){}}};
@@ -920,6 +921,7 @@ async function getLang(name){
 /* ---------- start ---------- */
 (async()=>{
   await load();
+  if(DEMO&&S.mode!=="example"){S.mode="example";S.auth=null;wipe();demo();S.sess={role:"admin",id:null};save();}
   if(S.mode==="live"&&S.auth&&S.auth.worker){S.sess={role:S.auth.worker.role==="admin"?"admin":S.auth.worker.role,id:S.auth.worker.id};LOCKED=!!S.auth.token;} // ask for the PIN each time the app opens
   else if(S.mode==="example"&&S.sess.role!=="admin"&&!by("staff",S.sess.id))S.sess={role:"chw",id:"s_chw0"};
   UI.view=S.sess.role==="admin"?"admin":"due";
