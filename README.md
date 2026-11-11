@@ -2,7 +2,7 @@
 
 Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and Care Group Volunteers (CGVs) in CBIO+ programs. Kenya is the first country configuration.
 
-**Status: pilot build 0.2.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
+**Status: pilot build 0.3.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
 
 ## What it does
 
@@ -12,6 +12,7 @@ Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and
 - Danger-sign checks, referrals and counter-referrals, verbal autopsy with the four delays
 - CGV dashboard of healthy practices in her households; CHW-area and administrator dashboards
 - Modelled lives saved and DALYs averted (Lives Saved Tool method, simplified), measured mortality, coverage indicators
+- Administrator Reports page: programme summary (lives saved and DALYs averted to date), coverage for a chosen period beside the previous period and the baseline, mortality, worker activity, and action lists; each table downloads as a CSV file and the page prints or saves as a PDF
 - English and Swahili; works offline once opened
 
 ## Files

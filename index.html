@@ -85,6 +85,18 @@ td input{min-height:34px;padding:4px 6px;width:84px}
 .note.warn{background:var(--warn-bg)} .note.bad{background:var(--bad-bg)}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--good)} .dot.off{background:var(--warn)}
 .tap{min-height:120px;font-size:22px;width:100%}
+h2.rep{margin-top:10px;padding-top:10px;border-top:2px solid var(--line)}
+.pair{position:relative;min-width:150px;padding-block:1px}
+.pb{height:9px;background:var(--sunk);border-radius:3px;margin-block:2px;position:relative;overflow:hidden}
+.pb i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.pb i.cur,.key.cur{background:var(--accent)} .pb i.prv,.key.prv{background:var(--muted);opacity:.6}
+.pair>b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.key{display:inline-block;width:22px;height:9px;border-radius:3px;vertical-align:middle} .key.tick{width:2px;height:14px;background:var(--ink);border-radius:0}
+@media print{
+  .bar,.noprint,nav{display:none!important}
+  body{background:#fff;font-size:12px} main{padding-block:0} .card{border:0;padding:0;break-inside:avoid} h2.rep{break-after:avoid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style></head>
 <body>
 <div class="bar"><div class="wrap">
@@ -410,9 +422,9 @@ function coverage(P){ // measured coverage for each modelled intervention: {id:[
   const hh=H.filter(h=>hhLast(h.id,"hh_hw")!==undefined);o.hw=[hh.filter(h=>hhLast(h.id,"hh_hw")===1).length,hh.length];
   return o;
 }
-function exposure(C){ // expected baseline deaths, from person-time observed while registered
+function exposure(C,R){ // expected baseline deaths, from person-time observed while registered (optionally within a period R)
   let neo=0,pn=0;
-  for(const c of C){if(!c.dob)continue;const end=c.death||TODAY,st=c.reg>c.dob?c.reg:c.dob;
+  for(const c of C){if(!c.dob)continue;const e0=c.death||TODAY,end=R&&R.b<e0?R.b:e0,s0=c.reg>c.dob?c.reg:c.dob,st=R&&R.a>s0?R.a:s0;if(end<st)continue;
     const a0=diff(st,c.dob),a1=Math.min(diff(end,c.dob),730);
     neo+=Math.max(0,Math.min(a1,28)-Math.min(a0,28))/28;
     pn+=Math.max(0,a1-Math.max(a0,28))/702;}
@@ -432,10 +444,10 @@ function model(P,mult){ // LiST-style: cause-specific reduction = 1 - prod(1 - e
   return {lives:total,per1000,parts,ex,cov};
 }
 function lives(P){const m=model(P),lo=model(P,S.cfg.sens.lo).lives,hi=model(P,S.cfg.sens.hi).lives;return Object.assign(m,{lo:Math.min(lo,hi),hi:Math.max(lo,hi)});}
-function onTime(P,track){let n=0,d=0;
-  const ten=(k,p)=>{for(const s of sched(k,p)){if(dn(s.due)>dn(TODAY))continue;if(k==="c"&&dn(s.due)<dn(p.reg))continue;if(k==="w"&&!p.preg&&!s.done)continue;
+function onTime(P,track,R){let n=0,d=0;
+  const ten=(k,p)=>{for(const s of sched(k,p)){if(dn(s.due)>dn(TODAY))continue;if(R&&!(s.due>=R.a&&s.due<=R.b))continue;if(k==="c"&&dn(s.due)<dn(p.reg))continue;if(k==="w"&&!p.preg&&!s.done)continue;
     if(p.death&&dn(s.due)>dn(p.death))continue;d++;if(s.done&&diff(s.done.date,s.due)<=s.win)n++;}};
-  const fo=(k,p)=>{if(k==="w"&&!p.edd)return;const s0=k==="c"&&p.dob>p.reg?p.dob:p.reg,w0=addD(TODAY,-182),st=s0>w0?s0:w0,en=p.death||(k==="w"&&!p.preg?p.del||TODAY:k==="c"&&ageD(p)>730?addD(p.dob,730):TODAY);
+  const fo=(k,p)=>{if(k==="w"&&!p.edd)return;const s0=k==="c"&&p.dob>p.reg?p.dob:p.reg,w0=R?R.a:addD(TODAY,-182),st=s0>w0?s0:w0,e0=p.death||(k==="w"&&!p.preg?p.del||TODAY:k==="c"&&ageD(p)>730?addD(p.dob,730):TODAY),en=R&&R.b<e0?R.b:e0;
     if(en<st)return;const e=Math.floor(diff(en,st)/14)+1,m=visitsOf(p.id).filter(v=>v.role==="chv"&&v.date>=st&&v.date<=en).length;d+=e;n+=Math.min(m,e);}; // fortnightly visits, last 6 months
   for(const [k,arr] of [["w",P.W],["c",P.C]])for(const p of arr){if(track!=="fort")ten(k,p);if(track!=="ten")fo(k,p);}
   return [n,d];}
@@ -549,7 +561,7 @@ function renderBar(){
   $("#role").innerHTML='<option value="admin|"'+(s.role==="admin"?" selected":"")+">"+esc(t("Administrator"))+"</option>"+
     S.staff.filter(x=>x.role==="chw").map(w=>'<optgroup label="Care Group '+(w.cg||"")+'"><option value="chw|'+w.id+'"'+(s.id===w.id?" selected":"")+">CHW · "+esc(w.name)+"</option>"+
       S.staff.filter(x=>x.chwId===w.id).map(v=>'<option value="chv|'+v.id+'"'+(s.id===v.id?" selected":"")+">CGV · "+esc(v.name)+"</option>").join("")+"</optgroup>").join("");
-  const tabs=s.role==="admin"?[["admin","Overview"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
+  const tabs=s.role==="admin"?[["admin","Overview"],["rep","Reports"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
     [["due","Due list"],["reg","Register"],["refs","Referrals"],["dash","My results"],["set","Settings"]];
   if(g){$("#who").textContent="";$("#nav").innerHTML="";return;}
   $("#nav").innerHTML=tabs.map(x=>'<button class="tab'+(UI.view===x[0]?" on":"")+'" data-go="'+x[0]+'">'+esc(t(x[1]))+"</button>").join("");
@@ -559,8 +571,8 @@ function render(){
   if(gated()){const v=!S.mode?(["login","setup"].includes(UI.view)?UI.view:"welcome"):!live()?"login":"lock";
     $("#app").innerHTML={welcome:vWelcome,login:vLogin,setup:vSetup,lock:vLock}[v]();return;}
   if(s.role==="admin"&&["due","dash"].includes(UI.view))UI.view="admin";
-  if(s.role!=="admin"&&["admin","ind","model","staff"].includes(UI.view))UI.view="due";
-  const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff};
+  if(s.role!=="admin"&&["admin","ind","model","staff","rep"].includes(UI.view))UI.view="due";
+  const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff,rep:vRep};
   const banner=S.mode==="example"?'<div class="note warn row"><span class="grow">'+esc(t("Example data. These are not real people."))+'</span><button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button></div>":"";
   $("#app").innerHTML=banner+(V[UI.view]||vDue)();
 }
@@ -731,6 +743,93 @@ function vStaff(){const chws=S.staff.filter(x=>x.role==="chw"),L=S.mode==="live"
   '<div class="card"><h3>Add a CHW (starts a new Care Group)</h3>'+fld("f_wname","Name")+fld("f_wvil","Village")+cred("w")+'<div class="row"><button class="pri" data-act="addchw">'+esc(t("Save"))+"</button></div></div>"+
   (chws.length?'<div class="card"><h3>Add a Care Group Volunteer</h3>'+fld("f_vname","Name")+fld("f_vvil","Village")+'<div class="q"><label class="t" for="f_vchw">CHW</label><select id="f_vchw">'+chws.map(w=>'<option value="'+w.id+'">'+esc(w.name)+"</option>").join("")+"</select></div>"+cred("v")+'<div class="row"><button class="pri" data-act="addcgv">'+esc(t("Save"))+"</button></div></div>":"")+
   (L&&S.staff.length?'<div class="card"><h3>Give a worker a new PIN</h3><div class="q"><label class="t" for="f_pwho">Worker</label><select id="f_pwho">'+S.staff.map(w=>'<option value="'+w.id+'">'+esc((w.role==="chv"?"CGV":"CHW")+" · "+w.name)+"</option>").join("")+"</select></div>"+pinF("f_ppin","PIN (6 or more digits)")+'<div class="row"><button class="pri" data-act="setpin">'+esc(t("Save"))+"</button></div></div>":"");}
+/* ---------- reports (administrator) ---------- */
+let REP={per:"q",area:"",a:"",b:""},REPDATA={};
+function repRange(){const d=new Date(),y=d.getFullYear(),m=d.getMonth();
+  if(REP.per==="m")return {a:iso(new Date(y,m-1,1)),b:iso(new Date(y,m,0)),label:"Last month"};
+  if(REP.per==="q"){const q=Math.floor(m/3);return {a:iso(new Date(y,q*3-3,1)),b:iso(new Date(y,q*3,0)),label:"Last quarter"};}
+  if(REP.per==="y")return {a:addD(TODAY,-364),b:TODAY,label:"Last 12 months"};
+  if(REP.per==="c"&&REP.a&&REP.b&&REP.a<=REP.b)return {a:REP.a,b:REP.b,label:"Chosen dates"};
+  return {a:"2000-01-01",b:TODAY,label:"Since start",all:1};}
+const prevRange=R=>R.all?null:{a:addD(R.a,-(diff(R.b,R.a)+1)),b:addD(R.a,-1)};
+const inR=(d,R)=>!!d&&d>=R.a&&d<=R.b;
+function repArea(){const chws=S.staff.filter(x=>x.role==="chw"&&(!REP.area||x.id===REP.area)),team=S.staff.filter(x=>chws.some(w=>w.id===x.chwId)).map(x=>x.id);
+  return {chws,P:people(S.hh.filter(h=>team.includes(h.chvId)))};}
+function covP(P,R){ // coverage measured inside a period
+  const {C,W}=P,cid=new Set(C.map(c=>c.id)),ids=new Set(C.map(c=>c.id).concat(W.map(w=>w.id))),V=S.v.filter(v=>ids.has(v.subj)&&inR(v.date,R)),B=C.filter(c=>c.place&&inR(c.dob,R));
+  const ans=(q,f)=>{let n=0,d=0;for(const v of V){const x=v.a[q];if(x===undefined)continue;d++;if(f?f(x):x===1)n++;}return [n,d];};
+  const sh=(arr,f)=>[arr.filter(f).length,arr.length],bl=id=>{const iv=S.cfg.iv.find(x=>x[0]===id);return iv?iv[6]:undefined;};
+  const ageAt=c=>diff(R.b,c.dob),has=(c,k)=>!!(c.vax||{})[k]&&c.vax[k]<=R.b,CV=C.filter(c=>cardSeen(c)&&(!c.death||c.death>R.b)&&c.dob<=R.b);
+  const RF=S.r.filter(r=>ids.has(r.subj)&&inR(r.date,R));
+  return [["Pregnancy and birth","4 or more antenatal contacts",sh(B.filter(c=>c.mAnc!==undefined),c=>c.mAnc>=4)],
+    ["Pregnancy and birth","Mother protected against tetanus (Td2+)",sh(B.filter(c=>c.mTd!==undefined),c=>c.mTd>=2),bl("td")],
+    ["Pregnancy and birth","Delivery in a health facility",sh(B,c=>c.place==="f"),bl("fac")],["Pregnancy and birth","Skilled attendant at birth",sh(B,c=>c.sba),bl("sba")],
+    ["First month","Breastfed within 1 hour of birth",sh(B,c=>c.eibf)],["First month","Thermal care at birth",sh(B,c=>c.warm),bl("warm")],["First month","Chlorhexidine cord care",sh(B,c=>c.chx),bl("chx")],
+    ["First month","Home visit within 2 days of birth",sh(B.filter(c=>c.reg<=addD(c.dob,2)),c=>visitsOf(c.id).some(v=>diff(v.date,c.dob)<=2))],
+    ["First month","Only breast milk (visits under 6 months)",ans("n_ebf"),bl("ebf_d")],
+    ["Immunization","Pentavalent 3 (4 months and older)",sh(CV.filter(c=>ageAt(c)>=126),c=>has(c,"PENTA3"))],["Immunization","Measles-rubella 1 (10 months and older)",sh(CV.filter(c=>ageAt(c)>=305),c=>has(c,"MR1")),bl("mr1")],
+    ["Immunization","Fully immunized for age",sh(CV.filter(c=>ageAt(c)>=14),c=>S.cfg.vax.every(x=>ageAt(c)<=x[1]+14||has(c,x[0])))],
+    ["Sick child care","ORS for diarrhoea",ans("c_ors"),bl("ors")],["Sick child care","Zinc for diarrhoea",ans("c_zinc"),bl("zinc")],["Sick child care","Care and antibiotic for suspected pneumonia",ans("c_pneu"),bl("pneu")],["Sick child care","Malaria test for fever, same or next day",ans("c_mal")],
+    ["Household practices","Child slept under a treated net",ans("n_itn"),bl("itn")],["Household practices","Handwashing place with soap and water",ans("hh_hw"),bl("hw")],["Household practices","Safe drinking water",ans("hh_water")],["Household practices","Household uses a latrine",ans("hh_lat")],
+    ["Nutrition","Vitamin A in the last 6 months (6-23 months)",ans("c_vita"),bl("vita")],["Nutrition","5 or more of 8 food groups yesterday",ans("c_mdd",x=>x>=5)],
+    ["Family planning","Mothers using a modern method",ans("c_fp")],["System","Referrals that reached the facility",[RF.filter(r=>r.st==="arrived"||r.st==="done").length,RF.length]]
+  ].map(x=>({g:x[0],label:x[1],n:x[2][0],d:x[2][1],base:x[3]}));}
+function tbl(id,title,head,rows,opt){opt=opt||{};REPDATA[id]={title,head,rows};const cap=opt.cap||9999,num=opt.num||[];
+  return '<div class="tblwrap"><table><tr>'+head.map((h,i)=>'<th'+(num.includes(i)?' class="n"':"")+">"+esc(h)+"</th>").join("")+"</tr>"+
+    rows.slice(0,cap).map(r=>"<tr>"+r.map((c,i)=>"<td"+(num.includes(i)?' class="n"':"")+">"+esc(c)+"</td>").join("")+"</tr>").join("")+"</table></div>"+
+    (rows.length?"":'<p class="small muted">None.</p>')+(rows.length>cap?'<p class="small muted">Showing '+cap+" of "+rows.length+". The downloaded table has all of them.</p>":"")+
+    '<div class="row noprint"><button data-act="csv" data-id="'+id+'">Download this table</button></div>';}
+function vRep(){REPDATA={};const R=repRange(),PR=prevRange(R),{chws,P}=repArea(),{C,W,H}=P,ids=new Set(C.map(c=>c.id).concat(W.map(w=>w.id)));
+  const pc=(n,d)=>d?Math.round(100*n/d)+"%":"–",V=S.v.filter(v=>ids.has(v.subj)&&inR(v.date,R)),D=S.d.filter(d=>ids.has(d.subj)&&inR(d.date,R)),RF=S.r.filter(r=>ids.has(r.subj)&&inR(r.date,R));
+  const B=C.filter(c=>c.place&&inR(c.dob,R)),m=lives(P),y=S.cfg.yll,areaName=REP.area?(chws[0]?chws[0].name+" · Care Group "+chws[0].cg:""):"All areas ("+chws.length+" Care Groups)";
+  let h='<div class="row"><h1 class="grow">Reports</h1><button class="pri noprint" data-act="print">Print or save as PDF</button></div>'+
+    '<div class="card noprint"><div class="row"><div class="q grow"><label class="t" for="rp_per">Period</label><select id="rp_per" data-rep="per">'+[["m","Last month"],["q","Last quarter"],["y","Last 12 months"],["all","Since start"],["c","Choose dates"]].map(o=>'<option value="'+o[0]+'"'+(REP.per===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></div>"+
+    '<div class="q grow"><label class="t" for="rp_area">Area</label><select id="rp_area" data-rep="area"><option value="">All areas</option>'+S.staff.filter(x=>x.role==="chw").map(w=>'<option value="'+w.id+'"'+(REP.area===w.id?" selected":"")+">Care Group "+(w.cg||"")+" · "+esc(w.name)+"</option>").join("")+"</select></div></div>"+
+    (REP.per==="c"?'<div class="row"><div class="q"><label class="t" for="rp_a">From</label><input type="date" id="rp_a" data-rep="a" value="'+REP.a+'"></div><div class="q"><label class="t" for="rp_b">To</label><input type="date" id="rp_b" data-rep="b" value="'+REP.b+'" max="'+TODAY+'"></div></div>':"")+"</div>"+
+    '<p class="muted"><b>'+esc(areaName)+"</b> · "+esc(R.label)+(R.all?"":": "+R.a+" to "+R.b)+" · prepared "+TODAY+(S.mode==="example"?" · example data":"")+"</p>";
+  // 1 programme summary
+  h+='<h2 class="rep">1. Programme summary</h2><div class="grid">'+livesCard(P,"Lives saved to date (modelled)")+stat("DALYs averted to date",Math.round(m.lives*y.undisc),Math.round(m.lives*y.disc)+" at 3% discount")+
+    stat("Households",H.length,C.filter(active).length+" children under 24 months · "+W.filter(w=>w.preg&&active(w)).length+" pregnant women")+"</div>"+
+    '<div class="card"><h3>Activity in the period</h3>'+tbl("summary","Programme summary",["Measure","Number"],[["Live births recorded",B.length],["Women and children newly registered",C.concat(W.filter(w=>w.edd)).filter(p=>inR(p.reg,R)).length],
+      ["CHW home visits",V.filter(v=>v.role==="chw").length],["Care Group Volunteer home visits",V.filter(v=>v.role==="chv").length],["Visits where a danger sign was found",V.filter(v=>["p_danger","n_danger","m_danger","c_danger"].some(q=>(v.a[q]||[]).length)).length],
+      ["Referrals made",RF.length],["Referrals that reached the facility",RF.filter(r=>r.st==="arrived"||r.st==="done").length],["Deaths of children under 24 months",D.filter(d=>d.kind==="c").length],["Maternal deaths",D.filter(d=>d.kind==="w").length],["Verbal autopsies completed",D.filter(d=>d.va).length]],{num:[1]})+
+    '<p class="small muted">Lives saved and DALYs averted are cumulative from the start of the programme to today. Every other figure on this page is for the chosen period.</p></div>';
+  // 2 coverage, paired bars
+  const cur=covP(P,R),prv=PR?covP(P,PR):null;let g="";
+  h+='<h2 class="rep">2. Coverage and practices</h2><div class="card"><p class="small"><span class="key cur"></span> This period &nbsp; <span class="key prv"></span> Previous period'+(PR?" ("+PR.a+" to "+PR.b+")":" (not shown for Since start)")+' &nbsp; <span class="key tick"></span> Baseline</p><div class="tblwrap"><table><tr><th>Indicator</th><th class="n">This period</th><th class="n">Previous</th><th style="min-width:160px"></th><th class="n">Baseline</th></tr>';
+  cur.forEach((i,k)=>{if(i.g!==g){g=i.g;h+='<tr><th colspan="5">'+esc(g)+"</th></tr>";}const p=i.d?100*i.n/i.d:null,q=prv&&prv[k].d?100*prv[k].n/prv[k].d:null;
+    h+="<tr><td>"+esc(i.label)+'</td><td class="n"><b>'+pc(i.n,i.d)+'</b> <span class="muted">'+i.n+"/"+i.d+'</span></td><td class="n">'+(prv?pc(prv[k].n,prv[k].d)+' <span class="muted">'+prv[k].n+"/"+prv[k].d+"</span>":"")+
+      '</td><td><div class="pair"><div class="pb"><i class="cur" style="width:'+(p||0)+'%"></i></div><div class="pb"><i class="prv" style="width:'+(q||0)+'%"></i></div>'+(i.base!==undefined?'<b style="left:'+Math.round(i.base*100)+'%"></b>':"")+'</div></td><td class="n muted">'+(i.base!==undefined?Math.round(i.base*100)+"%":"")+"</td></tr>";});
+  REPDATA.coverage={title:"Coverage and practices",head:["Group","Indicator","This period numerator","This period denominator","This period %","Previous numerator","Previous denominator","Previous %","Baseline %"],
+    rows:cur.map((i,k)=>[i.g,i.label,i.n,i.d,i.d?Math.round(100*i.n/i.d):"",prv?prv[k].n:"",prv?prv[k].d:"",prv&&prv[k].d?Math.round(100*prv[k].n/prv[k].d):"",i.base!==undefined?Math.round(i.base*100):""])};
+  h+='</table></div><p class="small muted">Practices asked at home visits are counted per visit in the period. Birth indicators cover births in the period. Immunization is the status at the end of the period among children whose card has been seen. A dash means nothing was measured.</p><div class="row noprint"><button data-act="csv" data-id="coverage">Download this table</button></div></div>';
+  // 3 mortality
+  const ex=exposure(C,R),ageDth=d=>{const c=by("c",d.subj);return c?diff(d.date,c.dob):null;},cd=D.filter(d=>d.kind==="c").map(ageDth),cnt=f=>cd.filter(f).length,rr=S.cfg.rates,tally=(arr)=>{const o={};arr.forEach(x=>{o[x]=(o[x]||0)+1;});return Object.keys(o).sort((a,b)=>o[b]-o[a]).map(k=>[k,o[k]]);};
+  const va=D.filter(d=>d.va);
+  h+='<h2 class="rep">3. Mortality</h2><div class="card"><h3>Deaths in the period</h3>'+tbl("deaths","Deaths in the period",["Age at death","Deaths","Deaths expected at baseline mortality"],[["0-6 days",cnt(a=>a<7),""],["7-27 days",cnt(a=>a>=7&&a<28),""],["All neonatal (0-27 days)",cnt(a=>a<28),ex.eNeo.toFixed(1)],["1-11 months",cnt(a=>a>=28&&a<365),""],["12-23 months",cnt(a=>a>=365),""],["All 1-23 months",cnt(a=>a>=28),ex.ePn.toFixed(1)],
+      ["Maternal deaths",D.filter(d=>d.kind==="w").length,(B.length*rr.mmr/1e5).toFixed(2)],["Stillbirths",W.filter(w=>w.sb&&inR(w.del,R)).length,""]],{num:[1,2]})+
+    '<p class="small muted">Deaths expected at baseline mortality is the number that would have occurred among the children and births under observation in the period if mortality had stayed at the baseline rate. Small differences from the deaths recorded can be chance.</p></div>'+
+    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"><div class="card"><h3>Probable cause ('+va.length+" of "+D.length+" reviewed)</h3>"+tbl("causes","Probable causes of death",["Cause","Deaths"],tally(va.map(d=>d.va.cause||"Unknown")),{num:[1]})+"</div>"+
+    '<div class="card"><h3>Delays found</h3>'+tbl("delays","Delays found in verbal autopsies",["Delay","Deaths","% of reviewed"],DELAYS.map((x,i)=>{const n=va.filter(d=>(d.va.delays||[])[i]).length;return [x,n,va.length?Math.round(100*n/va.length)+"%":"–"];}),{num:[1,2]})+"</div>"+
+    '<div class="card"><h3>Place of death</h3>'+tbl("places","Place of death",["Place","Deaths"],tally(D.map(d=>d.place||"Unknown")),{num:[1]})+"</div></div>";
+  // 4 worker activity
+  const actRow=(name,hhs,isCgv)=>{const Q=people(hhs),qi=new Set(Q.C.map(c=>c.id).concat(Q.W.map(w=>w.id))),o=onTime(Q,"ten",R),f=onTime(Q,"fort",R),rf=S.r.filter(r=>qi.has(r.subj)&&inR(r.date,R)),dd=S.d.filter(d=>qi.has(d.subj)&&inR(d.date,R));
+    return [name,hhs.length,isCgv?"":o[0]+" / "+o[1],isCgv?"":pc(o[0],o[1]),f[0]+" / "+f[1],pc(f[0],f[1]),rf.filter(r=>r.st==="arrived"||r.st==="done").length+" / "+rf.length,isCgv?"":dd.filter(d=>d.va).length+" / "+dd.length];};
+  const act=[];chws.forEach(w=>{const vs=S.staff.filter(x=>x.chwId===w.id);act.push(actRow("CHW · "+w.name+" (Care Group "+w.cg+")",S.hh.filter(h=>vs.some(v=>v.id===h.chvId))));if(REP.area)vs.forEach(v=>act.push(actRow("   Volunteer · "+v.name,S.hh.filter(h=>h.chvId===v.id),1)));});
+  h+='<h2 class="rep">4. Worker activity</h2><div class="card">'+tbl("activity","Worker activity",["Worker","Households","CHW visits on time / due","%","Volunteer visits made / expected","%","Referrals reached facility / made","Verbal autopsies done / deaths"],act,{num:[1,2,3,4,5,6,7]})+
+    '<p class="small muted">CHW visits are the 10 scheduled visits that fell due in the period. Volunteer visits are fortnightly visits made as a share of those expected in the period. Choose one area to see each volunteer.</p></div>';
+  // 5 action lists (as of today)
+  const cgv=p=>{const hh=by("hh",p.hhId)||{},st=by("staff",hh.chvId)||{};return [hh.village||"",st.name||""];},who=p=>p.dob?p.name+" ("+ageTxt(p)+")":p.name+" (pregnant)";
+  const act1=C.filter(c=>active(c)&&ageD(c)<730).concat(W.filter(w=>w.preg&&active(w))).filter(p=>p.reg<=addD(R.b,-14)&&!visitsOf(p.id).some(v=>inR(v.date,R))).map(p=>[who(p)].concat(cgv(p),["Registered "+p.reg]));
+  const act2=S.r.filter(r=>ids.has(r.subj)&&r.st==="open").map(r=>{const p=subj(r.kind,r.subj);return [who(p)].concat(cgv(p),[r.reason+" · open "+diff(TODAY,r.date)+" days"]);});
+  const act3=C.filter(c=>active(c)&&(cardSeen(c)||c.cNoVax)).map(c=>{const od=S.cfg.vax.filter(x=>ageD(c)>x[1]+14&&!(c.vax||{})[x[0]]).map(x=>x[0]);return od.length?[who(c)].concat(cgv(c),[(od.includes("PENTA1")?"Zero-dose. ":"")+"Missing: "+od.join(", ")]):null;}).filter(Boolean);
+  const act4=C.filter(c=>active(c)&&ageD(c)>=180&&last(c.id,"c_muac")!==undefined&&last(c.id,"c_muac")<12.5).map(c=>[who(c)].concat(cgv(c),["MUAC "+last(c.id,"c_muac")+" cm"+(last(c.id,"c_muac")<11.5?" (severe)":"")]));
+  const AH=["Woman or child","Village","Volunteer","Detail"];
+  h+='<h2 class="rep">5. Action lists (as of today)</h2><div class="card"><h3>No home visit in the period ('+act1.length+")</h3>"+tbl("novisit","No home visit in the period",AH,act1,{cap:25})+"</div>"+
+    '<div class="card"><h3>Open referrals ('+act2.length+")</h3>"+tbl("openrefs","Open referrals",AH,act2,{cap:25})+"</div>"+
+    '<div class="card"><h3>Zero-dose and under-immunized children ('+act3.length+")</h3>"+tbl("vaccines","Zero-dose and under-immunized children",AH,act3,{cap:25})+"</div>"+
+    '<div class="card"><h3>Children with low MUAC ('+act4.length+")</h3>"+tbl("muac","Children with low MUAC",AH,act4,{cap:25})+"</div>";
+  return h;}
 function vRefs(){
   const P=people(myHH()),ids=new Set(P.W.concat(P.C).map(p=>p.id)),R=S.r.filter(r=>ids.has(r.subj)).sort((a,b)=>a.date<b.date?1:-1);
   const ST={open:["Referred","bad"],arrived:["Arrived","warn"],done:["Completed","good"],refused:["Declined",""]};
@@ -873,6 +972,9 @@ document.addEventListener("click",e=>{
   if(A==="addcgv"){if(!val("f_vname"))return;const w=by("staff",val("f_vchw"));put("staff",{id:uid("s"),role:"chv",name:val("f_vname"),village:val("f_vvil"),chwId:w.id,cg:w.cg});return go("staff");}
   if(A==="export"){const o={exported:new Date().toISOString(),cfg:S.cfg};for(const ty of TYPES)o[ty]=S[ty].filter(r=>!r.demo);
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:"application/json"}));a.download="cbio-register-"+TODAY+".json";document.body.appendChild(a);a.click();a.remove();return;}
+  if(A==="print"){try{window.print();}catch(e){}return;}
+  if(A==="csv"){const D=REPDATA[d.id];if(!D)return;const q=x=>'"'+String(x??"").replace(/"/g,'""')+'"',csv="\ufeff"+[D.head].concat(D.rows).map(r=>r.map(q).join(",")).join("\r\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="cbio-"+d.id+"-"+TODAY+".csv";document.body.appendChild(a);a.click();a.remove();return;}
   if(A==="census")return go("census",{a:{},m:[],d:[]});
   if(A==="addmem"){F.m.push(d.kind);return keep();}
   if(A==="adddeath"){F.d.push(1);return keep();}
@@ -897,6 +999,7 @@ document.addEventListener("input",e=>{const d=e.target.dataset;
 document.addEventListener("change",e=>{const el=e.target,d=el.dataset;
   if(el.id==="lang"){lang=S.lang=el.value;save();render();}
   if(el.id==="role"&&S.mode==="example"){const [r,id]=el.value.split("|");S.sess={role:r,id:id||null};save();go(r==="admin"?"admin":"due");}
+  if(d.rep){REP[d.rep]=el.value;const y=window.scrollY;render();window.scrollTo(0,y);return;}
   if(d.num&&UI.view==="visit")keep();
   if(d.cfg){const path=d.cfg.split("."),v=+el.value;if(isNaN(v))return;let o=S.cfg;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;save();pushCfg();const y=window.scrollY;render();window.scrollTo(0,y);}});
 addEventListener("online",()=>{renderBar();sync();});addEventListener("offline",renderBar);
