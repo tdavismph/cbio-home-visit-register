@@ -460,7 +460,7 @@ function demo(){
   for(let ci=0;ci<12;ci++){const cv=D({id:"s_chv"+ar+ci.toString(36),role:"chv",name:pick(fn)+" "+pick(ln),chwId:cw.id,cg:ar+1,village:vil[ar]+" "+(ci+1)});S.staff.push(cv);
     for(let h=0;h<12;h++){k++;const fresh=ar===7,hh=D({id:"h_d"+k,chvId:cv.id,village:cv.village,head:pick(fn)+" "+pick(ln),far:ch(.2)});S.hh.push(hh);
       {const lb5=1+Math.floor(R()*2.2),deaths=[];for(let b=0;b<lb5;b++)if(R()<.043){const r=R(),m=r<.51?0:r<.78?1+Math.floor(R()*11):12+Math.floor(R()*48);deaths.push({sex:pick(["f","m"]),ageM:m,days:m?null:Math.floor(R()*R()*27),place:pick(["Home","Home","Hospital"]),br:ch(.4)?0:1,di:ch(.3)?0:1,fe:ch(.5)?0:1,cause:[m?pick(["Pneumonia","Diarrhoea","Malaria","Malnutrition"]):pick(["Complications of early birth","Complicated delivery","Other"])]});}
-        hh.pop=3+Math.floor(R()*5);hh.prevDeath=deaths.length?1:0;S.cen.push(D({id:"n_d"+k,hhId:hh.id,date:addD(TODAY,fresh?-5:-400),by:cw.id,pop:hh.pop,wra:1+ch(.25),lb5,sb5:R()<.03?1:0,mat5:R()<.004?1:0,deaths}));}
+        hh.pop=3+Math.floor(R()*5);hh.prevDeath=deaths.length?1:0;S.cen.push(D({id:"n_d"+k,hhId:hh.id,date:addD(TODAY,fresh?-5:-790),by:cw.id,pop:hh.pop,wra:1+ch(.25),lb5,sb5:R()<.03?1:0,mat5:R()<.004?1:0,deaths}));}
       const mName=pick(fn)+" "+pick(ln),mid="w_d"+k,who=r=>r==="chw"?cw.id:cv.id;
       if(h>1&&R()<.2){ // pregnant woman
         const edd=addD(TODAY,Math.floor(R()*200)-8),reg0=addD(edd,-Math.floor(120+R()*80));
@@ -728,11 +728,12 @@ function vAdmin(){
     stat(t("Households"),S.hh.length,S.staff.filter(x=>x.role==="chw").length+" CHW areas · "+P.C.filter(active).length+" children · "+P.W.filter(w=>w.preg&&active(w)).length+" pregnant")+
     stat(t("Visits on time"),(pct(ot[0],ot[1])??"–")+"%",ot[0]+" / "+ot[1])+stat(t("Open referrals"),openR)+"</div>";
   const rate=(n,d,k)=>d?(n/d*k).toFixed(1):"–";
-  h+='<div class="card"><h3>Measured mortality (vital events)</h3><div class="tblwrap"><table><tr><th>Measure</th><th class="n">Events</th><th class="n">Denominator</th><th class="n">Rate</th><th class="n">Baseline</th><th class="n">Expected at baseline</th></tr>'+
+  h+='<div class="card"><h3>Measured mortality (vital events)</h3><div class="tblwrap"><table><tr><th>Measure</th><th class="n">Events</th><th class="n">Denominator</th><th class="n">Rate</th><th class="n">Baseline rate</th><th class="n">Deaths expected at baseline mortality</th></tr>'+
     "<tr><td>Neonatal deaths (0-27 days) per 1,000 live births</td><td class='n'>"+mo.neo+"</td><td class='n'>"+mo.lb+"</td><td class='n'>"+rate(mo.neo,mo.lb,1000)+"</td><td class='n'>"+r.nmr+"</td><td class='n'>"+mo.ex.eNeo.toFixed(2)+"</td></tr>"+
     "<tr><td>Deaths at 1-23 months</td><td class='n'>"+(mo.all-mo.neo)+"</td><td class='n'>"+mo.ex.pn.toFixed(1)+" child-periods</td><td class='n'>"+rate(mo.all-mo.neo,mo.ex.pn,1000)+"</td><td class='n'>"+r.pn+"</td><td class='n'>"+mo.ex.ePn.toFixed(2)+"</td></tr>"+
     "<tr><td>Stillbirths per 1,000 births</td><td class='n'>"+mo.sb+"</td><td class='n'>"+(mo.lb+mo.sb)+"</td><td class='n'>"+rate(mo.sb,mo.lb+mo.sb,1000)+"</td><td class='n'></td><td class='n'></td></tr>"+
     "<tr><td>Maternal deaths per 100,000 live births</td><td class='n'>"+mo.mat+"</td><td class='n'>"+mo.lb+"</td><td class='n'>"+rate(mo.mat,mo.lb,1e5)+"</td><td class='n'>"+r.mmr+"</td><td class='n'>"+(mo.lb*r.mmr/1e5).toFixed(2)+"</td></tr></table></div>"+
+    '<p class="small muted">Deaths expected at baseline mortality is the number of deaths that would have occurred among the children and births under observation if mortality had stayed at the baseline rate. It counts only the time each child has actually been followed. Compare it with the Events column: fewer events than expected suggests mortality below baseline, though small differences can be chance.</p>'+
     (mo.lb<500?'<p class="note warn">Fewer than 500 live births are under observation. Rates at this size are unstable and should not be reported as results.</p>':"")+"</div>";
   h+=censusCard();
   const dl=[0,0,0,0];S.d.forEach(d=>d.va&&(d.va.delays||[]).forEach((x,i)=>dl[i]+=x?1:0));const nva=S.d.filter(d=>d.va).length;
