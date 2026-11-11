@@ -15,6 +15,11 @@ Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and
 - Administrator Reports page: programme summary (lives saved and DALYs averted to date), coverage for a chosen period beside the previous period and the baseline, mortality, worker activity, and action lists; each table downloads as a CSV file and the page prints or saves as a PDF
 - English and Swahili; works offline once opened
 
+## Documents
+
+- `docs/CBIO_Home_Visit_Register_User_Manual.pdf`: user manual with screenshots (built by `docs/make_manual.py`)
+- `docs/CBIO_Behaviours_by_Visit.pdf`: behaviours to promote before each visit, for ordering Care Group lessons (built by `docs/make_behaviours_pdf.py`)
+
 ## Files
 
 | File | Purpose |
