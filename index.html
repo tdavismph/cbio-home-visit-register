@@ -109,7 +109,7 @@ const pct=(n,d)=>d?Math.round(100*n/d):null;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 
 /* ---------- country configuration (Kenya) ---------- */
-const DEFAULT_CFG={ver:9,country:"Kenya",
+const DEFAULT_CFG={ver:10,country:"Kenya",
  // Kenya routine schedule incl. the changes of 1 Nov 2025 (IPV2 at 9 months). Age in days.
  vax:[["BCG",0],["OPV0",0],["OPV1",42],["PENTA1",42],["PCV1",42],["ROTA1",42],["OPV2",70],["PENTA2",70],["PCV2",70],["ROTA2",70],
       ["OPV3",98],["PENTA3",98],["PCV3",98],["ROTA3",98],["IPV1",98],["MR1",274],["IPV2",274],["MR2",548]],
@@ -152,7 +152,7 @@ const SW={"Due list":"Orodha ya kazi","Register":"Rejesta","Referrals":"Rufaa","
 "Birth weight (grams), if known":"Uzito wa kuzaliwa (gramu), kama unajulikana","Put to the breast within 1 hour":"Alinyonyeshwa ndani ya saa 1",
 "Chlorhexidine applied to the cord":"Chlorhexidine ilipakwa kwenye kitovu","Dried, kept skin-to-skin, not bathed in first 24 hours":"Alikaushwa, akawekwa ngozi kwa ngozi, hakuogeshwa saa 24 za kwanza",
 "Baby is small (under 2,500 g or born early)":"Mtoto ni mdogo (chini ya g 2,500 au amezaliwa kabla ya wakati)",
-"Visit":"Ziara","Census: new household":"Sensa: kaya mpya","First CHW visit":"Ziara ya kwanza ya CHW","Sick on census day":"Alikuwa mgonjwa siku ya sensa","First week of life":"Wiki ya kwanza ya maisha","Under 1 month":"Chini ya mwezi 1","Small baby":"Mtoto mdogo","No vaccine yet":"Bado hajapata chanjo","Due within 4 weeks":"Atajifungua ndani ya wiki 4","First pregnancy":"Mimba ya kwanza","Age under 18 or 35 and over":"Umri chini ya 18 au 35 na zaidi","No antenatal care yet":"Bado hajaanza kliniki","Earlier child death in household":"Kifo cha mtoto kilichotangulia katika kaya","Far from health facility":"Mbali na kituo cha afya","Care Group Volunteer for this household":"Mjitolea wa Care Group wa kaya hii","People living in the household (all ages)":"Watu wanaoishi katika kaya (umri wote)","Women aged 15 to 49":"Wanawake wa miaka 15 hadi 49","More than 1 hour to reach the health facility":"Zaidi ya saa 1 kufika kituo cha afya","Pregnant women and children under 24 months":"Wajawazito na watoto chini ya miezi 24","Has started antenatal care":"Ameanza kliniki ya wajawazito","Born small or early":"Alizaliwa mdogo au kabla ya wakati","Child is sick today":"Mtoto ni mgonjwa leo","Has received at least one vaccine":"Amepata angalau chanjo moja","Births and deaths in the last 5 years":"Uzazi na vifo katika miaka 5 iliyopita","Explain that this helps prevent other deaths. Offer condolences. The family may pause at any time.":"Eleza kwamba hii inasaidia kuzuia vifo vingine. Toa pole. Familia inaweza kupumzika wakati wowote.","Children born alive in this household in the last 5 years":"Watoto waliozaliwa hai katika kaya hii miaka 5 iliyopita","Babies born dead (stillbirths) in the last 5 years":"Watoto waliozaliwa wafu miaka 5 iliyopita","Women who died while pregnant, in childbirth or within 6 weeks after, in the last 5 years":"Wanawake waliofariki wakiwa wajawazito, wakijifungua au ndani ya wiki 6 baadaye, miaka 5 iliyopita","Child who died":"Mtoto aliyefariki","Age at death in completed months (0 if under 1 month)":"Umri wa kufariki kwa miezi kamili (0 kama chini ya mwezi 1)","If under 1 month: age in days":"Kama chini ya mwezi 1: umri kwa siku","What the family believes caused the death":"Familia inaamini nini kilisababisha kifo","Fast or difficult breathing in the last days":"Kupumua haraka au kwa shida siku za mwisho","Diarrhoea in the last days":"Kuharisha siku za mwisho","Fever in the last days":"Homa siku za mwisho","Interviewer's suspected causes (3 or fewer)":"Visababishi anavyoshuku mhoji (3 au pungufu)","Child born alive who died in the last 5 years":"Mtoto aliyezaliwa hai aliyefariki miaka 5 iliyopita","Don't know":"Sijui","Enter the head of household.":"Andika mkuu wa kaya.","None of the above":"Hakuna kati ya hizi","Answer every question that has a list. Choose None of the above if nothing applies.":"Jibu kila swali lenye orodha. Chagua Hakuna kati ya hizi kama hakuna linalohusika.","Healthy practices in my households":"Mienendo ya afya katika kaya zangu","My households":"Kaya zangu","CHW area":"Eneo la CHW","The vertical mark is the average for the whole CHW area. A dash means no household has been asked yet.":"Alama ya wima ni wastani wa eneo zima la CHW. Kistari kinamaanisha hakuna kaya iliyoulizwa bado.","Gave birth in a health facility":"Alijifungulia kituo cha afya","Breastfed within 1 hour of birth":"Alinyonyeshwa ndani ya saa 1 baada ya kuzaliwa","Newborn kept warm, skin-to-skin":"Mtoto mchanga aliwekwa joto, ngozi kwa ngozi","Only breast milk in the first 6 months":"Maziwa ya mama pekee miezi 6 ya kwanza","Child sleeps under a treated net":"Mtoto analala ndani ya chandarua chenye dawa","ORS given for diarrhoea":"ORS ilitolewa kwa kuharisha","Zinc given for diarrhoea":"Zinki ilitolewa kwa kuharisha","Care sought for cough with fast breathing":"Huduma ilitafutwa kwa kikohozi na kupumua haraka","Vaccines up to date":"Chanjo zimekamilika kwa umri","Safe drinking water":"Maji salama ya kunywa","Every 2 weeks":"Kila wiki 2","10 scheduled visits":"Ziara 10 zilizopangwa","Next visit":"Ziara ijayo","Home visit":"Ziara ya nyumbani","items":"vipengele","about":"takriban","min":"dak","Ask for CHW support":"Omba msaada wa CHW",
+"Visit":"Ziara","Sign in":"Ingia","Sign out":"Toka","Sign-in name":"Jina la kuingia","PIN":"PIN","PIN (6 or more digits)":"PIN (tarakimu 6 au zaidi)","PIN again":"PIN tena","Wrong PIN.":"PIN si sahihi.","Wrong sign-in name or PIN.":"Jina la kuingia au PIN si sahihi.","Too many wrong PINs. Try again in 15 minutes.":"PIN zisizo sahihi ni nyingi. Jaribu tena baada ya dakika 15.","No connection. Connect and try again.":"Hakuna mtandao. Unganisha kisha ujaribu tena.","Please sign in again.":"Tafadhali ingia tena.","Signing in…":"Inaingia…","Try it with example data":"Jaribu kwa data ya mfano","Leave example mode":"Ondoka kwenye hali ya mfano","For Community Health Workers and Care Group Volunteers.":"Kwa Wahudumu wa Afya ya Jamii na Wajitolea wa Care Group.","Signing in needs a connection the first time. After that the app works offline and sends your records when a connection returns.":"Kuingia mara ya kwanza kunahitaji mtandao. Baadaye programu inafanya kazi bila mtandao na hutuma rekodi zako mtandao ukirudi.","First-time setup (administrator only)":"Usanidi wa mara ya kwanza (msimamizi pekee)","Saved":"Imehifadhiwa","Census: new household":"Sensa: kaya mpya","First CHW visit":"Ziara ya kwanza ya CHW","Sick on census day":"Alikuwa mgonjwa siku ya sensa","First week of life":"Wiki ya kwanza ya maisha","Under 1 month":"Chini ya mwezi 1","Small baby":"Mtoto mdogo","No vaccine yet":"Bado hajapata chanjo","Due within 4 weeks":"Atajifungua ndani ya wiki 4","First pregnancy":"Mimba ya kwanza","Age under 18 or 35 and over":"Umri chini ya 18 au 35 na zaidi","No antenatal care yet":"Bado hajaanza kliniki","Earlier child death in household":"Kifo cha mtoto kilichotangulia katika kaya","Far from health facility":"Mbali na kituo cha afya","Care Group Volunteer for this household":"Mjitolea wa Care Group wa kaya hii","People living in the household (all ages)":"Watu wanaoishi katika kaya (umri wote)","Women aged 15 to 49":"Wanawake wa miaka 15 hadi 49","More than 1 hour to reach the health facility":"Zaidi ya saa 1 kufika kituo cha afya","Pregnant women and children under 24 months":"Wajawazito na watoto chini ya miezi 24","Has started antenatal care":"Ameanza kliniki ya wajawazito","Born small or early":"Alizaliwa mdogo au kabla ya wakati","Child is sick today":"Mtoto ni mgonjwa leo","Has received at least one vaccine":"Amepata angalau chanjo moja","Births and deaths in the last 5 years":"Uzazi na vifo katika miaka 5 iliyopita","Explain that this helps prevent other deaths. Offer condolences. The family may pause at any time.":"Eleza kwamba hii inasaidia kuzuia vifo vingine. Toa pole. Familia inaweza kupumzika wakati wowote.","Children born alive in this household in the last 5 years":"Watoto waliozaliwa hai katika kaya hii miaka 5 iliyopita","Babies born dead (stillbirths) in the last 5 years":"Watoto waliozaliwa wafu miaka 5 iliyopita","Women who died while pregnant, in childbirth or within 6 weeks after, in the last 5 years":"Wanawake waliofariki wakiwa wajawazito, wakijifungua au ndani ya wiki 6 baadaye, miaka 5 iliyopita","Child who died":"Mtoto aliyefariki","Age at death in completed months (0 if under 1 month)":"Umri wa kufariki kwa miezi kamili (0 kama chini ya mwezi 1)","If under 1 month: age in days":"Kama chini ya mwezi 1: umri kwa siku","What the family believes caused the death":"Familia inaamini nini kilisababisha kifo","Fast or difficult breathing in the last days":"Kupumua haraka au kwa shida siku za mwisho","Diarrhoea in the last days":"Kuharisha siku za mwisho","Fever in the last days":"Homa siku za mwisho","Interviewer's suspected causes (3 or fewer)":"Visababishi anavyoshuku mhoji (3 au pungufu)","Child born alive who died in the last 5 years":"Mtoto aliyezaliwa hai aliyefariki miaka 5 iliyopita","Don't know":"Sijui","Enter the head of household.":"Andika mkuu wa kaya.","None of the above":"Hakuna kati ya hizi","Answer every question that has a list. Choose None of the above if nothing applies.":"Jibu kila swali lenye orodha. Chagua Hakuna kati ya hizi kama hakuna linalohusika.","Healthy practices in my households":"Mienendo ya afya katika kaya zangu","My households":"Kaya zangu","CHW area":"Eneo la CHW","The vertical mark is the average for the whole CHW area. A dash means no household has been asked yet.":"Alama ya wima ni wastani wa eneo zima la CHW. Kistari kinamaanisha hakuna kaya iliyoulizwa bado.","Gave birth in a health facility":"Alijifungulia kituo cha afya","Breastfed within 1 hour of birth":"Alinyonyeshwa ndani ya saa 1 baada ya kuzaliwa","Newborn kept warm, skin-to-skin":"Mtoto mchanga aliwekwa joto, ngozi kwa ngozi","Only breast milk in the first 6 months":"Maziwa ya mama pekee miezi 6 ya kwanza","Child sleeps under a treated net":"Mtoto analala ndani ya chandarua chenye dawa","ORS given for diarrhoea":"ORS ilitolewa kwa kuharisha","Zinc given for diarrhoea":"Zinki ilitolewa kwa kuharisha","Care sought for cough with fast breathing":"Huduma ilitafutwa kwa kikohozi na kupumua haraka","Vaccines up to date":"Chanjo zimekamilika kwa umri","Safe drinking water":"Maji salama ya kunywa","Every 2 weeks":"Kila wiki 2","10 scheduled visits":"Ziara 10 zilizopangwa","Next visit":"Ziara ijayo","Home visit":"Ziara ya nyumbani","items":"vipengele","about":"takriban","min":"dak","Ask for CHW support":"Omba msaada wa CHW",
 "CHW support requested":"Msaada wa CHW umeombwa","Danger signs. Refer now.":"Dalili za hatari. Peleka rufaa sasa.","Refer to health facility":"Peleka kituo cha afya",
 "Pregnancy visit 1":"Ziara ya ujauzito 1","Pregnancy visit 2 (birth plan)":"Ziara ya ujauzito 2 (mpango wa kujifungua)","Newborn day 1-2":"Mtoto mchanga siku 1-2","Newborn day 3":"Mtoto mchanga siku ya 3","Newborn day 7":"Mtoto mchanga siku ya 7",
 "6 weeks":"Wiki 6","14 weeks":"Wiki 14","6 months":"Miezi 6","9 months":"Miezi 9","18 months":"Miezi 18","Follow-up visit":"Ziara ya ufuatiliaji",
@@ -203,7 +203,7 @@ const t=s=>(LANGS[lang]&&LANGS[lang].d[s])||s;
 
 /* ---------- storage ---------- */
 const KEY="cbio_reg_v3";
-let S={hh:[],w:[],c:[],v:[],r:[],d:[],staff:[],cen:[],cfg:JSON.parse(JSON.stringify(DEFAULT_CFG)),sess:{role:"chv",id:null},lang:"en",demoOn:true};
+let S={hh:[],w:[],c:[],v:[],r:[],d:[],staff:[],cen:[],cfg:JSON.parse(JSON.stringify(DEFAULT_CFG)),sess:{role:"chv",id:null},lang:"en",mode:null,auth:null}; // mode: null (welcome screen), "example" or "live"
 let VIX=null; // index of visits by person and by household
 const TYPES=["hh","w","c","v","r","d","staff","cen"];
 const IDB={db:null,
@@ -214,27 +214,57 @@ const IDB={db:null,
 async function load(){await IDB.open();const j=await IDB.get("state");if(j&&j.cfg&&j.cfg.ver===DEFAULT_CFG.ver)S=j;
   const L=await IDB.get("langs")||{};for(const k in L)LANGS[k]=L[k];
   lang=LANGS[S.lang]?S.lang:"en";for(const ty of TYPES)S[ty]=S[ty]||[];
-  if(S.demoOn!==false){const keep={};for(const ty of TYPES){keep[ty]=S[ty]||[];S[ty]=[];}demo(); // example records are rebuilt at each start, not stored
+  if(S.mode==="example"){const keep={};for(const ty of TYPES){keep[ty]=S[ty]||[];S[ty]=[];}demo(); // example records are rebuilt at each start, not stored
     for(const ty of TYPES)for(const r of keep[ty]){const i=S[ty].findIndex(x=>x.id===r.id);if(i<0)S[ty].push(r);else S[ty][i]=r;}VIX=null;}}
 function save(){const o=Object.assign({},S);for(const ty of TYPES)o[ty]=S[ty].filter(r=>!r.demo);IDB.set("state",JSON.parse(JSON.stringify(o)));}
-function put(type,rec){rec.u=Date.now();if(rec.demo){rec.demo=false;rec.ex=true;}if(S.demoOn!==false)rec.ex=true;rec.dirty=!rec.ex;VIX=null;
+function put(type,rec){rec.u=Date.now();if(rec.demo){rec.demo=false;rec.ex=true;}if(S.mode==="example")rec.ex=true;rec.dirty=!rec.ex;VIX=null;syncSoon();
   const a=S[type],i=a.findIndex(x=>x.id===rec.id);if(i<0)a.push(rec);else a[i]=rec;save();return rec;}
 const by=(type,id)=>S[type].find(x=>x.id===id);
 
 /* ---------- sync (shared store, when signed in and online) ---------- */
-let db=null,syncMsg="";
-async function initCaps(){try{if(window.claude&&window.claude.use){db=await window.claude.use("db");renderBar();if(db&&navigator.onLine)sync();}}catch(e){}}
+/* ---------- server: sign-in and sync ---------- */
+const SERVER=window.CBIO_SERVER||{url:"https://gfnsviikjfczavcgpiok.supabase.co",key:"sb_publishable_yOmoOtyENRLgPBzt4W8u2Q_LoQ7nN-x"}; // public values, safe to publish
+async function rpc(fn,args){let r;
+  try{r=await fetch(SERVER.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{"Content-Type":"application/json",apikey:SERVER.key,Authorization:"Bearer "+SERVER.key},body:JSON.stringify(args||{})});}catch(e){throw {code:"offline"};}
+  const j=await r.json().catch(()=>null);
+  if(!r.ok){const m=(j&&(j.message||j.error))||"";throw {code:/not_signed_in/.test(m)?"not_signed_in":"server_"+r.status,message:m};}
+  return j;}
+async function pinHash(salt,pin){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+":"+pin));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+const ERR={wrong_code_or_pin:"Wrong sign-in name or PIN.",locked:"Too many wrong PINs. Try again in 15 minutes.",already_set_up:"The server already has an administrator. Sign in instead.",
+  bad_input:"A name is required. The sign-in name needs 3 or more characters and the PIN 6 or more digits.",code_taken:"That sign-in name is already used.",offline:"No connection. Connect and try again.",
+  admin_only:"Only the administrator can do this.",no_such_chw:"Choose a CHW.",server_404:"The server is not set up yet. Run server/setup.sql in Supabase first."};
+const errText=c=>t(ERR[c]||"The server did not respond as expected.")+(ERR[c]?"":" ("+c+")");
+let LOCKED=false,authMsg="",syncMsg="",syncing=false,syncT=null;
+const live=()=>S.mode==="live"&&!!(S.auth&&S.auth.token);
+function scopeOf(ty,r){const hhId=ty==="hh"?r.id:ty==="d"?((by("w",r.subj)||by("c",r.subj)||{}).hhId):r.hhId,h=ty==="hh"?r:by("hh",hhId);return h?h.chvId:null;} // the Care Group Volunteer who owns the household
+function wipe(){for(const ty of TYPES)S[ty]=[];VIX=null;}
+async function afterLogin(res,pin){
+  const same=S.mode==="live"&&S.auth&&S.auth.worker&&S.auth.worker.id===res.worker.id;
+  if(!same)wipe(); // a different worker never sees the previous worker's records
+  const salt=uid("x");S.auth={token:res.token,worker:res.worker,salt,pinHash:await pinHash(salt,pin),seq:same?(S.auth.seq||0):0};
+  S.mode="live";S.sess={role:res.worker.role==="admin"?"admin":res.worker.role,id:res.worker.id};
+  if(!S.staff.some(x=>x.id===res.worker.id)&&res.worker.role!=="admin")S.staff.push(res.worker);
+  LOCKED=false;authMsg="";save();go(S.sess.role==="admin"?"admin":"due");sync();}
 async function sync(){
-  if(!db||!navigator.onLine){syncMsg=t("Offline");renderBar();return;}
-  syncMsg="…";renderBar();
-  try{
-    for(const ty of TYPES)for(const r of S[ty])if(r.dirty&&!r.demo){await db.doc("records/"+r.id).set({ty,u:r.u,j:JSON.stringify(Object.assign({},r,{dirty:false}))});r.dirty=false;}
-    const snap=await db.collection("records").limit(1000).get();
-    for(const d of snap.docs){const b=d.data();if(!b||!TYPES.includes(b.ty))continue;let r;try{r=JSON.parse(b.j);}catch(e){continue;}
-      const a=S[b.ty],i=a.findIndex(x=>x.id===r.id);if(i<0)a.push(r);else if((a[i].u||0)<(r.u||0))a[i]=r;}
-    VIX=null;save();syncMsg="✓";render();
-  }catch(e){syncMsg="!";renderBar();}
+  if(!live()||syncing)return;
+  if(!navigator.onLine){syncMsg=t("Offline");renderBar();return;}
+  syncing=true;syncMsg="…";renderBar();
+  try{const T=S.auth.token;
+    S.staff=await rpc("cbio_workers_list",{p_token:T});
+    const out=[];for(const ty of TYPES){if(ty==="staff")continue;for(const r of S[ty])if(r.dirty){const cgv=scopeOf(ty,r);if(cgv)out.push({r,p:{id:r.id,ty,cgv,u:r.u,body:Object.assign({},r,{dirty:false})}});}}
+    for(let i=0;i<out.length;i+=200){const part=out.slice(i,i+200);await rpc("cbio_push",{p_token:T,p_records:part.map(x=>x.p)});part.forEach(x=>{x.r.dirty=false;});}
+    for(let n=0;n<50;n++){ // the first request re-reads a little, in case another tablet's save landed out of order
+      const res=await rpc("cbio_pull",{p_token:T,p_since:Math.max(0,(S.auth.seq||0)-(n?0:50))});
+      for(const x of res.records){const a=S[x.ty],r=x.body;if(!a||x.ty==="staff")continue;const i=a.findIndex(y=>y.id===r.id);if(i<0)a.push(r);else if((a[i].u||0)<(r.u||0))a[i]=r;}
+      S.auth.seq=Math.max(S.auth.seq||0,res.seq||0);if(res.count<1000)break;}
+    const cfg=await rpc("cbio_settings_get",{p_token:T});if(cfg&&cfg.ver===DEFAULT_CFG.ver)S.cfg=cfg;
+    VIX=null;S.auth.last=Date.now();save();syncMsg="✓";syncing=false;render();
+  }catch(e){syncing=false;
+    if(e.code==="not_signed_in"){S.auth.token=null;save();authMsg=t("Please sign in again.");go("login");}
+    else{syncMsg=e.code==="offline"?t("Offline"):"!";renderBar();}}
 }
+function syncSoon(){clearTimeout(syncT);if(live())syncT=setTimeout(sync,4000);}
+function pushCfg(){if(live()&&S.sess.role==="admin"&&navigator.onLine)rpc("cbio_settings_set",{p_token:S.auth.token,p_body:S.cfg}).catch(()=>{});}
 const dirtyN=()=>TYPES.reduce((n,ty)=>n+S[ty].filter(r=>r.dirty&&!r.demo).length,0);
 
 /* ---------- visit questions ---------- */
@@ -507,25 +537,30 @@ function demo(){
 /* ---------- UI state and rendering ---------- */
 let UI={view:"due",f:null};
 const go=(view,f)=>{UI={view,f:f||null};render();window.scrollTo(0,0);};
+const gated=()=>!S.mode||(S.mode==="live"&&(!live()||LOCKED));
 function renderBar(){
-  const s=S.sess,me=by("staff",s.id);
+  const s=S.sess,me=by("staff",s.id)||(S.auth&&S.auth.worker&&S.auth.worker.id===s.id?S.auth.worker:null),g=gated();
+  $("#role").hidden=g||S.mode==="live";$("#net").hidden=g;
   $("#who").textContent=s.role==="admin"?t("Administrator"):me?((s.role==="chv"?"CGV":"CHW")+" · "+me.name+(me.cg?" · Care Group "+me.cg:"")+" · "+t(s.role==="chv"?"Every 2 weeks":"10 scheduled visits")):"";
   const on=navigator.onLine,n=dirtyN();
-  $("#net").innerHTML='<span class="dot'+(on?"":" off")+'"></span> '+esc(on?t("Online"):t("Offline"))+(n?" · "+n+" "+esc(t("Not synced")):"")+(db&&on?' <button class="link" data-act="sync">'+esc(t("Sync now"))+" "+esc(syncMsg)+"</button>":"");
+  $("#net").innerHTML='<span class="dot'+(on?"":" off")+'"></span> '+esc(on?t("Online"):t("Offline"))+(n?" · "+n+" "+esc(t("Not synced")):"")+(live()&&on?' <button class="link" data-act="sync">'+esc(t("Sync now"))+" "+esc(syncMsg)+"</button>":"");
   $("#lang").innerHTML=Object.keys(LANGS).map(k=>'<option value="'+esc(k)+'"'+(k===lang?" selected":"")+">"+esc(LANGS[k].name)+"</option>").join("");
   $("#role").innerHTML='<option value="admin|"'+(s.role==="admin"?" selected":"")+">"+esc(t("Administrator"))+"</option>"+
     S.staff.filter(x=>x.role==="chw").map(w=>'<optgroup label="Care Group '+(w.cg||"")+'"><option value="chw|'+w.id+'"'+(s.id===w.id?" selected":"")+">CHW · "+esc(w.name)+"</option>"+
       S.staff.filter(x=>x.chwId===w.id).map(v=>'<option value="chv|'+v.id+'"'+(s.id===v.id?" selected":"")+">CGV · "+esc(v.name)+"</option>").join("")+"</optgroup>").join("");
   const tabs=s.role==="admin"?[["admin","Overview"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
     [["due","Due list"],["reg","Register"],["refs","Referrals"],["dash","My results"],["set","Settings"]];
+  if(g){$("#who").textContent="";$("#nav").innerHTML="";return;}
   $("#nav").innerHTML=tabs.map(x=>'<button class="tab'+(UI.view===x[0]?" on":"")+'" data-go="'+x[0]+'">'+esc(t(x[1]))+"</button>").join("");
 }
 function render(){
   renderBar();const s=S.sess;
+  if(gated()){const v=!S.mode?(["login","setup"].includes(UI.view)?UI.view:"welcome"):!live()?"login":"lock";
+    $("#app").innerHTML={welcome:vWelcome,login:vLogin,setup:vSetup,lock:vLock}[v]();return;}
   if(s.role==="admin"&&["due","dash"].includes(UI.view))UI.view="admin";
   if(s.role!=="admin"&&["admin","ind","model","staff"].includes(UI.view))UI.view="due";
   const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff};
-  const banner=S.demoOn!==false?'<div class="note warn row"><span class="grow">'+esc(t("Example data. These are not real people."))+'</span><button data-act="cleardemo">'+esc(t("Remove example data"))+"</button></div>":"";
+  const banner=S.mode==="example"?'<div class="note warn row"><span class="grow">'+esc(t("Example data. These are not real people."))+'</span><button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button></div>":"";
   $("#app").innerHTML=banner+(V[UI.view]||vDue)();
 }
 const nameOf=(kind,p)=>esc(p.name||"?")+' <span class="muted small">'+(kind==="w"?esc(p.preg?t("Pregnant"):t("Mother")):esc(ageTxt(p)))+"</span>";
@@ -660,6 +695,7 @@ function vCensus(){const F=UI.f;F.a=F.a||{};F.m=F.m||[];F.d=F.d||[];const me=by(
   return h+'<div class="row"><button class="pri" data-act="savecensus">'+esc(t("Save"))+'</button><button data-go="reg">'+esc(t("Cancel"))+'</button><span class="small muted" id="cenmsg"></span></div>';}
 function saveCensus(){const F=UI.f,a=F.a,me=by("staff",S.sess.id),head=val("f_head");
   if(!head){$("#cenmsg").textContent=t("Enter the head of household.");return;}
+  if(me.role==="chw"&&!val("f_cgv")){$("#cenmsg").textContent=t("Add a Care Group Volunteer first. Each household belongs to one.");return;}
   for(let i=0;i<F.m.length;i++){if(!val("f_m"+i+"_name")||(F.m[i]==="w"?!val("f_m"+i+"_edd"):(!val("f_m"+i+"_dob")||val("f_m"+i+"_dob")>TODAY||diff(TODAY,val("f_m"+i+"_dob"))>730))){$("#cenmsg").textContent=t("Each woman needs a name and due date. Each child needs a name and a birth date in the last 24 months.");return;}}
   const deaths=F.d.map((_,i)=>({sex:a["d"+i+"_sex"]===1?"m":"f",ageM:+val("f_d"+i+"_age")||0,days:val("f_d"+i+"_days")===""?null:+val("f_d"+i+"_days"),place:PLACES[a["d"+i+"_place"]??0],belief:val("f_d"+i+"_belief"),br:a["d"+i+"_br"]??2,di:a["d"+i+"_di"]??2,fe:a["d"+i+"_fe"]??2,cause:(a["d"+i+"_cause"]||[]).map(x=>RC[x])}));
   const hh=put("hh",{id:uid("h"),chvId:me.role==="chw"?val("f_cgv"):me.id,village:val("f_vil"),head,pop:+val("f_pop")||null,far:a.far===1?1:0,prevDeath:deaths.length?1:0});
@@ -682,10 +718,18 @@ function censusCard(){const c=censusStats();if(!c.hh)return "";const r=(n,d,k)=>
     "<tr><td>Maternal deaths per 100,000 live births</td><td class='n'>"+c.mat+"</td><td class='n'>"+c.lb+"</td><td class='n'>"+r(c.mat,c.lb,1e5)+"</td><td class='n'>"+S.cfg.rates.mmr+"</td></tr></table></div>"+
     '<p class="small muted">'+c.hh+" households censused, "+c.pop+" people. These are deaths divided by live births reported for the last 5 years. Children born recently have not yet lived through the whole age range, so the under-12-month and under-5 figures run low; exact rates need a full birth history with dates.</p>"+
     '<div class="row"><button data-act="usecensus"'+(c.lb<500?" disabled":"")+'>Use the census rates as the model baseline</button>'+(c.lb<500?'<span class="small muted">Needs at least 500 live births.</span>':"")+"</div></div>";}
-function vStaff(){const chws=S.staff.filter(x=>x.role==="chw");
-  return "<h1>Workers</h1>"+chws.map(w=>'<div class="card"><h2>CHW · '+esc(w.name)+' <span class="muted small">Care Group '+(w.cg||"")+" · "+esc(w.village||"")+'</span></h2><div class="row">'+S.staff.filter(x=>x.chwId===w.id).map(v=>'<span class="chip">'+esc(v.name)+" · "+S.hh.filter(h=>h.chvId===v.id).length+" households</span>").join("")+"</div></div>").join("")+
-  '<div class="card"><h3>Add a CHW (starts a new Care Group)</h3>'+fld("f_wname","Name")+fld("f_wvil","Village")+'<div class="row"><button class="pri" data-act="addchw">'+esc(t("Save"))+"</button></div></div>"+
-  (chws.length?'<div class="card"><h3>Add a Care Group Volunteer</h3>'+fld("f_vname","Name")+fld("f_vvil","Village")+'<div class="q"><label class="t" for="f_vchw">CHW</label><select id="f_vchw">'+chws.map(w=>'<option value="'+w.id+'">'+esc(w.name)+"</option>").join("")+'</select></div><div class="row"><button class="pri" data-act="addcgv">'+esc(t("Save"))+"</button></div></div>":"");}
+const pinF=(id,label)=>'<div class="q"><label class="t" for="'+id+'">'+esc(t(label))+'</label><input id="'+id+'" type="password" inputmode="numeric" autocomplete="off"></div>';
+const msgP=()=>authMsg?'<p class="note warn">'+esc(authMsg)+"</p>":"";
+function vWelcome(){return '<div class="card"><h1>CBIO+ Home Visit Register</h1><p class="muted">'+esc(t("For Community Health Workers and Care Group Volunteers."))+'</p><div class="row"><button class="pri" data-go="login">'+esc(t("Sign in"))+'</button><button data-act="example">'+esc(t("Try it with example data"))+'</button></div><p class="small muted">'+esc(t("Signing in needs a connection the first time. After that the app works offline and sends your records when a connection returns."))+'</p><button class="link" data-go="setup">'+esc(t("First-time setup (administrator only)"))+"</button></div>";}
+function vLogin(){return '<div class="card"><h1>'+esc(t("Sign in"))+"</h1>"+msgP()+fld("f_code","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_pin","PIN")+'<div class="row"><button class="pri" data-act="login">'+esc(t("Sign in"))+"</button>"+(S.mode?"":'<button data-go="welcome">'+esc(t("Back"))+"</button>")+"</div></div>";}
+function vSetup(){return '<div class="card"><h1>'+esc(t("First-time setup (administrator only)"))+"</h1><p class='muted'>"+esc(t("This creates the administrator account. It works once, on a server with no administrator yet."))+"</p>"+msgP()+fld("f_name","Name")+fld("f_code","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_pin","PIN (6 or more digits)")+pinF("f_pin2","PIN again")+'<div class="row"><button class="pri" data-act="bootstrap">'+esc(t("Save"))+'</button><button data-go="welcome">'+esc(t("Back"))+"</button></div></div>";}
+function vLock(){const w=S.auth.worker;return '<div class="card"><h1>'+esc(w.name)+"</h1>"+msgP()+pinF("f_pin","PIN")+'<div class="row"><button class="pri" data-act="unlock">'+esc(t("Open"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button></div></div>";}
+function vStaff(){const chws=S.staff.filter(x=>x.role==="chw"),L=S.mode==="live";
+  const cred=p=>L?fld("f_"+p+"code","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_"+p+"pin","PIN (6 or more digits)"):"";
+  return "<h1>Workers</h1>"+(authMsg?'<p class="note warn">'+esc(authMsg)+"</p>":"")+chws.map(w=>'<div class="card"><h2>CHW · '+esc(w.name)+' <span class="muted small">Care Group '+(w.cg||"")+" · "+esc(w.village||"")+(w.code?" · sign-in: "+esc(w.code):"")+'</span></h2><div class="row">'+S.staff.filter(x=>x.chwId===w.id).map(v=>'<span class="chip">'+esc(v.name)+(v.code?" ("+esc(v.code)+")":"")+" · "+S.hh.filter(h=>h.chvId===v.id).length+" households</span>").join("")+"</div></div>").join("")+
+  '<div class="card"><h3>Add a CHW (starts a new Care Group)</h3>'+fld("f_wname","Name")+fld("f_wvil","Village")+cred("w")+'<div class="row"><button class="pri" data-act="addchw">'+esc(t("Save"))+"</button></div></div>"+
+  (chws.length?'<div class="card"><h3>Add a Care Group Volunteer</h3>'+fld("f_vname","Name")+fld("f_vvil","Village")+'<div class="q"><label class="t" for="f_vchw">CHW</label><select id="f_vchw">'+chws.map(w=>'<option value="'+w.id+'">'+esc(w.name)+"</option>").join("")+"</select></div>"+cred("v")+'<div class="row"><button class="pri" data-act="addcgv">'+esc(t("Save"))+"</button></div></div>":"")+
+  (L&&S.staff.length?'<div class="card"><h3>Give a worker a new PIN</h3><div class="q"><label class="t" for="f_pwho">Worker</label><select id="f_pwho">'+S.staff.map(w=>'<option value="'+w.id+'">'+esc((w.role==="chv"?"CGV":"CHW")+" · "+w.name)+"</option>").join("")+"</select></div>"+pinF("f_ppin","PIN (6 or more digits)")+'<div class="row"><button class="pri" data-act="setpin">'+esc(t("Save"))+"</button></div></div>":"");}
 function vRefs(){
   const P=people(myHH()),ids=new Set(P.W.concat(P.C).map(p=>p.id)),R=S.r.filter(r=>ids.has(r.subj)).sort((a,b)=>a.date<b.date?1:-1);
   const ST={open:["Referred","bad"],arrived:["Arrived","warn"],done:["Completed","good"],refused:["Declined",""]};
@@ -768,7 +812,7 @@ function vSet(){
     '<div class="row"><input id="newlang" class="grow" placeholder="'+esc(t("Type a language name"))+'" list="lgs"><datalist id="lgs">'+["French","Portuguese","Spanish","Haitian Creole","Luo","Kikuyu","Somali","Amharic","Hausa","Twi","Ewe","Arabic","Hindi","Bengali","K'iche'","Quechua"].map(x=>"<option>"+x+"</option>").join("")+'</datalist><button class="pri" data-act="getlang">'+esc(t("Download"))+'</button></div><p class="small muted" id="langmsg">A new language needs a connection once. It is then stored on this tablet and works offline.</p></div>';
   h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
   h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
-  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.1. Records are stored on this tablet only. The shared server, worker logins and syncing between tablets are the next stage. Example data is rebuilt each time the app opens and is never stored.</p><div class="row"><button data-act="export">Export records from this tablet (file)</button><button data-act="loaddemo">Load example data</button><button data-act="cleardemo">'+esc(t("Remove example data"))+"</button></div></div>";
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.2. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
   return h;}
 
 /* ---------- actions ---------- */
@@ -809,6 +853,21 @@ document.addEventListener("click",e=>{
     const rec=F.did?by("d",F.did):{id:uid("d"),subj:p.id,kind:F.kind,date:val("f_date")||TODAY};rec.place=PL[a.place??0];
     if(document.getElementById("f_cause"))rec.va={who:val("f_who"),rel:val("f_rel"),narr:val("f_narr"),delays:[0,1,2,3].map(i=>a["dl"+i]===1?1:0),why:a.why||[],home:a.home===1?1:0,notes:val("f_dnote"),cause:val("f_cause"),by:S.sess.id,date:TODAY};
     put("d",rec);p.death=rec.date;put(F.kind==="w"?"w":"c",p);return go(S.sess.role==="chw"?"due":"reg");}
+  if(A==="example"){S.mode="example";wipe();demo();S.sess={role:"chw",id:"s_chw0"};save();return go("due");}
+  if(A==="login"||A==="bootstrap"){const pin=val("f_pin"),code=val("f_code"),nm=val("f_name");
+    if(A==="bootstrap"&&pin!==val("f_pin2")){authMsg=t("The two PINs are different.");return keep();}
+    authMsg=t("Signing in…");keep();
+    (A==="login"?rpc("cbio_login",{p_code:code,p_pin:pin}):rpc("cbio_bootstrap",{p_name:nm,p_code:code,p_pin:pin}))
+      .then(res=>{if(res&&res.ok)return afterLogin(res,pin);authMsg=errText(res&&res.error||"server");keep();},e=>{authMsg=errText(e.code);keep();});return;}
+  if(A==="unlock"){pinHash(S.auth.salt,val("f_pin")).then(h=>{if(h===S.auth.pinHash){LOCKED=false;authMsg="";render();sync();}else{authMsg=t("Wrong PIN.");render();}});return;}
+  if(A==="signout"){const n=dirtyN(),m=document.getElementById("outmsg");
+    if(n&&!(F&&F.outOK)){UI.f=Object.assign(UI.f||{},{outOK:1});const txt=n+" "+t("records have not been sent to the server and will be lost. Connect and sync first, or tap Sign out again to discard them.");if(m)m.textContent=txt;else{authMsg=txt;render();}return;}
+    if(live())rpc("cbio_logout",{p_token:S.auth.token}).catch(()=>{});
+    S.auth=null;S.mode=null;LOCKED=false;authMsg="";wipe();save();return go("welcome");}
+  if((A==="addchw"||A==="addcgv"||A==="setpin")&&S.mode==="live"){const P=A==="addchw"?"w":"v";
+    const body=A==="setpin"?{id:val("f_pwho")}:{role:A==="addchw"?"chw":"chv",name:val("f_"+P+"name"),village:val("f_"+P+"vil"),code:val("f_"+P+"code"),chwId:A==="addcgv"?val("f_vchw"):null};
+    rpc("cbio_save_worker",{p_token:S.auth.token,p_worker:body,p_pin:A==="setpin"?val("f_ppin"):val("f_"+P+"pin")})
+      .then(res=>{authMsg=res&&res.ok?t("Saved")+": "+res.worker.name+(res.worker.code?" ("+res.worker.code+")":""):errText(res&&res.error||"server");UI.f=null;return sync().then(()=>go("staff"));},e=>{authMsg=errText(e.code);keep();});return;}
   if(A==="addchw"){if(!val("f_wname"))return;put("staff",{id:uid("s"),role:"chw",name:val("f_wname"),village:val("f_wvil"),cg:1+Math.max(0,...S.staff.map(x=>x.cg||0))});return go("staff");}
   if(A==="addcgv"){if(!val("f_vname"))return;const w=by("staff",val("f_vchw"));put("staff",{id:uid("s"),role:"chv",name:val("f_vname"),village:val("f_vvil"),chwId:w.id,cg:w.cg});return go("staff");}
   if(A==="export"){const o={exported:new Date().toISOString(),cfg:S.cfg};for(const ty of TYPES)o[ty]=S[ty].filter(r=>!r.demo);
@@ -817,29 +876,28 @@ document.addEventListener("click",e=>{
   if(A==="addmem"){F.m.push(d.kind);return keep();}
   if(A==="adddeath"){F.d.push(1);return keep();}
   if(A==="savecensus")return saveCensus();
-  if(A==="usecensus"){const c=censusStats();if(c.lb>=500){S.cfg.rates.nmr=Math.round(c.d0/c.lb*10000)/10;S.cfg.rates.pn=Math.round(c.dpn/c.lb*10000)/10;save();}return render();}
+  if(A==="usecensus"){const c=censusStats();if(c.lb>=500){S.cfg.rates.nmr=Math.round(c.d0/c.lb*10000)/10;S.cfg.rates.pn=Math.round(c.dpn/c.lb*10000)/10;save();pushCfg();}return render();}
   if(A==="rr"){let n=0,left=60;const box=$("#rrbox");clearInterval(rrT);
     box.innerHTML='<button class="tap pri" id="tapb">'+esc(t("Tap once for each breath"))+' · <span id="rn">0</span></button><p class="small muted"><span id="rl">60</span> '+esc(t("seconds left"))+"</p>";
     $("#tapb").onclick=ev=>{ev.stopPropagation();n++;$("#rn").textContent=n;};
     rrT=setInterval(()=>{left--;const l=$("#rl");if(!l){clearInterval(rrT);return;}l.textContent=left;if(left<=0){clearInterval(rrT);F.a.n_rr=n;keep();}},1000);return;}
-  if(A==="cleardemo"){S.demoOn=false;VIX=null;for(const ty of TYPES)S[ty]=S[ty].filter(r=>!r.demo&&!r.ex);if(!by("staff",S.sess.id))S.sess={role:"admin",id:null};save();return go("reg");}
-  if(A==="loaddemo"){if(S.demoOn===false){S.demoOn=true;demo();save();}return go("due");}
-  if(A==="resetcfg"){S.cfg=JSON.parse(JSON.stringify(DEFAULT_CFG));save();return render();}
+  if(A==="cleardemo"){S.mode=null;wipe();save();return go("welcome");}
+  if(A==="resetcfg"){S.cfg=JSON.parse(JSON.stringify(DEFAULT_CFG));save();pushCfg();return render();}
   if(A==="copycsv"){const I=indicators(people(S.hh)),csv="group,indicator,numerator,denominator,percent\n"+I.map(i=>[i.g,i.label,i.n,i.d,pct(i.n,i.d)??""].map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");
     const ok=()=>$("#copymsg").textContent="Copied";try{navigator.clipboard.writeText(csv).then(ok,()=>$("#copymsg").textContent="Copy is blocked here");}catch(err){$("#copymsg").textContent="Copy is blocked here";}return;}
   if(A==="getlang")return getLang(val("newlang"));
 });
 function keep(){const y=window.scrollY;stash();render();window.scrollTo(0,y);}
-function stash(){document.querySelectorAll("#app input[id^=f_],#app textarea[id^=f_],#app select[id^=f_]").forEach(e=>{UI.f.keep=UI.f.keep||{};UI.f.keep[e.id]=e.value;});}
+function stash(){UI.f=UI.f||{};document.querySelectorAll("#app input[id^=f_],#app textarea[id^=f_],#app select[id^=f_]").forEach(e=>{UI.f.keep=UI.f.keep||{};UI.f.keep[e.id]=e.value;});}
 const obs=new MutationObserver(()=>{const k=UI.f&&UI.f.keep;if(!k)return;for(const id in k){const e=document.getElementById(id);if(e&&e.value!==k[id]&&document.activeElement!==e)e.value=k[id];}});
 document.addEventListener("input",e=>{const d=e.target.dataset;
   if(d.num){const v=e.target.value;if(v==="")delete UI.f.a[d.num];else UI.f.a[d.num]=+v;}
   if(e.target.id==="regq"){UI.f={q:e.target.value};const y=window.scrollY;render();const i=$("#regq");i.focus();i.setSelectionRange(i.value.length,i.value.length);window.scrollTo(0,y);}});
 document.addEventListener("change",e=>{const el=e.target,d=el.dataset;
   if(el.id==="lang"){lang=S.lang=el.value;save();render();}
-  if(el.id==="role"){const [r,id]=el.value.split("|");S.sess={role:r,id:id||null};save();go(r==="admin"?"admin":"due");}
+  if(el.id==="role"&&S.mode==="example"){const [r,id]=el.value.split("|");S.sess={role:r,id:id||null};save();go(r==="admin"?"admin":"due");}
   if(d.num&&UI.view==="visit")keep();
-  if(d.cfg){const path=d.cfg.split("."),v=+el.value;if(isNaN(v))return;let o=S.cfg;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;save();const y=window.scrollY;render();window.scrollTo(0,y);}});
+  if(d.cfg){const path=d.cfg.split("."),v=+el.value;if(isNaN(v))return;let o=S.cfg;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;save();pushCfg();const y=window.scrollY;render();window.scrollTo(0,y);}});
 addEventListener("online",()=>{renderBar();sync();});addEventListener("offline",renderBar);
 
 /* ---------- language download (needs a connection once, then cached) ---------- */
@@ -862,7 +920,8 @@ async function getLang(name){
 /* ---------- start ---------- */
 (async()=>{
   await load();
-  if(S.sess.role!=="admin"&&!by("staff",S.sess.id))S.sess={role:"admin",id:null};
+  if(S.mode==="live"&&S.auth&&S.auth.worker){S.sess={role:S.auth.worker.role==="admin"?"admin":S.auth.worker.role,id:S.auth.worker.id};LOCKED=!!S.auth.token;} // ask for the PIN each time the app opens
+  else if(S.mode==="example"&&S.sess.role!=="admin"&&!by("staff",S.sess.id))S.sess={role:"chw",id:"s_chw0"};
   UI.view=S.sess.role==="admin"?"admin":"due";
   obs.observe(document.getElementById("app"),{childList:true});
   render();

@@ -2,7 +2,7 @@
 
 Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and Care Group Volunteers (CGVs) in CBIO+ programs. Kenya is the first country configuration.
 
-**Status: training build.** Records are stored on each tablet only. There are no worker logins and no syncing between tablets yet. Do not enter real families' data until the server stage is complete and the data protection requirements are settled.
+**Status: pilot build 0.2.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
 
 ## What it does
 
@@ -36,15 +36,35 @@ Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and
 
 ## Example data
 
-The app opens with generated example data: 8 CHW areas, 96 CGVs and 1,152 households. Care Group 8 is set up as a newly censused area with no visits. Example records are rebuilt at each start and never stored. **Settings → Remove example data** clears them; workers are then added under **Workers** in the administrator view.
+Choose **Try it with example data** on the opening screen: 8 CHW areas, 96 CGVs and 1,152 households. Care Group 8 is set up as a newly censused area with no visits. Example records are rebuilt at each start, never stored and never sent to the server.
+
+## Server setup (once)
+
+1. In Supabase, open **SQL Editor**, paste the whole of [`server/setup.sql`](server/setup.sql) and run it. It can be run again safely.
+2. Open the app, choose **First-time setup (administrator only)**, and create the administrator. This works once; do it straight after step 1.
+3. As administrator, open **Workers** and add each CHW, then her Care Group Volunteers, giving each a sign-in name and a PIN of 6 or more digits.
+
+The project URL and publishable key are set near the top of the script in `index.html` (`SERVER`). Both are public values. The secret key and database password are never used by the app.
+
+## How signing in and syncing work
+
+- The first sign-in on a tablet needs a connection. After that the app opens offline and asks for the PIN each time.
+- Records are saved on the tablet first and sent when a connection is available. The newest edit of a record wins.
+- The app never touches database tables directly. Every table is locked by Row Level Security; the app calls functions that check the session and the worker's scope.
+- Five wrong PINs lock a worker for 15 minutes. The administrator can set a new PIN.
+- Signing out removes that worker's records from the tablet. Records not yet sent are lost, and the app warns first.
+- **Try it with example data** on the opening screen runs the generated example (8 CHW areas, 1,152 households) and never contacts the server.
+
+## Testing
+
+`server/setup.sql` and the app were tested end to end against an in-process PostgreSQL that imitates the Supabase function interface: several simulated tablets, scope checks, offline entry and later sync. They have not yet been exercised by an independent reviewer.
 
 ## Next stage
 
-- Managed database, worker logins with PINs, and syncing between tablets
-- Access limited to each worker's own households
-- SMS alert to the CHW when a CGV records a danger sign
-- Additional languages
-- Review of the Swahili text by a native speaker, and of the model parameters against the current Lives Saved Tool
+- SMS alert to the CHW when a volunteer records a danger sign
+- Additional languages, and review of the Swahili text by a native speaker
+- Review of the model parameters against the current Lives Saved Tool
+- Independent security review; hosting that meets Kenya's data protection rules
 
 ## Sources for the Kenya defaults
 
