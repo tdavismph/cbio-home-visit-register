@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1c6aa8">
+<title>CBIO+ Home Visit Register</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap">
+<style>
+html{color-scheme:light}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: one-column field tool. Sticky role bar, task list first, large touch targets for a 7-10 inch tablet. */
+:root{
+  --bg:#eef3f1; --surface:#ffffff; --sunk:#e3ebe8; --ink:#14302b; --muted:#566b66; --line:#cdd9d5;
+  --accent:#1c6aa8; --accent-ink:#ffffff; --good:#23794d; --warn:#9a6200; --bad:#b3261e;
+  --good-bg:#dff1e6; --warn-bg:#fbeccb; --bad-bg:#f9dedb; --info-bg:#dcebf7;
+  --font:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1917; --surface:#182522; --sunk:#22312d; --ink:#e6efec; --muted:#9db0ab; --line:#33453f;
+  --accent:#6db4ea; --accent-ink:#06243a; --good:#6fd09a; --warn:#f0bd5c; --bad:#ff8f86;
+  --good-bg:#173625; --warn-bg:#3d2f10; --bad-bg:#45201d; --info-bg:#15303f; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0f1917; --surface:#182522; --sunk:#22312d; --ink:#e6efec; --muted:#9db0ab; --line:#33453f;
+  --accent:#6db4ea; --accent-ink:#06243a; --good:#6fd09a; --warn:#f0bd5c; --bad:#ff8f86;
+  --good-bg:#173625; --warn-bg:#3d2f10; --bad-bg:#45201d; --info-bg:#15303f; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-block:8px}
+.brand{font-weight:800;font-size:17px;margin-right:auto;min-width:0}
+.brand small{display:block;font-weight:600;font-size:12px;color:var(--muted)}
+nav{display:flex;gap:4px;overflow-x:auto;padding-block:6px}
+nav button{flex:none}
+main{padding-block:16px 64px;display:flex;flex-direction:column;gap:16px}
+h1{font-size:22px;margin:0;font-weight:800;text-wrap:balance}
+h2{font-size:17px;margin:0;font-weight:800;text-wrap:balance}
+h3{font-size:13px;margin:0;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:13px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{min-height:44px;padding:8px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);font-weight:700;cursor:pointer}
+button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.tab{border-color:transparent;background:transparent;color:var(--muted)}
+button.tab.on{background:var(--sunk);color:var(--ink)}
+button.link{border:0;background:none;color:var(--accent);padding:4px 0;min-height:0;text-align:left}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+select,input,textarea{min-height:44px;padding:8px 10px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);max-width:100%}
+textarea{width:100%;min-height:96px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.grow{flex:1 1 200px;min-width:0}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:13px;font-weight:700;background:var(--sunk)}
+.chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.warn{background:var(--warn-bg);color:var(--warn)}
+.chip.good{background:var(--good-bg);color:var(--good)} .chip.info{background:var(--info-bg);color:var(--accent)}
+.task{border-left:6px solid var(--line)} .task.p1{border-left-color:var(--bad)} .task.p2{border-left-color:var(--warn)} .task.p3{border-left-color:var(--good)}
+.q{display:flex;flex-direction:column;gap:8px;padding-block:12px;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0}
+.q label.t{font-weight:700}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{min-width:88px} .seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg.multi button{text-align:left;font-weight:600}
+.seg.multi button.on{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.seg.multi.neutral button.on{background:var(--info-bg);color:var(--accent);border-color:var(--accent)}
+.seg.multi button.none.on,.seg.multi.neutral button.none.on{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+.q.miss label.t{color:var(--bad)} .q.miss label.t::after{content:" *"}
+.big{font-size:34px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.n,th.n{text-align:right;white-space:nowrap}
+td input{min-height:34px;padding:4px 6px;width:84px}
+.meter{height:10px;background:var(--sunk);border-radius:5px;position:relative;min-width:110px}
+.meter i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--accent)}
+.meter b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.note{background:var(--info-bg);border-radius:var(--r);padding:10px 12px;font-size:14px}
+.note.warn{background:var(--warn-bg)} .note.bad{background:var(--bad-bg)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--good)} .dot.off{background:var(--warn)}
+.tap{min-height:120px;font-size:22px;width:100%}
+</style></head>
+<body>
+<div class="bar"><div class="wrap">
+  <div class="brand">CBIO+ Home Visit Register<small id="who"></small></div>
+  <span class="small" id="net"></span>
+  <select id="lang" aria-label="Language"></select>
+  <select id="role" aria-label="User"></select>
+</div><div class="wrap"><nav id="nav"></nav></div></div>
+<main class="wrap" id="app"></main>
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const TODAY=iso(new Date());
+const dn=s=>Math.round(Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10))/864e5);
+const addD=(s,n)=>{const d=new Date(Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10))+n*864e5);return d.toISOString().slice(0,10)};
+const diff=(a,b)=>dn(a)-dn(b);
+const uid=p=>p+"_"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const pct=(n,d)=>d?Math.round(100*n/d):null;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+/* ---------- country configuration (Kenya) ---------- */
+const DEFAULT_CFG={ver:9,country:"Kenya",
+ // Kenya routine schedule incl. the changes of 1 Nov 2025 (IPV2 at 9 months). Age in days.
+ vax:[["BCG",0],["OPV0",0],["OPV1",42],["PENTA1",42],["PCV1",42],["ROTA1",42],["OPV2",70],["PENTA2",70],["PCV2",70],["ROTA2",70],
+      ["OPV3",98],["PENTA3",98],["PCV3",98],["ROTA3",98],["IPV1",98],["MR1",274],["IPV2",274],["MR2",548]],
+ // 10 scheduled visits: [slot, anchor, offset days, window days]
+ slots:[["P1","reg",0,30],["P2","edd",-42,35],["N1","dob",1,2],["N3","dob",3,2],["N7","dob",7,5],["W6","dob",42,28],["W14","dob",98,42],["M6","dob",183,60],["M9","dob",274,90],["M18","dob",548,150]],
+ chwCovisit:["P2","N1"],
+ rates:{nmr:21,pn:15,mmr:355}, // per 1,000 live births; per 100,000 for mmr
+ yll:{undisc:88.9,disc:30.8}, sens:{lo:0.6,hi:1.2},
+ neo:{asphyxia:.316,preterm:.246,sepsis:.158,congenital:.138,ari:.067,tetanus:.009,diarrhoea:.003,other:.063},
+ pn:{pneumonia:.22,diarrhoea:.21,malaria:.08,measles:.02,hiv:.08,other:.39},
+ // [id, label, band, cause, effectiveness, affected fraction, baseline coverage, source, baseline is sourced?]
+ iv:[["sba","Skilled attendant at birth (neonatal resuscitation)","neo","asphyxia",.30,1,.893,"Lee 2011; baseline KDHS 2022",1],
+     ["fac","Facility delivery (clean birth practices)","neo","sepsis",.27,1,.881,"Blencowe 2011; baseline KDHS 2022",1],
+     ["td","Mother protected against tetanus (Td2+)","neo","tetanus",.94,1,.75,"Blencowe 2010; baseline KDHS 2022",1],
+     ["warm","Thermal care (dried, skin-to-skin, bath delayed)","neo","preterm",.20,1,.50,"LiST expert estimate; baseline assumed",0],
+     ["kmc","Kangaroo mother care for small babies","neo","preterm",.30,1,.10,"Mazumder 2019 (community KMC); baseline assumed",0],
+     ["chx","Chlorhexidine cord care","neo","sepsis",.23,1,.30,"Imdad 2013; African trials mixed; baseline assumed",0],
+     ["ebf_d","Exclusive breastfeeding 0-5 months (diarrhoea)","pn","diarrhoea",.78,.35,.599,"Lamberti 2011; baseline KDHS 2022",1],
+     ["ebf_p","Exclusive breastfeeding 0-5 months (pneumonia)","pn","pneumonia",.60,.35,.599,"Lamberti 2013; baseline KDHS 2022",1],
+     ["ors","ORS for diarrhoea","pn","diarrhoea",.93,1,.483,"Munos 2010; baseline KDHS 2022",1],
+     ["zinc","Zinc for diarrhoea","pn","diarrhoea",.23,1,.316,"Walker & Black 2010; baseline KDHS 2022 (ORS+zinc)",1],
+     ["pneu","Care and antibiotics for suspected pneumonia","pn","pneumonia",.70,1,.823,"Theodoratou 2010; baseline KDHS 2022 (care sought)",1],
+     ["itn","Child sleeps under an insecticide-treated net","pn","malaria",.55,1,.512,"Eisele 2010; baseline KDHS 2022",1],
+     ["mr1","Measles-rubella first dose","pn","measles",.85,1,.89,"Sudfeld 2010; baseline KDHS 2022",1],
+     ["rota","Rotavirus vaccine, full course","pn","diarrhoea",.135,1,.85,"Approximation; baseline assumed",0],
+     ["vita","Vitamin A in the last 6 months (6-23 months)","pn","diarrhoea",.12,.6,.636,"Imdad 2017; baseline KDHS 2022",1],
+     ["hw","Handwashing place with soap and water","pn","diarrhoea",.48,1,.535,"Cairncross 2010; baseline KDHS 2022",1]]};
+
+/* ---------- language ---------- */
+const SW={"Due list":"Orodha ya kazi","Register":"Rejesta","Referrals":"Rufaa","My results":"Matokeo yangu","Overview":"Muhtasari","Indicators":"Viashiria","Model":"Kielelezo","Settings":"Mipangilio",
+"Online":"Mtandaoni","Offline":"Nje ya mtandao","Sync now":"Sawazisha sasa","Not synced":"Hazijasawazishwa","records":"rekodi",
+"Administrator":"Msimamizi","Yes":"Ndiyo","No":"Hapana","Save":"Hifadhi","Cancel":"Ghairi","Back":"Rudi","Open":"Fungua","Start visit":"Anza ziara",
+"Urgent":"Dharura","Needs attention":"Yanahitaji ufuatiliaji","Overdue":"Imechelewa","Due":"Inatakiwa","Nothing is due. All households are up to date.":"Hakuna kazi inayosubiri. Kaya zote ziko sawa.",
+"Example data. These are not real people.":"Data ya mfano. Hawa si watu halisi.","Remove example data":"Ondoa data ya mfano",
+"Households":"Kaya","Household":"Kaya","Add household":"Ongeza kaya","Village":"Kijiji","Head of household":"Mkuu wa kaya","Name":"Jina","Age (years)":"Umri (miaka)",
+"Add pregnant woman":"Ongeza mama mjamzito","Add child under 24 months":"Ongeza mtoto chini ya miezi 24","Expected date of delivery":"Tarehe ya kutarajia kujifungua",
+"Date of birth":"Tarehe ya kuzaliwa","Sex":"Jinsia","Girl":"Msichana","Boy":"Mvulana","Mother's name":"Jina la mama","Pregnant":"Mjamzito","Child":"Mtoto","Mother":"Mama",
+"Record birth":"Andika kuzaliwa","Record death":"Andika kifo","Date":"Tarehe","Place":"Mahali","Health facility":"Kituo cha afya","Home":"Nyumbani","On the way":"Njiani","Other":"Nyingine",
+"Outcome":"Matokeo","Live birth":"Amezaliwa hai","Stillbirth":"Amezaliwa mfu","Skilled attendant (nurse, midwife, doctor)":"Mhudumu mwenye ujuzi (muuguzi, mkunga, daktari)",
+"Birth weight (grams), if known":"Uzito wa kuzaliwa (gramu), kama unajulikana","Put to the breast within 1 hour":"Alinyonyeshwa ndani ya saa 1",
+"Chlorhexidine applied to the cord":"Chlorhexidine ilipakwa kwenye kitovu","Dried, kept skin-to-skin, not bathed in first 24 hours":"Alikaushwa, akawekwa ngozi kwa ngozi, hakuogeshwa saa 24 za kwanza",
+"Baby is small (under 2,500 g or born early)":"Mtoto ni mdogo (chini ya g 2,500 au amezaliwa kabla ya wakati)",
+"Visit":"Ziara","Census: new household":"Sensa: kaya mpya","First CHW visit":"Ziara ya kwanza ya CHW","Sick on census day":"Alikuwa mgonjwa siku ya sensa","First week of life":"Wiki ya kwanza ya maisha","Under 1 month":"Chini ya mwezi 1","Small baby":"Mtoto mdogo","No vaccine yet":"Bado hajapata chanjo","Due within 4 weeks":"Atajifungua ndani ya wiki 4","First pregnancy":"Mimba ya kwanza","Age under 18 or 35 and over":"Umri chini ya 18 au 35 na zaidi","No antenatal care yet":"Bado hajaanza kliniki","Earlier child death in household":"Kifo cha mtoto kilichotangulia katika kaya","Far from health facility":"Mbali na kituo cha afya","Care Group Volunteer for this household":"Mjitolea wa Care Group wa kaya hii","People living in the household (all ages)":"Watu wanaoishi katika kaya (umri wote)","Women aged 15 to 49":"Wanawake wa miaka 15 hadi 49","More than 1 hour to reach the health facility":"Zaidi ya saa 1 kufika kituo cha afya","Pregnant women and children under 24 months":"Wajawazito na watoto chini ya miezi 24","Has started antenatal care":"Ameanza kliniki ya wajawazito","Born small or early":"Alizaliwa mdogo au kabla ya wakati","Child is sick today":"Mtoto ni mgonjwa leo","Has received at least one vaccine":"Amepata angalau chanjo moja","Births and deaths in the last 5 years":"Uzazi na vifo katika miaka 5 iliyopita","Explain that this helps prevent other deaths. Offer condolences. The family may pause at any time.":"Eleza kwamba hii inasaidia kuzuia vifo vingine. Toa pole. Familia inaweza kupumzika wakati wowote.","Children born alive in this household in the last 5 years":"Watoto waliozaliwa hai katika kaya hii miaka 5 iliyopita","Babies born dead (stillbirths) in the last 5 years":"Watoto waliozaliwa wafu miaka 5 iliyopita","Women who died while pregnant, in childbirth or within 6 weeks after, in the last 5 years":"Wanawake waliofariki wakiwa wajawazito, wakijifungua au ndani ya wiki 6 baadaye, miaka 5 iliyopita","Child who died":"Mtoto aliyefariki","Age at death in completed months (0 if under 1 month)":"Umri wa kufariki kwa miezi kamili (0 kama chini ya mwezi 1)","If under 1 month: age in days":"Kama chini ya mwezi 1: umri kwa siku","What the family believes caused the death":"Familia inaamini nini kilisababisha kifo","Fast or difficult breathing in the last days":"Kupumua haraka au kwa shida siku za mwisho","Diarrhoea in the last days":"Kuharisha siku za mwisho","Fever in the last days":"Homa siku za mwisho","Interviewer's suspected causes (3 or fewer)":"Visababishi anavyoshuku mhoji (3 au pungufu)","Child born alive who died in the last 5 years":"Mtoto aliyezaliwa hai aliyefariki miaka 5 iliyopita","Don't know":"Sijui","Enter the head of household.":"Andika mkuu wa kaya.","None of the above":"Hakuna kati ya hizi","Answer every question that has a list. Choose None of the above if nothing applies.":"Jibu kila swali lenye orodha. Chagua Hakuna kati ya hizi kama hakuna linalohusika.","Healthy practices in my households":"Mienendo ya afya katika kaya zangu","My households":"Kaya zangu","CHW area":"Eneo la CHW","The vertical mark is the average for the whole CHW area. A dash means no household has been asked yet.":"Alama ya wima ni wastani wa eneo zima la CHW. Kistari kinamaanisha hakuna kaya iliyoulizwa bado.","Gave birth in a health facility":"Alijifungulia kituo cha afya","Breastfed within 1 hour of birth":"Alinyonyeshwa ndani ya saa 1 baada ya kuzaliwa","Newborn kept warm, skin-to-skin":"Mtoto mchanga aliwekwa joto, ngozi kwa ngozi","Only breast milk in the first 6 months":"Maziwa ya mama pekee miezi 6 ya kwanza","Child sleeps under a treated net":"Mtoto analala ndani ya chandarua chenye dawa","ORS given for diarrhoea":"ORS ilitolewa kwa kuharisha","Zinc given for diarrhoea":"Zinki ilitolewa kwa kuharisha","Care sought for cough with fast breathing":"Huduma ilitafutwa kwa kikohozi na kupumua haraka","Vaccines up to date":"Chanjo zimekamilika kwa umri","Safe drinking water":"Maji salama ya kunywa","Every 2 weeks":"Kila wiki 2","10 scheduled visits":"Ziara 10 zilizopangwa","Next visit":"Ziara ijayo","Home visit":"Ziara ya nyumbani","items":"vipengele","about":"takriban","min":"dak","Ask for CHW support":"Omba msaada wa CHW",
+"CHW support requested":"Msaada wa CHW umeombwa","Danger signs. Refer now.":"Dalili za hatari. Peleka rufaa sasa.","Refer to health facility":"Peleka kituo cha afya",
+"Pregnancy visit 1":"Ziara ya ujauzito 1","Pregnancy visit 2 (birth plan)":"Ziara ya ujauzito 2 (mpango wa kujifungua)","Newborn day 1-2":"Mtoto mchanga siku 1-2","Newborn day 3":"Mtoto mchanga siku ya 3","Newborn day 7":"Mtoto mchanga siku ya 7",
+"6 weeks":"Wiki 6","14 weeks":"Wiki 14","6 months":"Miezi 6","9 months":"Miezi 9","18 months":"Miezi 18","Follow-up visit":"Ziara ya ufuatiliaji",
+"Danger signs in pregnancy (tick any present)":"Dalili za hatari wakati wa ujauzito (chagua zilizopo)","Vaginal bleeding":"Kutoka damu ukeni","Severe headache or blurred vision":"Kichwa kuuma sana au kuona ukungu",
+"Convulsions":"Degedege","Fever":"Homa","Swelling of face or hands":"Kuvimba uso au mikono","Baby moving less or not moving":"Mtoto anacheza kidogo au hachezi","Waters broke":"Chupa imepasuka","Severe abdominal pain":"Maumivu makali ya tumbo",
+"Antenatal contacts so far (from the card)":"Mahudhurio ya kliniki ya wajawazito hadi sasa (kutoka kadi)","Took iron-folic acid yesterday":"Alimeza madini ya chuma na foliki jana",
+"Tetanus (Td) doses on the card":"Dozi za pepopunda (Td) kwenye kadi","Slept under a treated net last night":"Alilala ndani ya chandarua chenye dawa jana usiku","HIV test done in this pregnancy (card)":"Kipimo cha VVU kimefanyika ujauzito huu (kadi)",
+"Birth plan (tick what is ready)":"Mpango wa kujifungua (chagua vilivyo tayari)","Facility chosen":"Kituo kimechaguliwa","Transport arranged":"Usafiri umepangwa","Money saved":"Pesa zimewekwa","Companion identified":"Msindikizaji amepatikana",
+"Woman can name 3 danger signs":"Mama anaweza kutaja dalili 3 za hatari","Woman's MUAC (cm)":"MUAC ya mama (sm)","Handwashing place with soap and water seen":"Mahali pa kunawa mikono penye sabuni na maji pameonekana",
+"Drinking water is treated or from a safe source":"Maji ya kunywa yametibiwa au yanatoka chanzo salama","Household uses a latrine":"Kaya inatumia choo",
+"Blood pressure: upper number":"Shinikizo la damu: namba ya juu","Blood pressure: lower number":"Shinikizo la damu: namba ya chini",
+"Newborn danger signs (tick any present)":"Dalili za hatari kwa mtoto mchanga (chagua zilizopo)","Not feeding well":"Hanyonyi vizuri","Fast breathing (60 or more per minute)":"Anapumua haraka (60 au zaidi kwa dakika)",
+"Severe chest in-drawing":"Kifua kinabonyea sana","Feels hot (fever)":"Ana joto (homa)","Feels cold":"Ana baridi","Moves only when stimulated or not at all":"Anajisogeza tu akiguswa au hajisogezi kabisa",
+"Yellow palms or soles":"Viganja au nyayo za manjano","Umbilicus red or draining pus":"Kitovu chekundu au kinatoa usaha",
+"Mother danger signs (tick any present)":"Dalili za hatari kwa mama (chagua zilizopo)","Heavy bleeding":"Kutoka damu nyingi","Fever or chills":"Homa au baridi kali","Foul-smelling discharge":"Uchafu wenye harufu mbaya",
+"Severe headache or convulsions":"Kichwa kuuma sana au degedege","Painful, hot or swollen breast":"Titi lenye maumivu, joto au uvimbe","Feeling very sad or unable to care for baby":"Huzuni kubwa au kushindwa kumtunza mtoto",
+"Only breast milk in the last 24 hours":"Maziwa ya mama pekee saa 24 zilizopita","What is on the cord?":"Kitovu kimepakwa nini?","Chlorhexidine":"Chlorhexidine","Nothing (kept dry)":"Hakuna (kikavu)","Other substance":"Kitu kingine",
+"Baby kept warm, skin-to-skin":"Mtoto anawekwa joto, ngozi kwa ngozi","Kangaroo care most of the day and night":"Malezi ya kangaroo muda mwingi mchana na usiku",
+"Mother and baby checked by a health worker within 48 hours of birth":"Mama na mtoto walikaguliwa na mhudumu wa afya ndani ya saa 48 baada ya kuzaliwa",
+"Baby slept under a treated net last night":"Mtoto alilala ndani ya chandarua chenye dawa jana usiku","Weight (grams)":"Uzito (gramu)","Temperature (°C)":"Joto la mwili (°C)","Breaths per minute":"Pumzi kwa dakika",
+"Count breaths":"Hesabu pumzi","Tap once for each breath":"Gusa mara moja kwa kila pumzi","seconds left":"sekunde zimebaki",
+"Child danger signs (tick any present)":"Dalili za hatari kwa mtoto (chagua zilizopo)","Cannot drink or breastfeed":"Hawezi kunywa wala kunyonya","Vomits everything":"Anatapika kila kitu",
+"Unusually sleepy or unconscious":"Analala kupita kiasi au amepoteza fahamu","Fast or difficult breathing":"Anapumua haraka au kwa shida","Chest in-drawing":"Kifua kinabonyea","Fever for 7 days or more":"Homa kwa siku 7 au zaidi",
+"Blood in stool":"Damu kwenye kinyesi","Diarrhoea for 14 days or more":"Kuharisha kwa siku 14 au zaidi","Swelling of both feet":"Kuvimba miguu yote miwili",
+"Vaccines on the card (tick each one given)":"Chanjo kwenye kadi (chagua kila iliyotolewa)","Illness in the last 2 weeks":"Ugonjwa katika wiki 2 zilizopita","Diarrhoea":"Kuharisha",
+"Cough with fast or difficult breathing":"Kikohozi na kupumua haraka au kwa shida","Given ORS":"Alipewa ORS","Given zinc":"Alipewa zinki",
+"Taken to a health worker and given an antibiotic":"Alipelekwa kwa mhudumu wa afya na kupewa antibiotiki","Tested for malaria the same or next day":"Alipimwa malaria siku hiyo au iliyofuata",
+"Mother uses a modern family planning method":"Mama anatumia njia ya kisasa ya uzazi wa mpango","Child's MUAC (cm)":"MUAC ya mtoto (sm)","Started soft foods at 6 months":"Alianza vyakula laini akiwa na miezi 6",
+"Food groups eaten yesterday (0-8)":"Makundi ya vyakula aliyokula jana (0-8)","Still breastfeeding":"Bado ananyonya","Vitamin A in the last 6 months (card)":"Vitamini A katika miezi 6 iliyopita (kadi)",
+"Treatment given":"Matibabu yaliyotolewa","ORS and zinc":"ORS na zinki","Amoxicillin":"Amoxicillin","Malaria treatment after positive test":"Dawa ya malaria baada ya kipimo chanya","None":"Hakuna",
+"Open referrals":"Rufaa zilizo wazi","Reason":"Sababu","Confirm arrival at facility":"Thibitisha kufika kituoni","Record counter-referral":"Andika rufaa ya kurudi","Diagnosis":"Utambuzi","Treatment and instructions":"Matibabu na maelekezo",
+"Follow-up home visit date":"Tarehe ya ziara ya ufuatiliaji","Family declined":"Familia imekataa","Referred":"Amepewa rufaa","Arrived":"Amefika","Completed":"Imekamilika","Declined":"Imekataliwa",
+"Referral not yet completed":"Rufaa haijakamilika","Follow-up after referral":"Ufuatiliaji baada ya rufaa","Verbal autopsy needed":"Mahojiano ya kifo yanahitajika","Verbal autopsy":"Mahojiano kuhusu kifo",
+"Vaccine overdue":"Chanjo imechelewa","Zero-dose child":"Mtoto hajapata chanjo yoyote","Antenatal care behind schedule":"Kliniki ya wajawazito iko nyuma ya ratiba","Tetanus protection incomplete":"Kinga ya pepopunda haijakamilika",
+"Past due date, birth not recorded":"Tarehe ya kujifungua imepita, kuzaliwa hakujaandikwa","No birth plan":"Hakuna mpango wa kujifungua","Small baby: extra visits":"Mtoto mdogo: ziara za ziada","Low MUAC":"MUAC ya chini","Severe acute malnutrition":"Utapiamlo mkali",
+"High blood pressure":"Shinikizo la damu la juu","Clinical co-visit":"Ziara ya pamoja ya kitabibu",
+"Lives saved (modelled)":"Maisha yaliyookolewa (makadirio)","range":"kiwango","DALYs averted":"DALY zilizoepushwa","Children under 24 months":"Watoto chini ya miezi 24","Pregnant women":"Wajawazito",
+"Visits on time":"Ziara kwa wakati","Live births":"Waliozaliwa hai","Deaths":"Vifo","Coverage":"Kiwango cha huduma","Baseline":"Msingi","Now":"Sasa",
+"Language":"Lugha","Add a language":"Ongeza lugha","Download":"Pakua","Type a language name":"Andika jina la lugha","Languages on this tablet":"Lugha zilizo kwenye kibao hiki",
+"Person who answered":"Aliyejibu","Relationship":"Uhusiano","Place of death":"Mahali pa kifo","Relative's house":"Nyumba ya ndugu","Hospital":"Hospitali","Clinic":"Zahanati",
+"What happened, from the first sign of illness until the death":"Nini kilitokea, tangu dalili ya kwanza ya ugonjwa hadi kifo","Delay in recognising the problem":"Kuchelewa kutambua tatizo",
+"Delay in deciding to seek care":"Kuchelewa kuamua kutafuta huduma","Delay in reaching a health facility":"Kuchelewa kufika kituo cha afya","Delay in receiving care at the facility":"Kuchelewa kupata huduma kituoni",
+"Reasons for delay in reaching the facility":"Sababu za kuchelewa kufika kituoni","Distance":"Umbali","Money":"Pesa","Did not know where to go":"Hawakujua pa kwenda","Problems with facility staff":"Matatizo na wahudumu wa kituo",
+"Problems with home care or follow-up after treatment":"Matatizo ya huduma ya nyumbani au ufuatiliaji baada ya matibabu","Probable cause":"Chanzo kinachowezekana","Notes on each delay":"Maelezo kuhusu kila ucheleweshaji"};
+let LANGS={en:{name:"English",d:{}},sw:{name:"Kiswahili",d:SW}};
+let lang="en";
+const t=s=>(LANGS[lang]&&LANGS[lang].d[s])||s;
+
+/* ---------- storage ---------- */
+const KEY="cbio_reg_v3";
+let S={hh:[],w:[],c:[],v:[],r:[],d:[],staff:[],cen:[],cfg:JSON.parse(JSON.stringify(DEFAULT_CFG)),sess:{role:"chv",id:null},lang:"en",demoOn:true};
+let VIX=null; // index of visits by person and by household
+const TYPES=["hh","w","c","v","r","d","staff","cen"];
+const IDB={db:null,
+  open(){return new Promise(res=>{try{const r=indexedDB.open("cbio-register",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>{IDB.db=r.result;res(true);};r.onerror=()=>res(false);}catch(e){res(false);}});},
+  get(k){return new Promise(res=>{if(!IDB.db){try{return res(JSON.parse(localStorage.getItem(KEY+"_"+k)));}catch(e){return res(null);}}
+    try{const r=IDB.db.transaction("kv").objectStore("kv").get(k);r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null);}catch(e){res(null);}});},
+  set(k,v){if(!IDB.db){try{localStorage.setItem(KEY+"_"+k,JSON.stringify(v));}catch(e){}return;}try{IDB.db.transaction("kv","readwrite").objectStore("kv").put(v,k);}catch(e){}}};
+async function load(){await IDB.open();const j=await IDB.get("state");if(j&&j.cfg&&j.cfg.ver===DEFAULT_CFG.ver)S=j;
+  const L=await IDB.get("langs")||{};for(const k in L)LANGS[k]=L[k];
+  lang=LANGS[S.lang]?S.lang:"en";for(const ty of TYPES)S[ty]=S[ty]||[];
+  if(S.demoOn!==false){const keep={};for(const ty of TYPES){keep[ty]=S[ty]||[];S[ty]=[];}demo(); // example records are rebuilt at each start, not stored
+    for(const ty of TYPES)for(const r of keep[ty]){const i=S[ty].findIndex(x=>x.id===r.id);if(i<0)S[ty].push(r);else S[ty][i]=r;}VIX=null;}}
+function save(){const o=Object.assign({},S);for(const ty of TYPES)o[ty]=S[ty].filter(r=>!r.demo);IDB.set("state",JSON.parse(JSON.stringify(o)));}
+function put(type,rec){rec.u=Date.now();if(rec.demo){rec.demo=false;rec.ex=true;}if(S.demoOn!==false)rec.ex=true;rec.dirty=!rec.ex;VIX=null;
+  const a=S[type],i=a.findIndex(x=>x.id===rec.id);if(i<0)a.push(rec);else a[i]=rec;save();return rec;}
+const by=(type,id)=>S[type].find(x=>x.id===id);
+
+/* ---------- sync (shared store, when signed in and online) ---------- */
+let db=null,syncMsg="";
+async function initCaps(){try{if(window.claude&&window.claude.use){db=await window.claude.use("db");renderBar();if(db&&navigator.onLine)sync();}}catch(e){}}
+async function sync(){
+  if(!db||!navigator.onLine){syncMsg=t("Offline");renderBar();return;}
+  syncMsg="…";renderBar();
+  try{
+    for(const ty of TYPES)for(const r of S[ty])if(r.dirty&&!r.demo){await db.doc("records/"+r.id).set({ty,u:r.u,j:JSON.stringify(Object.assign({},r,{dirty:false}))});r.dirty=false;}
+    const snap=await db.collection("records").limit(1000).get();
+    for(const d of snap.docs){const b=d.data();if(!b||!TYPES.includes(b.ty))continue;let r;try{r=JSON.parse(b.j);}catch(e){continue;}
+      const a=S[b.ty],i=a.findIndex(x=>x.id===r.id);if(i<0)a.push(r);else if((a[i].u||0)<(r.u||0))a[i]=r;}
+    VIX=null;save();syncMsg="✓";render();
+  }catch(e){syncMsg="!";renderBar();}
+}
+const dirtyN=()=>TYPES.reduce((n,ty)=>n+S[ty].filter(r=>r.dirty&&!r.demo).length,0);
+
+/* ---------- visit questions ---------- */
+const PD=["Vaginal bleeding","Severe headache or blurred vision","Convulsions","Fever","Swelling of face or hands","Baby moving less or not moving","Waters broke","Severe abdominal pain"];
+const MD=["Heavy bleeding","Fever or chills","Foul-smelling discharge","Severe headache or convulsions","Painful, hot or swollen breast","Feeling very sad or unable to care for baby"];
+const ND=["Not feeding well","Convulsions","Fast breathing (60 or more per minute)","Severe chest in-drawing","Feels hot (fever)","Feels cold","Moves only when stimulated or not at all","Yellow palms or soles","Umbilicus red or draining pus"];
+const CD=["Cannot drink or breastfeed","Vomits everything","Convulsions","Unusually sleepy or unconscious","Fast or difficult breathing","Chest in-drawing","Fever for 7 days or more","Blood in stool","Diarrhoea for 14 days or more","Swelling of both feet"];
+const NB=["N1","N3","N7"],INF=["W6","W14","M6","M9","M18"],PR=["P1","P2"];
+// id, type, label, slots, role ('chv' = both tiers ask it, 'chw' = CHW only), options, condition
+const QS=[
+ ["p_danger","multi","Danger signs in pregnancy (tick any present)",PR,"chv",PD],
+ ["p_anc","num","Antenatal contacts so far (from the card)",PR,"chv"],
+ ["p_ifa","yn","Took iron-folic acid yesterday",PR,"chv"],
+ ["p_td","num","Tetanus (Td) doses on the card",PR,"chv"],
+ ["p_itn","yn","Slept under a treated net last night",PR,"chv"],
+ ["p_hiv","yn","HIV test done in this pregnancy (card)",["P1"],"chv"],
+ ["p_plan","multi","Birth plan (tick what is ready)",["P2"],"chv",["Facility chosen","Transport arranged","Money saved","Companion identified"],null,1],
+ ["p_knows","yn","Woman can name 3 danger signs",PR,"chv"],
+ ["p_muac","num","Woman's MUAC (cm)",["P1"],"chv"],
+ ["hh_hw","yn","Handwashing place with soap and water seen",["P1","N7","M6","M18"],"chv"],
+ ["hh_water","yn","Drinking water is treated or from a safe source",["P1","M6"],"chv"],
+ ["hh_lat","yn","Household uses a latrine",["P1","M6","M18"],"chv"],
+ ["p_sys","num","Blood pressure: upper number",["P2","FW"],"chw"],
+ ["p_dia","num","Blood pressure: lower number",["P2","FW"],"chw"],
+ ["n_danger","multi","Newborn danger signs (tick any present)",NB,"chv",ND],
+ ["m_danger","multi","Mother danger signs (tick any present)",["N1","N3","N7","W6"],"chv",MD],
+ ["n_ebf","yn","Only breast milk in the last 24 hours",["N1","N3","N7","W6","W14"],"chv"],
+ ["n_cord","pick","What is on the cord?",NB,"chv",["Chlorhexidine","Nothing (kept dry)","Other substance"]],
+ ["n_warm","yn","Baby kept warm, skin-to-skin",["N1","N3"],"chv"],
+ ["n_kmc","yn","Kangaroo care most of the day and night",NB,"chv",null,(a,s)=>s&&s.small],
+ ["n_pnc","yn","Mother and baby checked by a health worker within 48 hours of birth",["N3"],"chv"],
+ ["n_wt","num","Weight (grams)",["N1","FC"],"chw"],
+ ["n_temp","num","Temperature (°C)",["N1","FC"],"chw"],
+ ["n_rr","rr","Breaths per minute",["N1","FC"],"chw"],
+ ["c_danger","multi","Child danger signs (tick any present)",INF.concat("FC"),"chv",CD],
+ ["c_vax","vax","Vaccines on the card (tick each one given)",["N7"].concat(INF),"chv"],
+ ["c_ill","multi","Illness in the last 2 weeks",INF,"chv",["Diarrhoea","Cough with fast or difficult breathing","Fever"],null,1],
+ ["c_ors","yn","Given ORS",INF,"chv",null,a=>(a.c_ill||[]).includes(0)],
+ ["c_zinc","yn","Given zinc",INF,"chv",null,a=>(a.c_ill||[]).includes(0)],
+ ["c_pneu","yn","Taken to a health worker and given an antibiotic",INF,"chv",null,a=>(a.c_ill||[]).includes(1)],
+ ["c_mal","yn","Tested for malaria the same or next day",INF,"chv",null,a=>(a.c_ill||[]).includes(2)],
+ ["n_itn","yn","Baby slept under a treated net last night",["N7","W14","M6","M9","M18"],"chv"],
+ ["c_fp","yn","Mother uses a modern family planning method",INF,"chv"],
+ ["c_muac","num","Child's MUAC (cm)",["M6","M9","M18","FC"],"chv"],
+ ["c_cf","yn","Started soft foods at 6 months",["M6"],"chv"],
+ ["c_mdd","num","Food groups eaten yesterday (0-8)",["M9","M18"],"chv"],
+ ["c_bf","yn","Still breastfeeding",["M9","M18"],"chv"],
+ ["c_vita","yn","Vitamin A in the last 6 months (card)",["M9","M18"],"chv"],
+ ["x_tx","multi","Treatment given",["FC"],"chw",["ORS and zinc","Amoxicillin","Malaria treatment after positive test"],null,1]
+].map(q=>({id:q[0],ty:q[1],label:q[2],slots:q[3],role:q[4],opts:q[5],cond:q[6],neutral:q[7]}));
+const SLOTNAME={P1:"Pregnancy visit 1",P2:"Pregnancy visit 2 (birth plan)",N1:"Newborn day 1-2",N3:"Newborn day 3",N7:"Newborn day 7",W6:"6 weeks",W14:"14 weeks",M6:"6 months",M9:"9 months",M18:"18 months",FW:"Follow-up visit",FC:"Follow-up visit"};
+function questions(slot,role,a,subj){return QS.filter(q=>q.slots.includes(slot)&&(q.role==="chv"||role==="chw")&&(!q.cond||q.cond(a,subj)));}
+
+/* ---------- people, schedule, tasks ---------- */
+const subj=(kind,id)=>by(kind==="w"?"w":"c",id);
+function vix(){if(!VIX){VIX={s:{},h:{}};for(const v of S.v){(VIX.s[v.subj]=VIX.s[v.subj]||[]).push(v);(VIX.h[v.hhId]=VIX.h[v.hhId]||[]).push(v);}
+  const o=(a,b)=>a.date<b.date?-1:a.date>b.date?1:0;for(const k in VIX.s)VIX.s[k].sort(o);for(const k in VIX.h)VIX.h[k].sort(o);}return VIX;}
+const visitsOf=id=>vix().s[id]||[];
+function last(id,q){const vs=visitsOf(id);for(let i=vs.length-1;i>=0;i--)if(vs[i].a[q]!==undefined)return vs[i].a[q];}
+function hhLast(hhId,q){const vs=vix().h[hhId]||[];for(let i=vs.length-1;i>=0;i--)if(vs[i].a[q]!==undefined)return vs[i].a[q];}
+const ageD=c=>diff(c.death||TODAY,c.dob);
+const active=p=>!p.death&&!p.out;
+function sched(kind,p){ // -> [{slot,due,win,done}]
+  return S.cfg.slots.filter(s=>(kind==="w"?s[1]!=="dob":s[1]==="dob")&&(s[1]==="reg"?p.reg:s[1]==="edd"?p.edd:p.dob)).map(s=>{
+    const anchor=s[1]==="reg"?p.reg:s[1]==="edd"?p.edd:p.dob;const due=addD(anchor,s[2]);
+    const done=visitsOf(p.id).find(v=>v.slot===s[0]&&v.role==="chw");return {slot:s[0],due,win:s[3],done};});
+}
+const TRACK=()=>S.sess.role==="chv"?"fort":"ten"; // Care Group Volunteers visit every 2 weeks; the CHW makes the 10 scheduled visits
+function stageAt(kind,p,date){if(kind==="w")return 280-diff(p.edd,date)>=224?"P2":"P1";const a=diff(date,p.dob);
+  return a<3?"N1":a<6?"N3":a<28?"N7":a<70?"W6":a<183?"W14":a<274?"M6":a<548?"M9":"M18";}
+function nextSlot(kind,p,track){
+  if(kind==="w"&&!p.preg)return null;
+  if((track||TRACK())==="fort"){
+    if(kind==="c"&&ageD(p)>=730)return null;
+    const vs=visitsOf(p.id).filter(v=>v.role==="chv");
+    return {slot:stageAt(kind,p,TODAY),due:vs.length?addD(vs[vs.length-1].date,14):p.reg,win:14,fn:1};
+  }
+  if(kind==="c"&&diff(p.reg,p.dob)>2&&ageD(p)<730&&!visitsOf(p.id).some(v=>v.role==="chw"))return {slot:stageAt(kind,p,TODAY),due:p.reg,win:60,first:1}; // enrolled by census: first CHW visit
+  for(const s of sched(kind,p)){if(s.done)continue;if(kind==="c"&&dn(s.due)<dn(p.reg)-s.win)continue;
+    if(diff(TODAY,s.due)>s.win)continue;return s;}
+  return null;
+}
+const cardSeen=c=>Object.keys(c.vax||{}).length>0||visitsOf(c.id).some(v=>v.a.c_vax!==undefined);
+function risk(kind,p){ // start-up priority: higher score is visited first. Weights follow relative risk of death; they are judgments, not a fitted model.
+  const h=by("hh",p.hhId)||{},R=[];let s=0;const add=(n,l)=>{s+=n;R.push(l);};
+  if(kind==="c"){const a=ageD(p);if(a<7)add(60,"First week of life");else if(a<28)add(50,"Under 1 month");else s+=a<183?25:a<365?12:5;
+    if(p.small&&a<183)add(25,"Small baby");if(p.cSick&&!visitsOf(p.id).some(v=>v.role==="chw"))s+=70;if(p.cNoVax)add(15,"No vaccine yet");}
+  else{const ga=280-diff(p.edd,TODAY);if(ga>=252)add(40,"Due within 4 weeks");else s+=ga>=196?20:8;
+    if(p.cFirst)add(10,"First pregnancy");if(p.age&&(p.age<18||p.age>=35))add(10,"Age under 18 or 35 and over");if(p.cNoAnc)add(15,"No antenatal care yet");}
+  if(S.r.some(r=>r.subj===p.id&&r.st==="open"))s+=80;const lv=visitsOf(p.id).slice(-1)[0];if(lv&&lv.support&&!lv.supportDone)s+=80;
+  if(h.prevDeath)add(15,"Earlier child death in household");if(h.far)add(10,"Far from health facility");
+  return {s,R};}
+function tasks(kind,p,role){ // -> [{pri,txt,cls,act}]
+  const T=[];if(!active(p))return T;
+  const refs=S.r.filter(r=>r.subj===p.id);
+  for(const r of refs){
+    if(r.st==="open")T.push({pri:1,txt:t("Referral not yet completed")+": "+r.reason,cls:"bad"});
+    if(r.st==="done"&&r.fu&&!r.fuDone&&diff(TODAY,r.fu)>=-1)T.push({pri:1,txt:t("Follow-up after referral"),cls:"bad",fu:r.id});
+  }
+  const lv=visitsOf(p.id).slice(-1)[0];
+  if(lv&&lv.support&&!lv.supportDone)T.push({pri:1,txt:t("CHW support requested"),cls:"bad",sup:lv.id});
+  const ns=nextSlot(kind,p);
+  if(p.cSick&&!visitsOf(p.id).some(v=>v.role==="chw"))T.push({pri:1,txt:t("Sick on census day"),cls:"bad"});
+  if(ns){const late=diff(TODAY,ns.due),lim=ns.first?14:3;
+    if(late>=-(ns.fn?3:14)){const nb=kind==="c"&&ageD(p)<28&&!ns.fn; // visits in the first month are time-critical
+      T.push({pri:nb?1:late>lim?2:3,txt:(late>lim?t("Overdue"):t("Due"))+": "+t(ns.first?"First CHW visit":ns.fn?"Home visit":SLOTNAME[ns.slot]),cls:nb?"bad":late>lim?"warn":"good",slot:ns.slot});}}
+  if(kind==="w"&&p.preg){
+    const ga=280-diff(p.edd,TODAY),exp=[84,140,182,210,238,252,266,280].filter(x=>x<=ga).length,anc=last(p.id,"p_anc")??p.anc??0;
+    if(anc<exp-1)T.push({pri:2,txt:t("Antenatal care behind schedule")+" ("+anc+"/"+exp+")",cls:"warn"});
+    if(ga>=196&&(last(p.id,"p_td")??0)<2)T.push({pri:2,txt:t("Tetanus protection incomplete"),cls:"warn"});
+    if(diff(p.edd,TODAY)<=14&&!((last(p.id,"p_plan")||[]).length>=2))T.push({pri:2,txt:t("No birth plan"),cls:"warn"});
+    if(diff(TODAY,p.edd)>7)T.push({pri:1,txt:t("Past due date, birth not recorded"),cls:"bad"});
+    const sy=last(p.id,"p_sys"),di=last(p.id,"p_dia");if(sy>=140||di>=90)T.push({pri:1,txt:t("High blood pressure")+" "+sy+"/"+di,cls:"bad"});
+  }
+  if(kind==="c"){const a=ageD(p);
+    const od=S.cfg.vax.filter(x=>a>x[1]+14&&!(p.vax||{})[x[0]]).map(x=>x[0]);
+    const seen=cardSeen(p);
+    if(a>70&&((seen&&!(p.vax||{}).PENTA1)||(!seen&&p.cNoVax)))T.push({pri:1,txt:t("Zero-dose child"),cls:"bad"});
+    else if(seen&&od.length)T.push({pri:2,txt:t("Vaccine overdue")+": "+od.slice(0,4).join(", ")+(od.length>4?" +"+(od.length-4):""),cls:"warn"});
+    if(p.small&&a<28)T.push({pri:2,txt:t("Small baby: extra visits"),cls:"warn"});
+    const m=last(p.id,"c_muac");if(m!==undefined&&a>=180){if(m<11.5)T.push({pri:1,txt:t("Severe acute malnutrition")+" (MUAC "+m+")",cls:"bad"});else if(m<12.5)T.push({pri:2,txt:t("Low MUAC")+" ("+m+")",cls:"warn"});}
+  }
+  return T.sort((a,b)=>a.pri-b.pri);
+}
+function myHH(){const s=S.sess;if(s.role==="chv")return S.hh.filter(h=>h.chvId===s.id);
+  if(s.role==="chw"){const ids=S.staff.filter(x=>x.chwId===s.id).map(x=>x.id).concat(s.id);return S.hh.filter(h=>ids.includes(h.chvId));}return S.hh;}
+function people(hhs){const ids=new Set(hhs.map(h=>h.id));return {W:S.w.filter(w=>ids.has(w.hhId)),C:S.c.filter(c=>ids.has(c.hhId)),H:hhs};}
+
+/* ---------- indicators and model ---------- */
+function coverage(P){ // measured coverage for each modelled intervention: {id:[num,den]}
+  const {W,C,H}=P,o={},births=C.filter(c=>c.place);
+  const share=(arr,f)=>[arr.filter(f).length,arr.length];
+  o.sba=share(births,c=>c.sba);o.fac=share(births,c=>c.place==="f");o.warm=share(births,c=>c.warm);o.chx=share(births,c=>c.chx);
+  const sm=births.filter(c=>c.small);o.kmc=share(sm.filter(c=>last(c.id,"n_kmc")!==undefined),c=>last(c.id,"n_kmc")===1);
+  o.td=share(births.filter(c=>c.mTd!==undefined),c=>c.mTd>=2);
+  const cid=new Set(C.map(c=>c.id)),V=S.v.filter(v=>cid.has(v.subj));
+  const ans=(q,f)=>{const a=V.filter(v=>v.a[q]!==undefined&&(!f||f(v)));return [a.filter(v=>v.a[q]===1).length,a.length];};
+  o.ebf_d=o.ebf_p=ans("n_ebf");o.ors=ans("c_ors");o.zinc=ans("c_zinc");o.pneu=ans("c_pneu");
+  const lastYN=(arr,q)=>{const a=arr.filter(c=>last(c.id,q)!==undefined);return [a.filter(c=>last(c.id,q)===1).length,a.length];};
+  o.itn=lastYN(C,"n_itn");o.vita=lastYN(C.filter(c=>ageD(c)>=183),"c_vita");
+  o.mr1=share(C.filter(c=>ageD(c)>=305&&cardSeen(c)),c=>(c.vax||{}).MR1);o.rota=share(C.filter(c=>ageD(c)>=126&&cardSeen(c)),c=>(c.vax||{}).ROTA3);
+  const hh=H.filter(h=>hhLast(h.id,"hh_hw")!==undefined);o.hw=[hh.filter(h=>hhLast(h.id,"hh_hw")===1).length,hh.length];
+  return o;
+}
+function exposure(C){ // expected baseline deaths, from person-time observed while registered
+  let neo=0,pn=0;
+  for(const c of C){if(!c.dob)continue;const end=c.death||TODAY,st=c.reg>c.dob?c.reg:c.dob;
+    const a0=diff(st,c.dob),a1=Math.min(diff(end,c.dob),730);
+    neo+=Math.max(0,Math.min(a1,28)-Math.min(a0,28))/28;
+    pn+=Math.max(0,a1-Math.max(a0,28))/702;}
+  return {neo,pn,eNeo:neo*S.cfg.rates.nmr/1000,ePn:pn*S.cfg.rates.pn/1000};
+}
+function model(P,mult){ // LiST-style: cause-specific reduction = 1 - prod(1 - e*af*(p-b)/(1-e*af*b))
+  mult=mult||1;const cov=coverage(P),ex=exposure(P.C),cfg=S.cfg,red={neo:{},pn:{}},parts=[];
+  for(const iv of cfg.iv){const [id,label,band,cause,e0,af,b]=iv,c=cov[id]||[0,0],p=c[1]?c[0]/c[1]:b,e=clamp(e0*mult,0,.99);
+    const x=clamp(e*af*(p-b)/(1-e*af*b),-.99,.99);
+    (red[band][cause]=red[band][cause]||[]).push({id,x});parts.push({id,label,band,cause,p,b,n:c[1],x});}
+  let total=0,per1000=0;
+  for(const band of ["neo","pn"]){const E=band==="neo"?ex.eNeo:ex.ePn,rate=band==="neo"?cfg.rates.nmr:cfg.rates.pn;
+    for(const cause in red[band]){const R=1-red[band][cause].reduce((m,i)=>m*(1-i.x),1),f=cfg[band][cause]||0;
+      total+=E*f*R;per1000+=rate*f*R;
+      const ln=red[band][cause].reduce((s,i)=>s+Math.log(1-i.x),0);
+      for(const i of red[band][cause]){const pt=parts.find(q=>q.id===i.id);pt.lives=ln?E*f*R*Math.log(1-i.x)/ln:0;}}}
+  return {lives:total,per1000,parts,ex,cov};
+}
+function lives(P){const m=model(P),lo=model(P,S.cfg.sens.lo).lives,hi=model(P,S.cfg.sens.hi).lives;return Object.assign(m,{lo:Math.min(lo,hi),hi:Math.max(lo,hi)});}
+function onTime(P,track){let n=0,d=0;
+  const ten=(k,p)=>{for(const s of sched(k,p)){if(dn(s.due)>dn(TODAY))continue;if(k==="c"&&dn(s.due)<dn(p.reg))continue;if(k==="w"&&!p.preg&&!s.done)continue;
+    if(p.death&&dn(s.due)>dn(p.death))continue;d++;if(s.done&&diff(s.done.date,s.due)<=s.win)n++;}};
+  const fo=(k,p)=>{if(k==="w"&&!p.edd)return;const s0=k==="c"&&p.dob>p.reg?p.dob:p.reg,w0=addD(TODAY,-182),st=s0>w0?s0:w0,en=p.death||(k==="w"&&!p.preg?p.del||TODAY:k==="c"&&ageD(p)>730?addD(p.dob,730):TODAY);
+    if(en<st)return;const e=Math.floor(diff(en,st)/14)+1,m=visitsOf(p.id).filter(v=>v.role==="chv"&&v.date>=st&&v.date<=en).length;d+=e;n+=Math.min(m,e);}; // fortnightly visits, last 6 months
+  for(const [k,arr] of [["w",P.W],["c",P.C]])for(const p of arr){if(track!=="fort")ten(k,p);if(track!=="ten")fo(k,p);}
+  return [n,d];}
+function indicators(P){
+  const {W,C,H}=P,cov=coverage(P),births=C.filter(c=>c.place),I=[];
+  const add=(g,label,nd,base)=>I.push({g,label,n:nd[0],d:nd[1],base});
+  const bl=id=>{const iv=S.cfg.iv.find(x=>x[0]===id);return iv?iv[6]:undefined;};
+  const sh=(arr,f)=>[arr.filter(f).length,arr.length];
+  add("Pregnancy and birth","4 or more antenatal contacts",sh(births.filter(c=>c.mAnc!==undefined),c=>c.mAnc>=4));
+  add("Pregnancy and birth","Mother protected against tetanus (Td2+)",cov.td,bl("td"));
+  add("Pregnancy and birth","Delivery in a health facility",cov.fac,bl("fac"));
+  add("Pregnancy and birth","Skilled attendant at birth",cov.sba,bl("sba"));
+  add("First month","Breastfed within 1 hour of birth",sh(births,c=>c.eibf));
+  add("First month","Thermal care at birth",cov.warm,bl("warm"));
+  add("First month","Chlorhexidine cord care",cov.chx,bl("chx"));
+  add("First month","Home visit within 2 days of birth",sh(births.filter(c=>c.reg<=addD(c.dob,2)),c=>visitsOf(c.id).some(v=>v.slot==="N1"&&diff(v.date,c.dob)<=2)));
+  add("First month","Three home visits in the first week",sh(births.filter(c=>c.reg<=addD(c.dob,2)&&ageD(c)>=12),c=>["N1","N3","N7"].every(s=>visitsOf(c.id).some(v=>v.slot===s))));
+  add("First month","Exclusive breastfeeding (visits under 6 months)",cov.ebf_d,bl("ebf_d"));
+  const v=c=>c.vax||{};
+  add("Immunization","BCG",sh(C.filter(c=>ageD(c)>=14&&cardSeen(c)),c=>v(c).BCG));
+  add("Immunization","Pentavalent 3 (children 4 months and older)",sh(C.filter(c=>ageD(c)>=126&&cardSeen(c)),c=>v(c).PENTA3));
+  add("Immunization","Measles-rubella 1 (children 10 months and older)",cov.mr1,bl("mr1"));
+  add("Immunization","Zero-dose (no pentavalent 1 by 10 weeks)",sh(C.filter(c=>ageD(c)>70&&(cardSeen(c)||c.cNoVax)),c=>!v(c).PENTA1));
+  add("Immunization","Fully immunized for age",sh(C.filter(c=>ageD(c)>=14&&cardSeen(c)),c=>S.cfg.vax.every(x=>ageD(c)<=x[1]+14||v(c)[x[0]])));
+  add("Sick child care","ORS for diarrhoea",cov.ors,bl("ors"));add("Sick child care","Zinc for diarrhoea",cov.zinc,bl("zinc"));
+  add("Sick child care","Care and antibiotic for suspected pneumonia",cov.pneu,bl("pneu"));
+  const cid=new Set(C.map(c=>c.id)),mv=S.v.filter(x=>cid.has(x.subj)&&x.a.c_mal!==undefined);add("Sick child care","Malaria test for fever, same or next day",[mv.filter(x=>x.a.c_mal===1).length,mv.length]);
+  add("Household behaviors","Child slept under a treated net",cov.itn,bl("itn"));
+  add("Household behaviors","Handwashing place with soap and water",cov.hw,bl("hw"));
+  const hw=H.filter(h=>hhLast(h.id,"hh_water")!==undefined);add("Household behaviors","Safe drinking water",[hw.filter(h=>hhLast(h.id,"hh_water")===1).length,hw.length]);
+  add("Nutrition","Vitamin A in the last 6 months (6-23 months)",cov.vita,bl("vita"));
+  const md=C.filter(c=>last(c.id,"c_mdd")!==undefined);add("Nutrition","Minimum dietary diversity (5 of 8 food groups)",[md.filter(c=>last(c.id,"c_mdd")>=5).length,md.length]);
+  const mu=C.filter(c=>last(c.id,"c_muac")!==undefined);add("Nutrition","MUAC under 12.5 cm (6-23 months)",[mu.filter(c=>last(c.id,"c_muac")<12.5).length,mu.length]);
+  const fp=C.filter(c=>last(c.id,"c_fp")!==undefined);add("Family planning","Mothers using a modern method",[fp.filter(c=>last(c.id,"c_fp")===1).length,fp.length]);
+  const ids=new Set(C.map(c=>c.id).concat(W.map(w=>w.id))),R=S.r.filter(r=>ids.has(r.subj));
+  add("System","Referrals that reached the facility",[R.filter(r=>r.st==="arrived"||r.st==="done").length,R.length]);
+  add("System","Scheduled visits made on time",onTime(P));
+  return I;
+}
+function mortality(P){const {W,C}=P,lb=C.filter(c=>c.place&&c.reg<=addD(c.dob,28)).length,sb=W.filter(w=>w.sb).length;
+  const dead=C.filter(c=>c.death),neo=dead.filter(c=>ageD(c)<28).length,inf=dead.filter(c=>ageD(c)<365).length,mat=W.filter(w=>w.death).length;
+  return {lb,sb,neo,inf,all:dead.length,mat,ex:exposure(C)};}
+
+/* ---------- demo data (clearly marked examples) ---------- */
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let x=Math.imul(seed^seed>>>15,1|seed);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296;};}
+function demo(){
+  const R=rng(7),ch=p=>R()<p?1:0,pick=a=>a[Math.floor(R()*a.length)];
+  const fn=["Kerubo","Moraa","Nyaboke","Bosibori","Kemunto","Gesare","Mokeira","Nyanchama","Bonareri","Kwamboka","Nyakerario","Monyangi"],ln=["Ongeri","Nyamweya","Mogaka","Ombati","Onsongo","Makori","Nyangau","Obiri","Moturi","Onchiri"];
+  const bn=["Brian","Faith","Kevin","Mercy","Dennis","Joy","Victor","Grace","Evans","Lilian","Amos","Naomi"],vil=["Nyakoe","Mosocho","Bobaracho","Nyatieko","Kiogoro","Itibo","Matongo","Raganga","Keumbu","Suneka","Nyosia","Bogiakumu"];
+  const D=o=>Object.assign(o,{demo:true,u:1});
+  const W0=addD(TODAY,-182),later=(x,y)=>x>y?x:y;let k=0;
+  for(let ar=0;ar<8;ar++){const cw=D({id:"s_chw"+ar,role:"chw",name:["Agnes Moraa","Peter Ombati","Jane Kemunto","Samuel Nyangau","Ruth Bosibori","David Mogaka","Esther Gesare","Joseph Makori"][ar],cg:ar+1,village:vil[ar]});S.staff.push(cw);
+  for(let ci=0;ci<12;ci++){const cv=D({id:"s_chv"+ar+ci.toString(36),role:"chv",name:pick(fn)+" "+pick(ln),chwId:cw.id,cg:ar+1,village:vil[ar]+" "+(ci+1)});S.staff.push(cv);
+    for(let h=0;h<12;h++){k++;const fresh=ar===7,hh=D({id:"h_d"+k,chvId:cv.id,village:cv.village,head:pick(fn)+" "+pick(ln),far:ch(.2)});S.hh.push(hh);
+      {const lb5=1+Math.floor(R()*2.2),deaths=[];for(let b=0;b<lb5;b++)if(R()<.043){const r=R(),m=r<.51?0:r<.78?1+Math.floor(R()*11):12+Math.floor(R()*48);deaths.push({sex:pick(["f","m"]),ageM:m,days:m?null:Math.floor(R()*R()*27),place:pick(["Home","Home","Hospital"]),br:ch(.4)?0:1,di:ch(.3)?0:1,fe:ch(.5)?0:1,cause:[m?pick(["Pneumonia","Diarrhoea","Malaria","Malnutrition"]):pick(["Complications of early birth","Complicated delivery","Other"])]});}
+        hh.pop=3+Math.floor(R()*5);hh.prevDeath=deaths.length?1:0;S.cen.push(D({id:"n_d"+k,hhId:hh.id,date:addD(TODAY,fresh?-5:-400),by:cw.id,pop:hh.pop,wra:1+ch(.25),lb5,sb5:R()<.03?1:0,mat5:R()<.004?1:0,deaths}));}
+      const mName=pick(fn)+" "+pick(ln),mid="w_d"+k,who=r=>r==="chw"?cw.id:cv.id;
+      if(h>1&&R()<.2){ // pregnant woman
+        const edd=addD(TODAY,Math.floor(R()*200)-8),reg0=addD(edd,-Math.floor(120+R()*80));
+        const w=D({id:mid,hhId:hh.id,name:mName,age:18+Math.floor(R()*20),preg:true,edd,reg:reg0>TODAY?addD(TODAY,-20):reg0,anc:1});S.w.push(w);
+        if(fresh){w.reg=addD(TODAY,-(3+h%5));w.cFirst=ch(.3);w.cNoAnc=ch(.3);w.anc=w.cNoAnc?0:1;continue;}
+        const pa=(slot,dt,role)=>{const ga=280-diff(edd,dt),anc=Math.max(0,[84,140,182,210,238,252,266,280].filter(x=>x<=ga).length-(R()<.1?2:R()<.3?1:0));
+          const a={p_danger:R()<.02?[1]:[],p_anc:anc,p_ifa:ch(.82),p_td:ga>196?1+ch(.8):Math.floor(R()*3),p_itn:ch(.78),p_knows:ch(slot==="P2"?.85:.6)};
+          if(slot==="P1")Object.assign(a,{p_hiv:ch(.95),p_muac:22+Math.round(R()*80)/10,hh_hw:ch(.7),hh_water:ch(.75),hh_lat:ch(.9)});
+          else{a.p_plan=[0,1,2,3].filter(()=>R()<.7);if(role==="chw"){a.p_sys=105+Math.floor(R()*40);a.p_dia=65+Math.floor(R()*26);}}
+          visit("w",w,slot,dt,who(role),role,a);};
+        for(let dt=later(w.reg,W0);diff(TODAY,dt)>4;dt=addD(dt,14))if(R()<.88)pa(stageAt("w",w,dt),dt,"chv");
+        pa("P1",w.reg,"chw");if(diff(TODAY,addD(edd,-42))>12&&R()<.8)pa("P2",addD(edd,-40),"chw");
+      }else{
+        const age=h===0?2+ci*9:h===1?44+ci*31:Math.floor(R()*700)+1,dob=addD(TODAY,-age),late=h>1&&R()<.25,reg=late?addD(dob,Math.floor(R()*Math.min(age,200))):addD(dob,-90);
+        if(fresh){const ag=h===0?3+ci%4:h===1?12+ci:age,db=addD(TODAY,-ag),rg=addD(TODAY,-(3+h%5));S.w.push(D({id:mid,hhId:hh.id,name:mName,preg:false,reg:rg,del:db}));
+          S.c.push(D({id:"c_d"+k,hhId:hh.id,mId:mid,name:pick(bn),sex:pick(["f","m"]),dob:db,reg:rg>db?rg:db,small:ch(.1),cSick:ch(.05),cNoVax:ch(.08),vax:{}}));continue;}
+        let dd=null;if(h>1&&!late){const r=R();if(r<.023&&age>1)dd=addD(dob,Math.min(age-1,Math.floor(R()*R()*27)));else if(age>35&&r<.023+.015*Math.min(1,(age-28)/702))dd=addD(dob,28+Math.floor(R()*(age-29)));}
+        const life=dd?diff(dd,dob):age;
+        S.w.push(D({id:mid,hhId:hh.id,name:mName,age:18+Math.floor(R()*20),preg:false,reg,del:dob}));
+        const fac=ch(.93),c=D({id:"c_d"+k,hhId:hh.id,mId:mid,name:pick(bn),sex:pick(["f","m"]),dob,reg:reg<dob?dob:reg,place:fac?"f":"h",sba:fac||ch(.2),eibf:ch(.82),chx:ch(.7),warm:ch(.85),small:ch(.1),ebfT:ch(.8),mTd:ch(.9)?2:1,mAnc:2+Math.floor(R()*6),vax:{}});
+        if(c.small)c.bw=1800+Math.floor(R()*650);
+        for(const x of S.cfg.vax)if(life>x[1]+5&&R()<(x[1]>200?.92:.985))c.vax[x[0]]=addD(dob,x[1]+Math.floor(R()*10));
+        S.c.push(c);
+        if(dd){c.death=dd;S.d.push(D({id:"d_d"+k,subj:c.id,kind:"c",date:dd,place:pick(["Home","Home","Hospital","Clinic"]),va:R()<.8?{who:"Mother",cause:life<28?pick(["Preterm or small baby","Birth asphyxia","Sepsis or other infection"]):pick(["Pneumonia","Diarrhoea","Malaria","Sepsis or other infection"]),delays:[ch(.5),ch(.45),ch(.3),ch(.15)],narr:"Example record."}:undefined}));}
+        const mk=(slot,dt,role)=>{const ill=[0,1,2].filter(()=>R()<.12),a={};
+          for(const q of QS){if(!q.slots.includes(slot)||q.role==="chw")continue;
+            if(q.id==="c_ill")a.c_ill=ill;else if(q.ty==="multi")a[q.id]=q.neutral?[0,1,2,3].filter(()=>R()<.6):(R()<.004?[0]:[]);
+            else if(q.id==="c_muac")a.c_muac=Math.round((12.1+R()*3)*10)/10;else if(q.id==="c_mdd")a.c_mdd=2+Math.floor(R()*5);
+            else if(q.id==="n_cord")a.n_cord=c.chx?0:1+ch(.3);else if(q.ty==="yn"){if(q.cond&&!q.cond(a,c))continue;a[q.id]=ch({n_ebf:c.ebfT?.985:.25,hh_lat:.9,hh_water:.78,n_itn:.82,c_ors:.85,c_zinc:.7,c_pneu:.9,hh_hw:.74,c_fp:.6,c_vita:.82}[q.id]||.8);}}
+          if(role==="chw"&&slot==="N1"){a.n_wt=c.bw||2600+Math.floor(R()*1200);a.n_temp=Math.round((36.3+R()*.9)*10)/10;a.n_rr=38+Math.floor(R()*18);}
+          visit("c",c,slot,dt,who(role),role,a);};
+        for(let dt=later(c.reg,W0);diff(TODAY,dt)>4&&(!dd||dt<dd);dt=addD(dt,14))if(R()<.88)mk(stageAt("c",c,dt),dt,"chv");
+        for(const sl of S.cfg.slots){if(sl[1]!=="dob")continue;const due=addD(dob,sl[2]);if(due>TODAY||due<c.reg||(dd&&due>=dd)||R()>.88||(diff(TODAY,due)<14&&R()<.75))continue;mk(sl[0],addD(due,Math.min(Math.floor(R()*3),diff(TODAY,due))),"chw");}
+      }
+    }}}
+  // example referrals at different stages
+  const cs=S.c.filter(c=>!c.death),RS=["Fast or difficult breathing","Not feeding well","Fever for 7 days or more","Severe acute malnutrition","Cannot drink or breastfeed"];
+  for(let i=5,n=0;i<cs.length;i+=41,n++){const c=cs[i],st=["open","done","arrived","done","open","done"][n%6];
+    S.r.push(D({id:"r_d"+n,subj:c.id,kind:"c",hhId:c.hhId,date:addD(TODAY,-(1+n%9)),reason:RS[n%5],by:"s_chw0",st,dx:st==="done"?"Pneumonia":"",tx:st==="done"?"Amoxicillin 5 days":"",fu:st==="done"?addD(TODAY,n%3):""}));}
+  function visit(kind,p,slot,date,byId,role,a){S.v.push(D({id:"v_"+p.id+slot+date.replace(/-/g,"")+role[2],subj:p.id,kind,hhId:p.hhId,slot,date,by:byId,role,a}));}
+  VIX=null;if(S.sess.role!=="admin"&&!S.staff.some(x=>x.id===S.sess.id))S.sess={role:"chw",id:"s_chw0"};
+}
+
+/* ---------- UI state and rendering ---------- */
+let UI={view:"due",f:null};
+const go=(view,f)=>{UI={view,f:f||null};render();window.scrollTo(0,0);};
+function renderBar(){
+  const s=S.sess,me=by("staff",s.id);
+  $("#who").textContent=s.role==="admin"?t("Administrator"):me?((s.role==="chv"?"CGV":"CHW")+" · "+me.name+(me.cg?" · Care Group "+me.cg:"")+" · "+t(s.role==="chv"?"Every 2 weeks":"10 scheduled visits")):"";
+  const on=navigator.onLine,n=dirtyN();
+  $("#net").innerHTML='<span class="dot'+(on?"":" off")+'"></span> '+esc(on?t("Online"):t("Offline"))+(n?" · "+n+" "+esc(t("Not synced")):"")+(db&&on?' <button class="link" data-act="sync">'+esc(t("Sync now"))+" "+esc(syncMsg)+"</button>":"");
+  $("#lang").innerHTML=Object.keys(LANGS).map(k=>'<option value="'+esc(k)+'"'+(k===lang?" selected":"")+">"+esc(LANGS[k].name)+"</option>").join("");
+  $("#role").innerHTML='<option value="admin|"'+(s.role==="admin"?" selected":"")+">"+esc(t("Administrator"))+"</option>"+
+    S.staff.filter(x=>x.role==="chw").map(w=>'<optgroup label="Care Group '+(w.cg||"")+'"><option value="chw|'+w.id+'"'+(s.id===w.id?" selected":"")+">CHW · "+esc(w.name)+"</option>"+
+      S.staff.filter(x=>x.chwId===w.id).map(v=>'<option value="chv|'+v.id+'"'+(s.id===v.id?" selected":"")+">CGV · "+esc(v.name)+"</option>").join("")+"</optgroup>").join("");
+  const tabs=s.role==="admin"?[["admin","Overview"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
+    [["due","Due list"],["reg","Register"],["refs","Referrals"],["dash","My results"],["set","Settings"]];
+  $("#nav").innerHTML=tabs.map(x=>'<button class="tab'+(UI.view===x[0]?" on":"")+'" data-go="'+x[0]+'">'+esc(t(x[1]))+"</button>").join("");
+}
+function render(){
+  renderBar();const s=S.sess;
+  if(s.role==="admin"&&["due","dash"].includes(UI.view))UI.view="admin";
+  if(s.role!=="admin"&&["admin","ind","model","staff"].includes(UI.view))UI.view="due";
+  const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff};
+  const banner=S.demoOn!==false?'<div class="note warn row"><span class="grow">'+esc(t("Example data. These are not real people."))+'</span><button data-act="cleardemo">'+esc(t("Remove example data"))+"</button></div>":"";
+  $("#app").innerHTML=banner+(V[UI.view]||vDue)();
+}
+const nameOf=(kind,p)=>esc(p.name||"?")+' <span class="muted small">'+(kind==="w"?esc(p.preg?t("Pregnant"):t("Mother")):esc(ageTxt(p)))+"</span>";
+function ageTxt(c){const a=ageD(c);return a<60?a+" d":Math.floor(a/30.44)+" mo";}
+
+function vDue(){
+  const P=people(myHH()),role=S.sess.role,rows=[];
+  const one=(kind,p)=>{let T=tasks(kind,p,role);
+    if(T.length)rows.push({kind,p,T,rk:risk(kind,p)});};
+  P.W.forEach(w=>one("w",w));P.C.forEach(c=>one("c",c));
+  if(role==="chw")S.d.filter(d=>!d.va&&P.C.concat(P.W).some(p=>p.id===d.subj)).forEach(d=>rows.push({kind:d.kind,p:subj(d.kind,d.subj),T:[{pri:1,txt:t("Verbal autopsy needed"),cls:"bad",va:d.id}],dead:1,rk:{s:0,R:[]}}));
+  rows.sort((a,b)=>a.T[0].pri-b.T[0].pri||b.rk.s-a.rk.s);
+  const cnt=[1,2,3].map(p=>rows.filter(r=>r.T[0].pri===p).length);
+  return '<div class="row"><h1 class="grow">'+esc(t("Due list"))+'</h1><span class="chip bad">'+cnt[0]+" "+esc(t("Urgent"))+'</span><span class="chip warn">'+cnt[1]+" "+esc(t("Needs attention"))+'</span><span class="chip good">'+cnt[2]+" "+esc(t("Due"))+"</span></div>"+
+  (rows.length?rows.map(r=>{const hh=by("hh",r.p.hhId),sl=r.T.find(x=>x.slot),va=r.T.find(x=>x.va);
+    return '<div class="card task p'+r.T[0].pri+'"><div class="row"><div class="grow"><b>'+nameOf(r.kind,r.p)+'</b><div class="small muted">'+esc(hh?hh.village+" · "+hh.head:"")+"</div></div>"+
+    (va?'<button class="pri" data-act="va" data-id="'+va.va+'">'+esc(t("Verbal autopsy"))+"</button>":
+     sl?'<button class="pri" data-act="visit" data-kind="'+r.kind+'" data-id="'+r.p.id+'" data-slot="'+sl.slot+'">'+esc(t("Start visit"))+"</button>":
+     '<button data-act="person" data-kind="'+r.kind+'" data-id="'+r.p.id+'">'+esc(t("Open"))+"</button>")+
+    '</div><div class="row">'+r.T.map(x=>'<span class="chip '+x.cls+'">'+esc(x.txt)+"</span>").join("")+r.rk.R.filter(x=>!r.T.some(y=>y.txt.startsWith(t(x)))).map(x=>'<span class="chip">'+esc(t(x))+"</span>").join("")+"</div></div>";}).join("")
+  :'<div class="card"><p>'+esc(t("Nothing is due. All households are up to date."))+"</p></div>");
+}
+function vReg(){
+  const hhs=myHH(),q=(UI.f&&UI.f.q||"").toLowerCase();
+  return '<div class="row"><h1 class="grow">'+esc(t("Register"))+" <span class='muted small'>"+hhs.length+" "+esc(t("Households"))+"</span></h1>"+(S.sess.role!=="admin"?'<button class="pri" data-act="census">'+esc(t("Census: new household"))+"</button>":"")+"</div>"+
+  '<input id="regq" placeholder="'+esc(t("Name"))+" / "+esc(t("Village"))+'" value="'+esc(q)+'">'+
+  hhs.filter(h=>!q||(h.village+h.head+S.w.filter(w=>w.hhId===h.id).map(w=>w.name).join()+S.c.filter(c=>c.hhId===h.id).map(c=>c.name).join()).toLowerCase().includes(q)).slice(0,60).map(h=>{
+    const ws=S.w.filter(w=>w.hhId===h.id),cs=S.c.filter(c=>c.hhId===h.id);
+    return '<div class="card"><div class="row"><div class="grow"><b>'+esc(h.head)+'</b> <span class="muted small">'+esc(h.village)+"</span></div>"+
+    (S.sess.role!=="admin"?'<button data-act="addp" data-hh="'+h.id+'" data-kind="w">+ '+esc(t("Pregnant"))+'</button><button data-act="addp" data-hh="'+h.id+'" data-kind="c">+ '+esc(t("Child"))+"</button>":"")+"</div>"+
+    ws.concat(cs).map(p=>{const k=p.dob?"c":"w";return '<button class="link" data-act="person" data-kind="'+k+'" data-id="'+p.id+'">'+nameOf(k,p)+(p.death?' <span class="chip">†</span>':"")+"</button>";}).join("")+"</div>";}).join("");
+}
+function vPerson(){
+  const {kind,id}=UI.f,p=subj(kind,id);if(!p)return "";const hh=by("hh",p.hhId),T=tasks(kind,p),vs=visitsOf(id),ro=S.sess.role;
+  let h='<button class="link" data-go="reg">← '+esc(t("Register"))+'</button><div class="card"><h1>'+nameOf(kind,p)+'</h1><p class="muted">'+esc(hh.village+" · "+hh.head)+"</p>";
+  if(kind==="w"&&p.preg)h+="<p>"+esc(t("Expected date of delivery"))+": <b>"+p.edd+"</b></p>";
+  if(kind==="c")h+="<p>"+esc(t("Date of birth"))+": <b>"+p.dob+"</b>"+(p.bw?" · "+p.bw+" g":"")+"</p>";
+  h+='<div class="row">'+T.map(x=>'<span class="chip '+x.cls+'">'+esc(x.txt)+"</span>").join("")+"</div>";
+  if(active(p)&&ro!=="admin"){const ns=nextSlot(kind,p);h+='<div class="row">'+
+    (ns&&diff(TODAY,ns.due)>=-(ns.fn?3:14)?'<button class="pri" data-act="visit" data-kind="'+kind+'" data-id="'+id+'" data-slot="'+ns.slot+'">'+esc(t("Start visit"))+(ns.fn?"":": "+esc(t(SLOTNAME[ns.slot])))+"</button>":ns?'<span class="chip info">'+esc(t("Next visit"))+": "+esc(t(SLOTNAME[ns.slot]))+" · "+ns.due+"</span>":"")+
+    (ro==="chw"?'<button data-act="visit" data-kind="'+kind+'" data-id="'+id+'" data-slot="'+(kind==="w"?"FW":"FC")+'">'+esc(t("Follow-up visit"))+"</button>":"")+
+    (kind==="w"&&p.preg?'<button data-act="birth" data-id="'+id+'">'+esc(t("Record birth"))+"</button>":"")+
+    '<button data-act="refer" data-kind="'+kind+'" data-id="'+id+'">'+esc(t("Refer to health facility"))+'</button><button data-act="death" data-kind="'+kind+'" data-id="'+id+'">'+esc(t("Record death"))+"</button></div>";}
+  h+="</div>";
+  if(kind==="c"){h+='<div class="card"><h3>'+esc("Vaccines")+'</h3><div class="row">'+S.cfg.vax.map(x=>{const g=(p.vax||{})[x[0]],late=!g&&ageD(p)>x[1]+14;return '<span class="chip '+(g?"good":late?"warn":"")+'">'+x[0]+(g?" ✓":"")+"</span>";}).join("")+"</div></div>";}
+  h+='<div class="card"><h3>'+esc(t("Visit"))+'</h3><div class="tblwrap"><table>'+(S.sess.role==="chv"?vs.filter(v=>v.role==="chv").map(v=>"<tr><td>"+esc(t(SLOTNAME[v.slot]))+"</td><td>"+v.date+'</td><td><span class="chip good">✓</span></td></tr>').join(""):sched(kind,p).map(s=>"<tr><td>"+esc(t(SLOTNAME[s.slot]))+"</td><td>"+s.due+'</td><td>'+(s.done?'<span class="chip good">'+s.done.date+"</span>":diff(TODAY,s.due)>s.win?'<span class="chip">—</span>':"")+"</td></tr>").join(""))+
+    vs.filter(v=>v.slot[0]==="F").map(v=>"<tr><td>"+esc(t("Follow-up visit"))+"</td><td>"+v.date+"</td><td></td></tr>").join("")+"</table></div></div>";
+  return h;
+}
+/* ----- visit form ----- */
+function vVisit(){
+  const F=UI.f,p=subj(F.kind,F.id),role=S.sess.role,qs=questions(F.slot,role,F.a,p);
+  const mins=Math.max(1,Math.round(qs.length*0.6));
+  let h='<div class="card"><div class="row"><div class="grow"><h1>'+esc(t(SLOTNAME[F.slot]))+"</h1><p>"+nameOf(F.kind,p)+'</p></div><span class="chip info">'+qs.length+" "+esc(t("items"))+" · "+esc(t("about"))+" "+mins+" "+esc(t("min"))+'</span></div><div id="qs">'+qs.map(q=>qHtml(q,F,p)).join("")+"</div>";
+  const dz=danger(F,p);
+  if(dz.length)h+='<div class="note bad"><b>'+esc(t("Danger signs. Refer now."))+"</b> "+esc(dz.map(t).join("; "))+"</div>";
+  if(F.miss&&F.miss.some(id=>!Array.isArray(F.a[id])))h+='<div class="note warn">'+esc(t("Answer every question that has a list. Choose None of the above if nothing applies."))+"</div>";
+  if(role==="chv")h+='<div class="q"><div class="seg"><button data-ans="support" data-v="1" class="'+(F.a.support?"on":"")+'">'+esc(t("Ask for CHW support"))+"</button></div></div>";
+  return h+'<div class="row"><button class="pri" data-act="savevisit">'+esc(t("Save"))+'</button><button data-act="person" data-kind="'+F.kind+'" data-id="'+F.id+'">'+esc(t("Cancel"))+"</button></div></div>";
+}
+function qHtml(q,F,p){const a=F.a[q.id];let b="";
+  if(q.ty==="yn")b='<div class="seg"><button data-ans="'+q.id+'" data-v="1" class="'+(a===1?"on":"")+'">'+esc(t("Yes"))+'</button><button data-ans="'+q.id+'" data-v="0" class="'+(a===0?"on":"")+'">'+esc(t("No"))+"</button></div>";
+  else if(q.ty==="pick")b='<div class="seg">'+q.opts.map((o,i)=>'<button data-ans="'+q.id+'" data-v="'+i+'" class="'+(a===i?"on":"")+'">'+esc(t(o))+"</button>").join("")+"</div>";
+  else if(q.ty==="multi")b='<div class="seg multi'+(q.neutral?" neutral":"")+'">'+q.opts.map((o,i)=>'<button data-multi="'+q.id+'" data-v="'+i+'" class="'+((a||[]).includes(i)?"on":"")+'">'+esc(t(o))+"</button>").join("")+'<button data-none="'+q.id+'" class="none'+(Array.isArray(a)&&!a.length?" on":"")+'">'+esc(t("None of the above"))+"</button>"+"</div>";
+  else if(q.ty==="num")b='<input type="number" inputmode="decimal" step="any" id="q_'+q.id+'" data-num="'+q.id+'" value="'+(a??"")+'">';
+  else if(q.ty==="rr")b='<div class="row"><input type="number" inputmode="numeric" id="q_'+q.id+'" data-num="'+q.id+'" value="'+(a??"")+'"><button data-act="rr">'+esc(t("Count breaths"))+'</button></div><div id="rrbox"></div>';
+  else if(q.ty==="vax"){const due=S.cfg.vax.filter(x=>ageD(p)>=x[1]-3&&!(p.vax||{})[x[0]]);
+    b=due.length?'<div class="seg multi neutral">'+due.map(x=>'<button data-vax="'+x[0]+'" class="'+((F.a.c_vax||[]).includes(x[0])?"on":"")+'">'+x[0]+"</button>").join("")+'<button data-none="'+q.id+'" class="none'+(Array.isArray(a)&&!a.length?" on":"")+'">'+esc(t("None of the above"))+"</button>"+"</div>":'<span class="chip good">✓</span>';}
+  return '<div class="q'+((F.miss||[]).includes(q.id)?" miss":"")+'"><label class="t" for="q_'+q.id+'">'+esc(t(q.label))+"</label>"+b+"</div>";
+}
+function danger(F,p){const a=F.a,o=[];
+  for(const [q,L] of [["p_danger",PD],["n_danger",ND],["m_danger",MD],["c_danger",CD]])for(const i of a[q]||[])o.push(L[i]);
+  if(a.n_temp>=37.5)o.push("Feels hot (fever)");if(a.n_temp&&a.n_temp<35.5)o.push("Feels cold");
+  if(a.n_rr){const d=p.dob?ageD(p):0,lim=d<60?60:d<365?50:40;if(a.n_rr>=lim)o.push("Fast or difficult breathing");}
+  if(a.c_muac&&a.c_muac<11.5&&p.dob&&ageD(p)>=180)o.push("Severe acute malnutrition");
+  if(a.p_sys>=140||a.p_dia>=90)o.push("High blood pressure");
+  return [...new Set(o)];
+}
+function saveVisit(){
+  const F0=UI.f,p0=subj(F0.kind,F0.id),miss=questions(F0.slot,S.sess.role,F0.a,p0).filter(q=>(q.ty==="multi"||(q.ty==="vax"&&S.cfg.vax.some(x=>ageD(p0)>=x[1]-3&&!(p0.vax||{})[x[0]])))&&!Array.isArray(F0.a[q.id]));
+  if(miss.length){F0.miss=miss.map(q=>q.id);return keep();}
+  const F=UI.f,p=subj(F.kind,F.id),a=Object.assign({},F.a),dz=danger(F,p),sup=!!a.support;delete a.support;
+  const v={id:uid("v"),subj:p.id,kind:F.kind,hhId:p.hhId,slot:F.slot,date:TODAY,by:S.sess.id,role:S.sess.role,a,support:sup||(dz.length>0&&S.sess.role==="chv")};
+  put("v",v);
+  if(F.kind==="c"){p.vax=p.vax||{};(a.c_vax||[]).forEach(x=>p.vax[x]=TODAY);if(a.n_wt){p.bw=p.bw||a.n_wt;if(a.n_wt<2500&&ageD(p)<28)p.small=1;}put("c",p);}
+  if(S.sess.role==="chw"){S.v.filter(x=>x.subj===p.id&&x.support&&!x.supportDone&&x.id!==v.id).forEach(x=>{x.supportDone=1;put("v",x);});
+    S.r.filter(r=>r.subj===p.id&&r.st==="done"&&r.fu&&!r.fuDone).forEach(r=>{r.fuDone=1;put("r",r);});}
+  if(dz.length&&!S.r.some(r=>r.subj===p.id&&r.st==="open"))put("r",{id:uid("r"),subj:p.id,kind:F.kind,hhId:p.hhId,date:TODAY,reason:dz.join("; "),by:S.sess.id,st:"open"});
+  go("person",{kind:F.kind,id:F.id});
+}
+/* ----- simple forms ----- */
+const fld=(id,label,type,val,extra)=>'<div class="q"><label class="t" for="'+id+'">'+esc(t(label))+'</label><input id="'+id+'" type="'+(type||"text")+'" value="'+esc(val??"")+'" '+(extra||"")+"></div>";
+const ynF=(id,label)=>'<div class="q"><label class="t">'+esc(t(label))+'</label><div class="seg"><button data-ans="'+id+'" data-v="1" class="'+(UI.f.a[id]===1?"on":"")+'">'+esc(t("Yes"))+'</button><button data-ans="'+id+'" data-v="0" class="'+(UI.f.a[id]===0?"on":"")+'">'+esc(t("No"))+"</button></div></div>";
+const pickF=(id,label,opts)=>'<div class="q"><label class="t">'+esc(t(label))+'</label><div class="seg">'+opts.map((o,i)=>'<button data-ans="'+id+'" data-v="'+i+'" class="'+(UI.f.a[id]===i?"on":"")+'">'+esc(t(o))+"</button>").join("")+"</div></div>";
+const btns=(act)=>'<div class="row"><button class="pri" data-act="'+act+'">'+esc(t("Save"))+'</button><button data-go="reg">'+esc(t("Cancel"))+"</button></div>";
+function vAddHH(){const me=by("staff",S.sess.id)||{};return '<div class="card"><h1>'+esc(t("Add household"))+"</h1>"+fld("f_vil","Village","text",me.village)+fld("f_head","Head of household")+btns("savehh")+"</div>";}
+function vAddP(){const F=UI.f;F.a=F.a||{};return '<div class="card"><h1>'+esc(t(F.kind==="w"?"Add pregnant woman":"Add child under 24 months"))+"</h1>"+
+  (F.kind==="w"?fld("f_name","Name")+fld("f_age","Age (years)","number")+fld("f_edd","Expected date of delivery","date")+fld("f_anc","Antenatal contacts so far (from the card)","number")
+   :fld("f_name","Name")+pickF("sex","Sex",["Girl","Boy"])+fld("f_dob","Date of birth","date","",'max="'+TODAY+'"')+fld("f_mother","Mother's name"))+btns("savep")+"</div>";}
+function vBirth(){const F=UI.f;F.a=F.a||{};return '<div class="card"><h1>'+esc(t("Record birth"))+"</h1>"+fld("f_date","Date","date",TODAY,'max="'+TODAY+'"')+pickF("out","Outcome",["Live birth","Stillbirth"])+
+  pickF("place","Place",["Health facility","Home","On the way"])+ynF("sba","Skilled attendant (nurse, midwife, doctor)")+
+  (F.a.out===1?"":fld("f_name","Name")+pickF("sex","Sex",["Girl","Boy"])+fld("f_bw","Birth weight (grams), if known","number")+ynF("eibf","Put to the breast within 1 hour")+ynF("chx","Chlorhexidine applied to the cord")+ynF("warm","Dried, kept skin-to-skin, not bathed in first 24 hours")+ynF("small","Baby is small (under 2,500 g or born early)"))+btns("savebirth")+"</div>";}
+const CAUSES=["Preterm or small baby","Birth asphyxia","Sepsis or other infection","Pneumonia","Diarrhoea","Malaria","Malnutrition","Injury","Bleeding (mother)","High blood pressure or convulsions (mother)","Obstructed labour (mother)","Unknown"];
+const DELAYS=["Delay in recognising the problem","Delay in deciding to seek care","Delay in reaching a health facility","Delay in receiving care at the facility"];
+function vDeath(){const F=UI.f;F.a=F.a||{};const d=F.did?by("d",F.did):null,p=subj(F.kind,F.id);
+  let h='<div class="card"><h1>'+esc(t(d?"Verbal autopsy":"Record death"))+"</h1><p>"+nameOf(F.kind,p)+"</p>";
+  if(!d)h+=fld("f_date","Date","date",TODAY,'max="'+TODAY+'"');
+  h+=pickF("place","Place of death",["Home","Relative's house","Hospital","Clinic","Other"]);
+  if(S.sess.role==="chw"||d){h+=fld("f_who","Person who answered")+fld("f_rel","Relationship")+
+    '<div class="q"><label class="t" for="f_narr">'+esc(t("What happened, from the first sign of illness until the death"))+'</label><textarea id="f_narr"></textarea></div>'+
+    DELAYS.map((x,i)=>ynF("dl"+i,x)).join("")+
+    (F.a.dl2===1?'<div class="q"><label class="t">'+esc(t("Reasons for delay in reaching the facility"))+'</label><div class="seg multi neutral">'+["Distance","Money","Did not know where to go","Problems with facility staff"].map((o,i)=>'<button data-multi="why" data-v="'+i+'" class="'+((F.a.why||[]).includes(i)?"on":"")+'">'+esc(t(o))+"</button>").join("")+'<button data-none="'+why+'" class="none'+(Array.isArray(F.a.why)&&!F.a.why.length?" on":"")+'">'+esc(t("None of the above"))+"</button>"+"</div></div>":"")+
+    ynF("home","Problems with home care or follow-up after treatment")+
+    '<div class="q"><label class="t" for="f_dnote">'+esc(t("Notes on each delay"))+'</label><textarea id="f_dnote"></textarea></div>'+
+    '<div class="q"><label class="t" for="f_cause">'+esc(t("Probable cause"))+'</label><select id="f_cause">'+CAUSES.map(c=>"<option>"+esc(c)+"</option>").join("")+"</select></div>";}
+  return h+btns("savedeath")+"</div>";}
+const RC=["Diarrhoea","Pneumonia","Malaria","Complications of early birth","Complicated delivery","Injury","Tetanus","Malformation","Measles","Malnutrition","Other"],PLACES=["Home","Relative's house","Hospital","Clinic","Other"],YND=["Yes","No","Don't know"];
+const multiF=(id,label,opts)=>'<div class="q"><label class="t">'+esc(t(label))+'</label><div class="seg multi neutral">'+opts.map((o,i)=>'<button data-multi="'+id+'" data-v="'+i+'" class="'+((UI.f.a[id]||[]).includes(i)?"on":"")+'">'+esc(t(o))+"</button>").join("")+'<button data-none="'+id+'" class="none'+(Array.isArray(UI.f.a[id])&&!UI.f.a[id].length?" on":"")+'">'+esc(t("None of the above"))+"</button></div></div>";
+function vCensus(){const F=UI.f;F.a=F.a||{};F.m=F.m||[];F.d=F.d||[];const me=by("staff",S.sess.id)||{},cg=me.role==="chw"?S.staff.filter(x=>x.chwId===me.id):[];
+  let h='<div class="card"><h1>'+esc(t("Census: new household"))+"</h1>"+
+    (cg.length?'<div class="q"><label class="t" for="f_cgv">'+esc(t("Care Group Volunteer for this household"))+'</label><select id="f_cgv">'+cg.map(x=>'<option value="'+x.id+'">'+esc(x.name+" · "+x.village)+"</option>").join("")+"</select></div>":"")+
+    fld("f_vil","Village","text",me.role==="chv"?me.village:"")+fld("f_head","Head of household")+fld("f_pop","People living in the household (all ages)","number")+fld("f_wra","Women aged 15 to 49","number")+ynF("far","More than 1 hour to reach the health facility")+"</div>";
+  h+='<div class="card"><h2>'+esc(t("Pregnant women and children under 24 months"))+"</h2>"+F.m.map((k,i)=>k==="w"?
+      "<h3>"+esc(t("Pregnant"))+" "+(i+1)+"</h3>"+fld("f_m"+i+"_name","Name")+fld("f_m"+i+"_age","Age (years)","number")+fld("f_m"+i+"_edd","Expected date of delivery","date")+ynF("m"+i+"_first","First pregnancy")+ynF("m"+i+"_anc","Has started antenatal care")
+     :"<h3>"+esc(t("Child"))+" "+(i+1)+"</h3>"+fld("f_m"+i+"_name","Name")+pickF("m"+i+"_sex","Sex",["Girl","Boy"])+fld("f_m"+i+"_dob","Date of birth","date","",'max="'+TODAY+'"')+fld("f_m"+i+"_mother","Mother's name")+ynF("m"+i+"_small","Born small or early")+ynF("m"+i+"_sick","Child is sick today")+ynF("m"+i+"_vax","Has received at least one vaccine")).join("")+
+    '<div class="row"><button data-act="addmem" data-kind="w">+ '+esc(t("Pregnant"))+'</button><button data-act="addmem" data-kind="c">+ '+esc(t("Child"))+"</button></div></div>";
+  h+='<div class="card"><h2>'+esc(t("Births and deaths in the last 5 years"))+'</h2><p class="small muted">'+esc(t("Explain that this helps prevent other deaths. Offer condolences. The family may pause at any time."))+"</p>"+
+    fld("f_lb5","Children born alive in this household in the last 5 years","number")+fld("f_sb5","Babies born dead (stillbirths) in the last 5 years","number")+fld("f_mat5","Women who died while pregnant, in childbirth or within 6 weeks after, in the last 5 years","number")+
+    F.d.map((_,i)=>"<h3>"+esc(t("Child who died"))+" "+(i+1)+"</h3>"+pickF("d"+i+"_sex","Sex",["Girl","Boy"])+fld("f_d"+i+"_age","Age at death in completed months (0 if under 1 month)","number")+fld("f_d"+i+"_days","If under 1 month: age in days","number")+pickF("d"+i+"_place","Place of death",PLACES)+fld("f_d"+i+"_belief","What the family believes caused the death")+
+      pickF("d"+i+"_br","Fast or difficult breathing in the last days",YND)+pickF("d"+i+"_di","Diarrhoea in the last days",YND)+pickF("d"+i+"_fe","Fever in the last days",YND)+multiF("d"+i+"_cause","Interviewer's suspected causes (3 or fewer)",RC)).join("")+
+    '<div class="row"><button data-act="adddeath">+ '+esc(t("Child born alive who died in the last 5 years"))+"</button></div></div>";
+  return h+'<div class="row"><button class="pri" data-act="savecensus">'+esc(t("Save"))+'</button><button data-go="reg">'+esc(t("Cancel"))+'</button><span class="small muted" id="cenmsg"></span></div>';}
+function saveCensus(){const F=UI.f,a=F.a,me=by("staff",S.sess.id),head=val("f_head");
+  if(!head){$("#cenmsg").textContent=t("Enter the head of household.");return;}
+  for(let i=0;i<F.m.length;i++){if(!val("f_m"+i+"_name")||(F.m[i]==="w"?!val("f_m"+i+"_edd"):(!val("f_m"+i+"_dob")||val("f_m"+i+"_dob")>TODAY||diff(TODAY,val("f_m"+i+"_dob"))>730))){$("#cenmsg").textContent=t("Each woman needs a name and due date. Each child needs a name and a birth date in the last 24 months.");return;}}
+  const deaths=F.d.map((_,i)=>({sex:a["d"+i+"_sex"]===1?"m":"f",ageM:+val("f_d"+i+"_age")||0,days:val("f_d"+i+"_days")===""?null:+val("f_d"+i+"_days"),place:PLACES[a["d"+i+"_place"]??0],belief:val("f_d"+i+"_belief"),br:a["d"+i+"_br"]??2,di:a["d"+i+"_di"]??2,fe:a["d"+i+"_fe"]??2,cause:(a["d"+i+"_cause"]||[]).map(x=>RC[x])}));
+  const hh=put("hh",{id:uid("h"),chvId:me.role==="chw"?val("f_cgv"):me.id,village:val("f_vil"),head,pop:+val("f_pop")||null,far:a.far===1?1:0,prevDeath:deaths.length?1:0});
+  F.m.forEach((k,i)=>{const n=val("f_m"+i+"_name");
+    if(k==="w")put("w",{id:uid("w"),hhId:hh.id,name:n,age:+val("f_m"+i+"_age")||null,preg:true,edd:val("f_m"+i+"_edd"),reg:TODAY,anc:a["m"+i+"_anc"]===1?1:0,cFirst:a["m"+i+"_first"]===1?1:0,cNoAnc:a["m"+i+"_anc"]===0?1:0});
+    else{const dob=val("f_m"+i+"_dob"),m=put("w",{id:uid("w"),hhId:hh.id,name:val("f_m"+i+"_mother")||"?",preg:false,reg:TODAY,del:dob});
+      put("c",{id:uid("c"),hhId:hh.id,mId:m.id,name:n,sex:a["m"+i+"_sex"]===1?"m":"f",dob,reg:TODAY,small:a["m"+i+"_small"]===1?1:0,cSick:a["m"+i+"_sick"]===1?1:0,cNoVax:a["m"+i+"_vax"]===0?1:0,vax:{}});}});
+  put("cen",{id:uid("n"),hhId:hh.id,date:TODAY,by:me.id,pop:+val("f_pop")||0,wra:+val("f_wra")||0,lb5:+val("f_lb5")||0,sb5:+val("f_sb5")||0,mat5:+val("f_mat5")||0,deaths});
+  go(F.m.length?"due":"reg");}
+function censusStats(){const o={hh:0,pop:0,lb:0,sb:0,mat:0,d0:0,d1:0,d5:0,dpn:0};
+  for(const c of S.cen){o.hh++;o.pop+=c.pop||0;o.lb+=c.lb5||0;o.sb+=c.sb5||0;o.mat+=c.mat5||0;for(const d of c.deaths||[]){const m=d.ageM||0;if(m<1)o.d0++;if(m<12)o.d1++;if(m<60)o.d5++;if(m>=1&&m<24)o.dpn++;}}
+  return o;}
+function censusCard(){const c=censusStats();if(!c.hh)return "";const r=(n,d,k)=>d?(n/d*k).toFixed(1):"–";
+  return '<div class="card"><h3>Baseline mortality from the census (births and deaths in the last 5 years)</h3><div class="tblwrap"><table><tr><th>Measure</th><th class="n">Deaths</th><th class="n">Births</th><th class="n">Rate</th><th class="n">Model now uses</th></tr>'+
+    "<tr><td>Neonatal deaths per 1,000 live births</td><td class='n'>"+c.d0+"</td><td class='n'>"+c.lb+"</td><td class='n'>"+r(c.d0,c.lb,1000)+"</td><td class='n'>"+S.cfg.rates.nmr+"</td></tr>"+
+    "<tr><td>Deaths at 1-23 months per 1,000 live births</td><td class='n'>"+c.dpn+"</td><td class='n'>"+c.lb+"</td><td class='n'>"+r(c.dpn,c.lb,1000)+"</td><td class='n'>"+S.cfg.rates.pn+"</td></tr>"+
+    "<tr><td>Deaths under 12 months per 1,000 live births</td><td class='n'>"+c.d1+"</td><td class='n'>"+c.lb+"</td><td class='n'>"+r(c.d1,c.lb,1000)+"</td><td class='n'></td></tr>"+
+    "<tr><td>Deaths under 5 years per 1,000 live births</td><td class='n'>"+c.d5+"</td><td class='n'>"+c.lb+"</td><td class='n'>"+r(c.d5,c.lb,1000)+"</td><td class='n'></td></tr>"+
+    "<tr><td>Stillbirths per 1,000 births</td><td class='n'>"+c.sb+"</td><td class='n'>"+(c.lb+c.sb)+"</td><td class='n'>"+r(c.sb,c.lb+c.sb,1000)+"</td><td class='n'></td></tr>"+
+    "<tr><td>Maternal deaths per 100,000 live births</td><td class='n'>"+c.mat+"</td><td class='n'>"+c.lb+"</td><td class='n'>"+r(c.mat,c.lb,1e5)+"</td><td class='n'>"+S.cfg.rates.mmr+"</td></tr></table></div>"+
+    '<p class="small muted">'+c.hh+" households censused, "+c.pop+" people. These are deaths divided by live births reported for the last 5 years. Children born recently have not yet lived through the whole age range, so the under-12-month and under-5 figures run low; exact rates need a full birth history with dates.</p>"+
+    '<div class="row"><button data-act="usecensus"'+(c.lb<500?" disabled":"")+'>Use the census rates as the model baseline</button>'+(c.lb<500?'<span class="small muted">Needs at least 500 live births.</span>':"")+"</div></div>";}
+function vStaff(){const chws=S.staff.filter(x=>x.role==="chw");
+  return "<h1>Workers</h1>"+chws.map(w=>'<div class="card"><h2>CHW · '+esc(w.name)+' <span class="muted small">Care Group '+(w.cg||"")+" · "+esc(w.village||"")+'</span></h2><div class="row">'+S.staff.filter(x=>x.chwId===w.id).map(v=>'<span class="chip">'+esc(v.name)+" · "+S.hh.filter(h=>h.chvId===v.id).length+" households</span>").join("")+"</div></div>").join("")+
+  '<div class="card"><h3>Add a CHW (starts a new Care Group)</h3>'+fld("f_wname","Name")+fld("f_wvil","Village")+'<div class="row"><button class="pri" data-act="addchw">'+esc(t("Save"))+"</button></div></div>"+
+  (chws.length?'<div class="card"><h3>Add a Care Group Volunteer</h3>'+fld("f_vname","Name")+fld("f_vvil","Village")+'<div class="q"><label class="t" for="f_vchw">CHW</label><select id="f_vchw">'+chws.map(w=>'<option value="'+w.id+'">'+esc(w.name)+"</option>").join("")+'</select></div><div class="row"><button class="pri" data-act="addcgv">'+esc(t("Save"))+"</button></div></div>":"");}
+function vRefs(){
+  const P=people(myHH()),ids=new Set(P.W.concat(P.C).map(p=>p.id)),R=S.r.filter(r=>ids.has(r.subj)).sort((a,b)=>a.date<b.date?1:-1);
+  const ST={open:["Referred","bad"],arrived:["Arrived","warn"],done:["Completed","good"],refused:["Declined",""]};
+  return "<h1>"+esc(t("Referrals"))+"</h1>"+(R.length?R.map(r=>{const p=subj(r.kind,r.subj),hh=by("hh",r.hhId);
+    return '<div class="card"><div class="row"><div class="grow"><b>'+nameOf(r.kind,p)+'</b><div class="small muted">'+esc(hh.village)+" · "+r.date+'</div></div><span class="chip '+ST[r.st][1]+'">'+esc(t(ST[r.st][0]))+"</span></div><p>"+esc(t("Reason"))+": "+esc(r.reason.split("; ").map(t).join("; "))+"</p>"+
+    (r.dx?"<p>"+esc(t("Diagnosis"))+": "+esc(r.dx)+" · "+esc(r.tx)+(r.fu?" · "+esc(t("Follow-up home visit date"))+" "+r.fu:"")+"</p>":"")+
+    (S.sess.role==="chw"&&r.st!=="done"&&r.st!=="refused"?'<div class="row">'+(r.st==="open"?'<button data-act="arr" data-id="'+r.id+'">'+esc(t("Confirm arrival at facility"))+'</button><button data-act="refuse" data-id="'+r.id+'">'+esc(t("Family declined"))+"</button>":"")+'<button class="pri" data-act="counter" data-id="'+r.id+'">'+esc(t("Record counter-referral"))+"</button></div>":"")+"</div>";}).join(""):'<div class="card"><p class="muted">0</p></div>');
+}
+function vCounter(){return '<div class="card"><h1>'+esc(t("Record counter-referral"))+"</h1>"+fld("f_dx","Diagnosis")+fld("f_tx","Treatment and instructions")+fld("f_fu","Follow-up home visit date","date",addD(TODAY,2))+'<div class="row"><button class="pri" data-act="savecounter">'+esc(t("Save"))+'</button><button data-go="refs">'+esc(t("Cancel"))+"</button></div></div>";}
+
+/* ----- dashboards ----- */
+const f2=x=>(Math.abs(x)<10?x.toFixed(2):x.toFixed(1));
+function livesCard(P,title){const m=lives(P),y=S.cfg.yll;
+  return '<div class="card"><h3>'+esc(title||t("Lives saved (modelled)"))+'</h3><div class="big">'+f2(m.lives)+'</div><p class="small muted">'+esc(t("range"))+" "+f2(m.lo)+" – "+f2(m.hi)+" · "+esc(t("DALYs averted"))+" "+Math.round(m.lives*y.undisc)+" ("+Math.round(m.lives*y.disc)+" at 3% discount)</p></div>";}
+function stat(label,val,sub){return '<div class="card"><h3>'+esc(label)+'</h3><div class="big">'+val+"</div>"+(sub?'<p class="small muted">'+esc(sub)+"</p>":"")+"</div>";}
+function behaviors(P){const {C,H}=P,cov=coverage(P),births=C.filter(c=>c.place),sh=(a,f)=>[a.filter(f).length,a.length];
+  const eb=C.map(c=>visitsOf(c.id).filter(v=>v.a.n_ebf!==undefined)).filter(a=>a.length);
+  const hl=q=>{const a=H.filter(h=>hhLast(h.id,q)!==undefined);return [a.filter(h=>hhLast(h.id,q)===1).length,a.length];};
+  return [["Gave birth in a health facility",cov.fac],["Breastfed within 1 hour of birth",sh(births,c=>c.eibf)],["Newborn kept warm, skin-to-skin",cov.warm],
+    ["Only breast milk in the first 6 months",[eb.filter(a=>a.every(v=>v.a.n_ebf===1)).length,eb.length]],["Child sleeps under a treated net",cov.itn],
+    ["ORS given for diarrhoea",cov.ors],["Zinc given for diarrhoea",cov.zinc],["Care sought for cough with fast breathing",cov.pneu],
+    ["Vaccines up to date",sh(C.filter(c=>active(c)&&ageD(c)>=14&&cardSeen(c)),c=>S.cfg.vax.every(x=>ageD(c)<=x[1]+14||(c.vax||{})[x[0]]))],
+    ["Handwashing place with soap and water",hl("hh_hw")],["Safe drinking water",hl("hh_water")],["Household uses a latrine",hl("hh_lat")]];}
+function vDash(){const own=people(myHH()),ot=onTime(own,TRACK()),me=by("staff",S.sess.id)||{},chw=me.role==="chv"?me.chwId:me.id;
+  const team=S.staff.filter(x=>x.chwId===chw).map(x=>x.id),P=people(S.hh.filter(h=>team.includes(h.chvId)));
+  const top='<div class="grid">'+stat(t("Visits on time"),(pct(ot[0],ot[1])??"–")+"%",ot[0]+" / "+ot[1])+stat(t("Households"),own.H.length)+stat(t("Children under 24 months"),own.C.filter(active).length)+stat(t("Pregnant women"),own.W.filter(w=>w.preg&&active(w)).length)+"</div>";
+  if(me.role==="chv"){const B=behaviors(own),A=behaviors(P);
+    return "<h1>"+esc(t("My results"))+"</h1>"+top+'<div class="card"><h3>'+esc(t("Healthy practices in my households"))+'</h3><div class="tblwrap"><table><tr><th></th><th class="n">'+esc(t("My households"))+'</th><th></th><th class="n">'+esc(t("CHW area"))+"</th></tr>"+
+    B.map((b,i)=>{const p=pct(b[1][0],b[1][1]),a=pct(A[i][1][0],A[i][1][1]);return "<tr><td>"+esc(t(b[0]))+'</td><td class="n"><b>'+(p===null?"–":p+"%")+'</b> <span class="muted">'+b[1][0]+"/"+b[1][1]+'</span></td><td><div class="meter"><i style="width:'+(p||0)+'%"></i>'+(a===null?"":'<b style="left:'+a+'%"></b>')+'</div></td><td class="n muted">'+(a===null?"–":a+"%")+"</td></tr>";}).join("")+
+    '</table></div><p class="small muted">'+esc(t("The vertical mark is the average for the whole CHW area. A dash means no household has been asked yet."))+"</p></div>"+livesCard(P,t("Lives saved (modelled)")+" · "+t("CHW area"));}
+  return "<h1>"+esc(t("My results"))+"</h1>"+top+'<div class="grid">'+livesCard(P)+'</div><div class="note">Lives saved and coverage are calculated once for the whole CHW area ('+P.H.length+' households), from the CHW\'s visits and the Care Group Volunteers\' visits together. Lives saved is a modelled estimate: it compares coverage in these households with baseline coverage and applies published effect sizes to the deaths expected at baseline mortality. In an area this size it is a fraction of one life and has a wide range.</div>'+covTable(P);}
+function covTable(P){const m=model(P);
+  return '<div class="card"><h3>'+esc(t("Coverage"))+'</h3><div class="tblwrap"><table><tr><th>Intervention</th><th class="n">'+esc(t("Baseline"))+'</th><th class="n">'+esc(t("Now"))+"</th><th></th><th class='n'>n</th><th class='n'>Lives</th></tr>"+
+  m.parts.map(p=>"<tr><td>"+esc(p.label)+'</td><td class="n">'+Math.round(p.b*100)+'%</td><td class="n">'+(p.n?Math.round(p.p*100)+"%":"–")+'</td><td><div class="meter"><i style="width:'+(p.n?Math.round(p.p*100):0)+'%"></i><b style="left:'+Math.round(p.b*100)+'%"></b></div></td><td class="n">'+p.n+'</td><td class="n">'+(p.lives||0).toFixed(2)+"</td></tr>").join("")+"</table></div><p class='small muted'>The vertical mark on each bar is baseline coverage.</p></div>";}
+function vAdmin(){
+  const P=people(S.hh),m=lives(P),mo=mortality(P),ot=onTime(P),y=S.cfg.yll,r=S.cfg.rates;
+  const openR=S.r.filter(x=>x.st==="open").length;
+  let h="<h1>"+esc(t("Overview"))+' <span class="muted small">'+esc(S.cfg.country)+'</span></h1><div class="grid">'+livesCard(P)+
+    stat("Per 1,000 live births",m.per1000.toFixed(1),"deaths averted before 24 months at current coverage")+
+    stat(t("Households"),S.hh.length,S.staff.filter(x=>x.role==="chw").length+" CHW areas · "+P.C.filter(active).length+" children · "+P.W.filter(w=>w.preg&&active(w)).length+" pregnant")+
+    stat(t("Visits on time"),(pct(ot[0],ot[1])??"–")+"%",ot[0]+" / "+ot[1])+stat(t("Open referrals"),openR)+"</div>";
+  const rate=(n,d,k)=>d?(n/d*k).toFixed(1):"–";
+  h+='<div class="card"><h3>Measured mortality (vital events)</h3><div class="tblwrap"><table><tr><th>Measure</th><th class="n">Events</th><th class="n">Denominator</th><th class="n">Rate</th><th class="n">Baseline</th><th class="n">Expected at baseline</th></tr>'+
+    "<tr><td>Neonatal deaths (0-27 days) per 1,000 live births</td><td class='n'>"+mo.neo+"</td><td class='n'>"+mo.lb+"</td><td class='n'>"+rate(mo.neo,mo.lb,1000)+"</td><td class='n'>"+r.nmr+"</td><td class='n'>"+mo.ex.eNeo.toFixed(2)+"</td></tr>"+
+    "<tr><td>Deaths at 1-23 months</td><td class='n'>"+(mo.all-mo.neo)+"</td><td class='n'>"+mo.ex.pn.toFixed(1)+" child-periods</td><td class='n'>"+rate(mo.all-mo.neo,mo.ex.pn,1000)+"</td><td class='n'>"+r.pn+"</td><td class='n'>"+mo.ex.ePn.toFixed(2)+"</td></tr>"+
+    "<tr><td>Stillbirths per 1,000 births</td><td class='n'>"+mo.sb+"</td><td class='n'>"+(mo.lb+mo.sb)+"</td><td class='n'>"+rate(mo.sb,mo.lb+mo.sb,1000)+"</td><td class='n'></td><td class='n'></td></tr>"+
+    "<tr><td>Maternal deaths per 100,000 live births</td><td class='n'>"+mo.mat+"</td><td class='n'>"+mo.lb+"</td><td class='n'>"+rate(mo.mat,mo.lb,1e5)+"</td><td class='n'>"+r.mmr+"</td><td class='n'>"+(mo.lb*r.mmr/1e5).toFixed(2)+"</td></tr></table></div>"+
+    (mo.lb<500?'<p class="note warn">Fewer than 500 live births are under observation. Rates at this size are unstable and should not be reported as results.</p>':"")+"</div>";
+  h+=censusCard();
+  const dl=[0,0,0,0];S.d.forEach(d=>d.va&&(d.va.delays||[]).forEach((x,i)=>dl[i]+=x?1:0));const nva=S.d.filter(d=>d.va).length;
+  h+='<div class="card"><h3>Delays found in verbal autopsies ('+nva+" of "+S.d.length+" deaths reviewed)</h3><div class='tblwrap'><table>"+DELAYS.map((x,i)=>"<tr><td>"+esc(t(x))+'</td><td class="n">'+dl[i]+'</td><td><div class="meter"><i style="width:'+(nva?100*dl[i]/nva:0)+'%"></i></div></td></tr>').join("")+"</table></div></div>";
+  h+='<div class="card"><h3>By CHW area</h3><div class="tblwrap"><table><tr><th>CHW and Care Group</th><th class="n">Volunteers</th><th class="n">Households</th><th class="n">Children</th><th class="n">Pregnant</th><th class="n">CHW visits on time</th><th class="n">Volunteer visits on time</th><th class="n">Urgent</th><th class="n">Lives saved</th></tr>'+
+    S.staff.filter(x=>x.role==="chw").map(st=>{const team=S.staff.filter(x=>x.chwId===st.id).map(x=>x.id),Q=people(S.hh.filter(x=>team.includes(x.chvId))),o=onTime(Q,"ten"),f=onTime(Q,"fort"),u=Q.W.concat(Q.C).filter(p=>tasks(p.dob?"c":"w",p).some(x=>x.pri===1)).length;
+      return "<tr><td><b>"+esc(st.name)+'</b> <span class="muted">· Care Group '+(st.cg||"")+'</span></td><td class="n">'+team.length+'</td><td class="n">'+Q.H.length+'</td><td class="n">'+Q.C.filter(active).length+'</td><td class="n">'+Q.W.filter(w=>w.preg&&active(w)).length+'</td><td class="n">'+(pct(o[0],o[1])??"–")+'%</td><td class="n">'+(pct(f[0],f[1])??"–")+'%</td><td class="n">'+u+'</td><td class="n">'+f2(model(Q).lives)+"</td></tr>";}).join("")+
+    '</table></div><p class="small muted">Each CHW area is one Care Group of 12 volunteers. Lives saved and coverage are calculated per CHW area, from the CHW\'s and the volunteers\' visits together. Volunteer visits on time covers the last 6 months.</p></div>';
+  return h;
+}
+function vInd(){const I=indicators(people(S.hh));let g="",h="<h1>"+esc(t("Indicators"))+'</h1><div class="card"><div class="tblwrap"><table>';
+  for(const i of I){if(i.g!==g){g=i.g;h+='<tr><th colspan="5">'+esc(g)+"</th></tr>";}const p=pct(i.n,i.d);
+    h+="<tr><td>"+esc(i.label)+'</td><td class="n">'+i.n+" / "+i.d+'</td><td class="n"><b>'+(p===null?"–":p+"%")+'</b></td><td><div class="meter"><i style="width:'+(p||0)+'%"></i>'+(i.base!==undefined?'<b style="left:'+Math.round(i.base*100)+'%"></b>':"")+'</div></td><td class="n muted">'+(i.base!==undefined?Math.round(i.base*100)+"%":"")+"</td></tr>";}
+  return h+'</table></div><p class="small muted">Last column and vertical mark: baseline coverage where one is set.</p><div class="row"><button data-act="copycsv">Copy as CSV</button><span id="copymsg" class="small muted"></span></div></div>';}
+function vModel(){const c=S.cfg,P=people(S.hh);
+  const inp=(path,v,step)=>'<input type="number" step="'+(step||"any")+'" data-cfg="'+path+'" value="'+v+'">';
+  let h="<h1>"+esc(t("Model"))+'</h1><div class="note">For each cause of death, the proportional reduction is 1 − Π(1 − e·a·(p − b) / (1 − e·a·b)), where e is effectiveness, a the fraction of that cause the intervention can affect, p measured coverage and b baseline coverage. Deaths averted are the reduction × the cause’s share × deaths expected at baseline mortality for the child-time observed. This is the Lives Saved Tool approach with fewer interventions and no demographic projection. Maternal deaths averted are not modelled. Values without a KDHS source are assumptions to replace with the project’s own baseline.</div>'+covTable(P);
+  h+='<div class="card"><h3>Baseline mortality and DALY settings</h3><div class="tblwrap"><table>'+
+    "<tr><td>Neonatal mortality per 1,000 live births (KDHS 2022)</td><td>"+inp("rates.nmr",c.rates.nmr)+"</td></tr>"+
+    "<tr><td>Deaths at 1-23 months per 1,000 live births (derived from KDHS 2022: infant 32, under-five 41)</td><td>"+inp("rates.pn",c.rates.pn)+"</td></tr>"+
+    "<tr><td>Maternal mortality per 100,000 live births (2019 census)</td><td>"+inp("rates.mmr",c.rates.mmr)+"</td></tr>"+
+    "<tr><td>Years of life lost per child death, undiscounted (GBD reference life table)</td><td>"+inp("yll.undisc",c.yll.undisc)+"</td></tr>"+
+    "<tr><td>Years of life lost per child death, 3% discount</td><td>"+inp("yll.disc",c.yll.disc)+"</td></tr>"+
+    "<tr><td>Range: effect sizes multiplied by (low, high)</td><td>"+inp("sens.lo",c.sens.lo)+" "+inp("sens.hi",c.sens.hi)+"</td></tr></table></div></div>";
+  h+='<div class="card"><h3>Interventions</h3><div class="tblwrap"><table><tr><th>Intervention</th><th>Cause</th><th>Effect</th><th>Affected</th><th>Baseline</th><th>Source</th></tr>'+
+    c.iv.map((v,i)=>"<tr><td>"+esc(v[1])+"</td><td>"+esc(v[3])+"</td><td>"+inp("iv."+i+".4",v[4])+"</td><td>"+inp("iv."+i+".5",v[5])+"</td><td>"+inp("iv."+i+".6",v[6])+'</td><td class="small">'+(v[8]?"":'<span class="chip warn">assumed</span> ')+esc(v[7])+"</td></tr>").join("")+"</table></div></div>";
+  const cs=(k,title,src)=>'<div class="card"><h3>'+title+'</h3><div class="tblwrap"><table>'+Object.keys(c[k]).map(x=>"<tr><td>"+esc(x)+"</td><td>"+inp(k+"."+x,c[k][x])+"</td></tr>").join("")+'</table></div><p class="small muted">'+src+"</p></div>";
+  h+=cs("neo","Causes of neonatal death (share)","WHO-MCEE estimates for Kenya, 2015, as published by UNICEF.")+cs("pn","Causes of death at 1-23 months (share)","Derived from Ministry of Health under-five shares (2021). Malaria share varies by zone. Replace with current WHO estimates for Kenya.");
+  return h+'<div class="row"><button data-act="resetcfg">Reset to Kenya defaults</button></div>';}
+function vSet(){
+  let h="<h1>"+esc(t("Settings"))+'</h1><div class="card"><h3>'+esc(t("Languages on this tablet"))+'</h3><div class="row">'+Object.keys(LANGS).map(k=>'<span class="chip good">'+esc(LANGS[k].name)+"</span>").join("")+"</div>"+
+    '<div class="row"><input id="newlang" class="grow" placeholder="'+esc(t("Type a language name"))+'" list="lgs"><datalist id="lgs">'+["French","Portuguese","Spanish","Haitian Creole","Luo","Kikuyu","Somali","Amharic","Hausa","Twi","Ewe","Arabic","Hindi","Bengali","K'iche'","Quechua"].map(x=>"<option>"+x+"</option>").join("")+'</datalist><button class="pri" data-act="getlang">'+esc(t("Download"))+'</button></div><p class="small muted" id="langmsg">A new language needs a connection once. It is then stored on this tablet and works offline.</p></div>';
+  h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
+  h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.1. Records are stored on this tablet only. The shared server, worker logins and syncing between tablets are the next stage. Example data is rebuilt each time the app opens and is never stored.</p><div class="row"><button data-act="export">Export records from this tablet (file)</button><button data-act="loaddemo">Load example data</button><button data-act="cleardemo">'+esc(t("Remove example data"))+"</button></div></div>";
+  return h;}
+
+/* ---------- actions ---------- */
+const val=id=>{const e=document.getElementById(id);return e?e.value.trim():"";};
+let rrT=null;
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;const d=b.dataset,F=UI.f;
+  if(d.go)return go(d.go);
+  if(d.ans!==undefined){F.a=F.a||{};F.a[d.ans]=+d.v===F.a[d.ans]&&d.ans==="support"?0:+d.v;return keep();}
+  if(d.none){F.a=F.a||{};const c=F.a[d.none];if(Array.isArray(c)&&!c.length)delete F.a[d.none];else F.a[d.none]=[];return keep();} // an empty list means "none of the above" was chosen
+  if(d.multi){F.a=F.a||{};const a=F.a[d.multi]=F.a[d.multi]||[],i=a.indexOf(+d.v);i<0?a.push(+d.v):a.splice(i,1);if(!a.length)delete F.a[d.multi];return keep();}
+  if(d.vax){const a=F.a.c_vax=F.a.c_vax||[],i=a.indexOf(d.vax);i<0?a.push(d.vax):a.splice(i,1);if(!a.length)delete F.a.c_vax;return keep();}
+  const A=d.act;if(!A)return;
+  if(A==="sync")return sync();
+  if(A==="person")return go("person",{kind:d.kind,id:d.id});
+  if(A==="visit")return go("visit",{kind:d.kind,id:d.id,slot:d.slot,a:{}});
+  if(A==="savevisit")return saveVisit();
+  if(A==="addp")return go("addp",{kind:d.kind,hh:d.hh,a:{}});
+  if(A==="savehh"){if(!val("f_head"))return;put("hh",{id:uid("h"),chvId:S.sess.id,village:val("f_vil"),head:val("f_head")});return go("reg");}
+  if(A==="savep"){const n=val("f_name");if(!n)return;
+    if(F.kind==="w"){const edd=val("f_edd");if(!edd)return;put("w",{id:uid("w"),hhId:F.hh,name:n,age:+val("f_age")||null,preg:true,edd,reg:TODAY,anc:+val("f_anc")||0});}
+    else{const dob=val("f_dob");if(!dob||dob>TODAY||diff(TODAY,dob)>730)return;const m=put("w",{id:uid("w"),hhId:F.hh,name:val("f_mother")||"?",preg:false,reg:TODAY,del:dob});
+      put("c",{id:uid("c"),hhId:F.hh,mId:m.id,name:n,sex:F.a.sex===1?"m":"f",dob,reg:TODAY,vax:{}});}
+    return go("reg");}
+  if(A==="birth")return go("birth",{id:d.id,a:{}});
+  if(A==="savebirth"){const w=by("w",F.id),a=F.a,date=val("f_date")||TODAY;w.preg=false;w.del=date;
+    if(a.out===1){w.sb=1;put("w",w);return go("reg");}put("w",w);
+    const c=put("c",{id:uid("c"),hhId:w.hhId,mId:w.id,name:val("f_name")||"Baby of "+w.name,sex:a.sex===1?"m":"f",dob:date,reg:date,place:["f","h","r"][a.place??0],sba:a.sba===1?1:0,eibf:a.eibf===1?1:0,chx:a.chx===1?1:0,warm:a.warm===1?1:0,
+      small:a.small===1||(+val("f_bw")>0&&+val("f_bw")<2500)?1:0,bw:+val("f_bw")||null,mTd:last(w.id,"p_td")??0,mAnc:last(w.id,"p_anc")??w.anc??0,vax:{}});
+    return go("person",{kind:"c",id:c.id});}
+  if(A==="refer"){const p=subj(d.kind,d.id);put("r",{id:uid("r"),subj:p.id,kind:d.kind,hhId:p.hhId,date:TODAY,reason:"Refer to health facility",by:S.sess.id,st:"open"});return go("refs");}
+  if(A==="arr"||A==="refuse"){const r=by("r",d.id);r.st=A==="arr"?"arrived":"refused";r.arr=TODAY;put("r",r);return render();}
+  if(A==="counter")return go("counter",{id:d.id});
+  if(A==="savecounter"){const r=by("r",F.id);r.st="done";r.dx=val("f_dx");r.tx=val("f_tx");r.fu=val("f_fu");put("r",r);return go("refs");}
+  if(A==="death")return go("death",{kind:d.kind,id:d.id,a:{}});
+  if(A==="va"){const x=by("d",d.id);return go("death",{kind:x.kind,id:x.subj,did:x.id,a:{}});}
+  if(A==="savedeath"){const a=F.a,p=subj(F.kind,F.id),PL=["Home","Relative's house","Hospital","Clinic","Other"];
+    const rec=F.did?by("d",F.did):{id:uid("d"),subj:p.id,kind:F.kind,date:val("f_date")||TODAY};rec.place=PL[a.place??0];
+    if(document.getElementById("f_cause"))rec.va={who:val("f_who"),rel:val("f_rel"),narr:val("f_narr"),delays:[0,1,2,3].map(i=>a["dl"+i]===1?1:0),why:a.why||[],home:a.home===1?1:0,notes:val("f_dnote"),cause:val("f_cause"),by:S.sess.id,date:TODAY};
+    put("d",rec);p.death=rec.date;put(F.kind==="w"?"w":"c",p);return go(S.sess.role==="chw"?"due":"reg");}
+  if(A==="addchw"){if(!val("f_wname"))return;put("staff",{id:uid("s"),role:"chw",name:val("f_wname"),village:val("f_wvil"),cg:1+Math.max(0,...S.staff.map(x=>x.cg||0))});return go("staff");}
+  if(A==="addcgv"){if(!val("f_vname"))return;const w=by("staff",val("f_vchw"));put("staff",{id:uid("s"),role:"chv",name:val("f_vname"),village:val("f_vvil"),chwId:w.id,cg:w.cg});return go("staff");}
+  if(A==="export"){const o={exported:new Date().toISOString(),cfg:S.cfg};for(const ty of TYPES)o[ty]=S[ty].filter(r=>!r.demo);
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:"application/json"}));a.download="cbio-register-"+TODAY+".json";document.body.appendChild(a);a.click();a.remove();return;}
+  if(A==="census")return go("census",{a:{},m:[],d:[]});
+  if(A==="addmem"){F.m.push(d.kind);return keep();}
+  if(A==="adddeath"){F.d.push(1);return keep();}
+  if(A==="savecensus")return saveCensus();
+  if(A==="usecensus"){const c=censusStats();if(c.lb>=500){S.cfg.rates.nmr=Math.round(c.d0/c.lb*10000)/10;S.cfg.rates.pn=Math.round(c.dpn/c.lb*10000)/10;save();}return render();}
+  if(A==="rr"){let n=0,left=60;const box=$("#rrbox");clearInterval(rrT);
+    box.innerHTML='<button class="tap pri" id="tapb">'+esc(t("Tap once for each breath"))+' · <span id="rn">0</span></button><p class="small muted"><span id="rl">60</span> '+esc(t("seconds left"))+"</p>";
+    $("#tapb").onclick=ev=>{ev.stopPropagation();n++;$("#rn").textContent=n;};
+    rrT=setInterval(()=>{left--;const l=$("#rl");if(!l){clearInterval(rrT);return;}l.textContent=left;if(left<=0){clearInterval(rrT);F.a.n_rr=n;keep();}},1000);return;}
+  if(A==="cleardemo"){S.demoOn=false;VIX=null;for(const ty of TYPES)S[ty]=S[ty].filter(r=>!r.demo&&!r.ex);if(!by("staff",S.sess.id))S.sess={role:"admin",id:null};save();return go("reg");}
+  if(A==="loaddemo"){if(S.demoOn===false){S.demoOn=true;demo();save();}return go("due");}
+  if(A==="resetcfg"){S.cfg=JSON.parse(JSON.stringify(DEFAULT_CFG));save();return render();}
+  if(A==="copycsv"){const I=indicators(people(S.hh)),csv="group,indicator,numerator,denominator,percent\n"+I.map(i=>[i.g,i.label,i.n,i.d,pct(i.n,i.d)??""].map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");
+    const ok=()=>$("#copymsg").textContent="Copied";try{navigator.clipboard.writeText(csv).then(ok,()=>$("#copymsg").textContent="Copy is blocked here");}catch(err){$("#copymsg").textContent="Copy is blocked here";}return;}
+  if(A==="getlang")return getLang(val("newlang"));
+});
+function keep(){const y=window.scrollY;stash();render();window.scrollTo(0,y);}
+function stash(){document.querySelectorAll("#app input[id^=f_],#app textarea[id^=f_],#app select[id^=f_]").forEach(e=>{UI.f.keep=UI.f.keep||{};UI.f.keep[e.id]=e.value;});}
+const obs=new MutationObserver(()=>{const k=UI.f&&UI.f.keep;if(!k)return;for(const id in k){const e=document.getElementById(id);if(e&&e.value!==k[id]&&document.activeElement!==e)e.value=k[id];}});
+document.addEventListener("input",e=>{const d=e.target.dataset;
+  if(d.num){const v=e.target.value;if(v==="")delete UI.f.a[d.num];else UI.f.a[d.num]=+v;}
+  if(e.target.id==="regq"){UI.f={q:e.target.value};const y=window.scrollY;render();const i=$("#regq");i.focus();i.setSelectionRange(i.value.length,i.value.length);window.scrollTo(0,y);}});
+document.addEventListener("change",e=>{const el=e.target,d=el.dataset;
+  if(el.id==="lang"){lang=S.lang=el.value;save();render();}
+  if(el.id==="role"){const [r,id]=el.value.split("|");S.sess={role:r,id:id||null};save();go(r==="admin"?"admin":"due");}
+  if(d.num&&UI.view==="visit")keep();
+  if(d.cfg){const path=d.cfg.split("."),v=+el.value;if(isNaN(v))return;let o=S.cfg;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;save();const y=window.scrollY;render();window.scrollTo(0,y);}});
+addEventListener("online",()=>{renderBar();sync();});addEventListener("offline",renderBar);
+
+/* ---------- language download (needs a connection once, then cached) ---------- */
+async function getLang(name){
+  const msg=$("#langmsg");if(!name)return;
+  if(!navigator.onLine){msg.textContent="No connection. Connect once to download a language.";return;}
+  let sample=null;try{sample=window.claude&&window.claude.use?await window.claude.use("sample"):null;}catch(e){}
+  if(!sample){msg.textContent="More languages become available once the server is connected (next stage).";return;}
+  const keys=Object.keys(SW),out={},CH=70;msg.textContent="Downloading "+name+"…";
+  try{for(let i=0;i<keys.length;i+=CH){const part=keys.slice(i,i+CH);
+      const r=await sample.json("Translate each string in this JSON array from English into "+name+" for community health workers using a tablet app about maternal and child health home visits in East Africa. Use plain, common words. Keep abbreviations such as ORS, MUAC, CHW, HIV, DALY unchanged. Reply with only a JSON array of the translated strings, same length and order.\n\n"+JSON.stringify(part),{modelTier:"default"});
+      if(!Array.isArray(r)||r.length!==part.length)throw {code:"invalid_json"};part.forEach((k,j)=>out[k]=String(r[j]));
+      msg.textContent="Downloading "+name+"… "+Math.min(100,Math.round(100*(i+CH)/keys.length))+"%";}
+    const code="x_"+name.toLowerCase().replace(/[^a-z]/g,"").slice(0,12);LANGS[code]={name,d:out};
+    const L={};for(const k in LANGS)if(k!=="en"&&k!=="sw")L[k]=LANGS[k];IDB.set("langs",L);
+    lang=S.lang=code;save();render();
+  }catch(e){msg.textContent=e&&e.code==="not_granted"?"Permission to translate was not given.":"The download did not finish. Try again when the connection is stable.";}
+}
+
+/* ---------- start ---------- */
+(async()=>{
+  await load();
+  if(S.sess.role!=="admin"&&!by("staff",S.sess.id))S.sess={role:"admin",id:null};
+  UI.view=S.sess.role==="admin"?"admin":"due";
+  obs.observe(document.getElementById("app"),{childList:true});
+  render();
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script>
+
+</body>
+</html>
