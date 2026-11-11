@@ -174,7 +174,7 @@ const SW={"Due list":"Orodha ya kazi","Register":"Rejesta","Referrals":"Rufaa","
 "Tetanus (Td) doses on the card":"Dozi za pepopunda (Td) kwenye kadi","Slept under a treated net last night":"Alilala ndani ya chandarua chenye dawa jana usiku","HIV test done in this pregnancy (card)":"Kipimo cha VVU kimefanyika ujauzito huu (kadi)",
 "Birth plan (tick what is ready)":"Mpango wa kujifungua (chagua vilivyo tayari)","Facility chosen":"Kituo kimechaguliwa","Transport arranged":"Usafiri umepangwa","Money saved":"Pesa zimewekwa","Companion identified":"Msindikizaji amepatikana",
 "Woman can name 3 danger signs":"Mama anaweza kutaja dalili 3 za hatari","Woman's MUAC (cm)":"MUAC ya mama (sm)","Handwashing place with soap and water seen":"Mahali pa kunawa mikono penye sabuni na maji pameonekana",
-"Drinking water is treated or from a safe source":"Maji ya kunywa yametibiwa au yanatoka chanzo salama","Household uses a latrine":"Kaya inatumia choo",
+"Drinking water is treated or from a safe source":"Maji ya kunywa yametibiwa au yanatoka chanzo salama","Household uses a latrine":"Kaya inatumia choo","Child's stool put in a latrine":"Kinyesi cha mtoto hutupwa chooni","Pregnant women who ate an extra meal yesterday":"Wajawazito waliokula mlo wa ziada jana","Ate an extra meal or snack yesterday":"Alikula mlo wa ziada au kitafunwa jana","Child's last stool was put in a latrine (or the child used one)":"Kinyesi cha mwisho cha mtoto kilitupwa chooni (au mtoto alitumia choo)",
 "Blood pressure: upper number":"Shinikizo la damu: namba ya juu","Blood pressure: lower number":"Shinikizo la damu: namba ya chini",
 "Newborn danger signs (tick any present)":"Dalili za hatari kwa mtoto mchanga (chagua zilizopo)","Not feeding well":"Hanyonyi vizuri","Fast breathing (60 or more per minute)":"Anapumua haraka (60 au zaidi kwa dakika)",
 "Severe chest in-drawing":"Kifua kinabonyea sana","Feels hot (fever)":"Ana joto (homa)","Feels cold":"Ana baridi","Moves only when stimulated or not at all":"Anajisogeza tu akiguswa au hajisogezi kabisa",
@@ -293,6 +293,7 @@ const QS=[
  ["p_ifa","yn","Took iron-folic acid yesterday",PR,"chv"],
  ["p_td","num","Tetanus (Td) doses on the card",PR,"chv"],
  ["p_itn","yn","Slept under a treated net last night",PR,"chv"],
+ ["p_meal","yn","Ate an extra meal or snack yesterday",PR,"chv"],
  ["p_hiv","yn","HIV test done in this pregnancy (card)",["P1"],"chv"],
  ["p_plan","multi","Birth plan (tick what is ready)",["P2"],"chv",["Facility chosen","Transport arranged","Money saved","Companion identified"],null,1],
  ["p_knows","yn","Woman can name 3 danger signs",PR,"chv"],
@@ -300,6 +301,7 @@ const QS=[
  ["hh_hw","yn","Handwashing place with soap and water seen",["P1","N7","M6","M18"],"chv"],
  ["hh_water","yn","Drinking water is treated or from a safe source",["P1","M6"],"chv"],
  ["hh_lat","yn","Household uses a latrine",["P1","M6","M18"],"chv"],
+ ["hh_feces","yn","Child's last stool was put in a latrine (or the child used one)",["M6","M18"],"chv"],
  ["p_sys","num","Blood pressure: upper number",["P2","FW"],"chw"],
  ["p_dia","num","Blood pressure: lower number",["P2","FW"],"chw"],
  ["n_danger","multi","Newborn danger signs (tick any present)",NB,"chv",ND],
@@ -478,6 +480,8 @@ function indicators(P){
   add("Household behaviors","Child slept under a treated net",cov.itn,bl("itn"));
   add("Household behaviors","Handwashing place with soap and water",cov.hw,bl("hw"));
   const hw=H.filter(h=>hhLast(h.id,"hh_water")!==undefined);add("Household behaviors","Safe drinking water",[hw.filter(h=>hhLast(h.id,"hh_water")===1).length,hw.length]);
+  const hf=H.filter(h=>hhLast(h.id,"hh_feces")!==undefined);add("Household behaviors","Child's stool put in a latrine",[hf.filter(h=>hhLast(h.id,"hh_feces")===1).length,hf.length]);
+  const pm=W.filter(w=>last(w.id,"p_meal")!==undefined);add("Nutrition","Pregnant women who ate an extra meal yesterday",[pm.filter(w=>last(w.id,"p_meal")===1).length,pm.length]);
   add("Nutrition","Vitamin A in the last 6 months (6-23 months)",cov.vita,bl("vita"));
   const md=C.filter(c=>last(c.id,"c_mdd")!==undefined);add("Nutrition","Minimum dietary diversity (5 of 8 food groups)",[md.filter(c=>last(c.id,"c_mdd")>=5).length,md.length]);
   const mu=C.filter(c=>last(c.id,"c_muac")!==undefined);add("Nutrition","MUAC under 12.5 cm (6-23 months)",[mu.filter(c=>last(c.id,"c_muac")<12.5).length,mu.length]);
@@ -510,7 +514,7 @@ function demo(){
         const w=D({id:mid,hhId:hh.id,name:mName,age:18+Math.floor(R()*20),preg:true,edd,reg:reg0>TODAY?addD(TODAY,-20):reg0,anc:1});S.w.push(w);
         if(fresh){w.reg=addD(TODAY,-(3+h%5));w.cFirst=ch(.3);w.cNoAnc=ch(.3);w.anc=w.cNoAnc?0:1;continue;}
         const pa=(slot,dt,role)=>{const ga=280-diff(edd,dt),anc=Math.max(0,[84,140,182,210,238,252,266,280].filter(x=>x<=ga).length-(R()<.1?2:R()<.3?1:0));
-          const a={p_danger:R()<.02?[1]:[],p_anc:anc,p_ifa:ch(.82),p_td:ga>196?1+ch(.8):Math.floor(R()*3),p_itn:ch(.78),p_knows:ch(slot==="P2"?.85:.6)};
+          const a={p_danger:R()<.02?[1]:[],p_anc:anc,p_ifa:ch(.82),p_td:ga>196?1+ch(.8):Math.floor(R()*3),p_itn:ch(.78),p_meal:ch(slot==="P2"?.68:.52),p_knows:ch(slot==="P2"?.85:.6)};
           if(slot==="P1")Object.assign(a,{p_hiv:ch(.95),p_muac:22+Math.round(R()*80)/10,hh_hw:ch(.7),hh_water:ch(.75),hh_lat:ch(.9)});
           else{a.p_plan=[0,1,2,3].filter(()=>R()<.7);if(role==="chw"){a.p_sys=105+Math.floor(R()*40);a.p_dia=65+Math.floor(R()*26);}}
           visit("w",w,slot,dt,who(role),role,a);};
@@ -532,7 +536,7 @@ function demo(){
           for(const q of QS){if(!q.slots.includes(slot)||q.role==="chw")continue;
             if(q.id==="c_ill")a.c_ill=ill;else if(q.ty==="multi")a[q.id]=q.neutral?[0,1,2,3].filter(()=>R()<.6):(R()<.004?[0]:[]);
             else if(q.id==="c_muac")a.c_muac=Math.round((12.1+R()*3)*10)/10;else if(q.id==="c_mdd")a.c_mdd=2+Math.floor(R()*5);
-            else if(q.id==="n_cord")a.n_cord=c.chx?0:1+ch(.3);else if(q.ty==="yn"){if(q.cond&&!q.cond(a,c))continue;a[q.id]=ch({n_ebf:c.ebfT?.985:.25,hh_lat:.9,hh_water:.78,n_itn:.82,c_ors:.85,c_zinc:.7,c_pneu:.9,hh_hw:.74,c_fp:.6,c_vita:.82}[q.id]||.8);}}
+            else if(q.id==="n_cord")a.n_cord=c.chx?0:1+ch(.3);else if(q.ty==="yn"){if(q.cond&&!q.cond(a,c))continue;a[q.id]=ch({n_ebf:c.ebfT?.985:.25,hh_lat:.9,hh_feces:.66,hh_water:.78,n_itn:.82,c_ors:.85,c_zinc:.7,c_pneu:.9,hh_hw:.74,c_fp:.6,c_vita:.82}[q.id]||.8);}}
           if(role==="chw"&&slot==="N1"){a.n_wt=c.bw||2600+Math.floor(R()*1200);a.n_temp=Math.round((36.3+R()*.9)*10)/10;a.n_rr=38+Math.floor(R()*18);}
           visit("c",c,slot,dt,who(role),role,a);};
         for(let dt=later(c.reg,W0);diff(TODAY,dt)>4&&(!dd||dt<dd);dt=addD(dt,14))if(R()<.88)mk(stageAt("c",c,dt),dt,"chv");
@@ -770,7 +774,8 @@ function covP(P,R){ // coverage measured inside a period
     ["Immunization","Pentavalent 3 (4 months and older)",sh(CV.filter(c=>ageAt(c)>=126),c=>has(c,"PENTA3"))],["Immunization","Measles-rubella 1 (10 months and older)",sh(CV.filter(c=>ageAt(c)>=305),c=>has(c,"MR1")),bl("mr1")],
     ["Immunization","Fully immunized for age",sh(CV.filter(c=>ageAt(c)>=14),c=>S.cfg.vax.every(x=>ageAt(c)<=x[1]+14||has(c,x[0])))],
     ["Sick child care","ORS for diarrhoea",ans("c_ors"),bl("ors")],["Sick child care","Zinc for diarrhoea",ans("c_zinc"),bl("zinc")],["Sick child care","Care and antibiotic for suspected pneumonia",ans("c_pneu"),bl("pneu")],["Sick child care","Malaria test for fever, same or next day",ans("c_mal")],
-    ["Household practices","Child slept under a treated net",ans("n_itn"),bl("itn")],["Household practices","Handwashing place with soap and water",ans("hh_hw"),bl("hw")],["Household practices","Safe drinking water",ans("hh_water")],["Household practices","Household uses a latrine",ans("hh_lat")],
+    ["Household practices","Child slept under a treated net",ans("n_itn"),bl("itn")],["Household practices","Handwashing place with soap and water",ans("hh_hw"),bl("hw")],["Household practices","Safe drinking water",ans("hh_water")],["Household practices","Household uses a latrine",ans("hh_lat")],["Household practices","Child's stool put in a latrine",ans("hh_feces")],
+    ["Nutrition","Pregnant women who ate an extra meal yesterday",ans("p_meal")],
     ["Nutrition","Vitamin A in the last 6 months (6-23 months)",ans("c_vita"),bl("vita")],["Nutrition","5 or more of 8 food groups yesterday",ans("c_mdd",x=>x>=5)],
     ["Family planning","Mothers using a modern method",ans("c_fp")],["System","Referrals that reached the facility",[RF.filter(r=>r.st==="arrived"||r.st==="done").length,RF.length]]
   ].map(x=>({g:x[0],label:x[1],n:x[2][0],d:x[2][1],base:x[3]}));}
@@ -852,7 +857,7 @@ function behaviors(P){const {C,H}=P,cov=coverage(P),births=C.filter(c=>c.place),
     ["Only breast milk in the first 6 months",[eb.filter(a=>a.every(v=>v.a.n_ebf===1)).length,eb.length]],["Child sleeps under a treated net",cov.itn],
     ["ORS given for diarrhoea",cov.ors],["Zinc given for diarrhoea",cov.zinc],["Care sought for cough with fast breathing",cov.pneu],
     ["Vaccines up to date",sh(C.filter(c=>active(c)&&ageD(c)>=14&&cardSeen(c)),c=>S.cfg.vax.every(x=>ageD(c)<=x[1]+14||(c.vax||{})[x[0]]))],
-    ["Handwashing place with soap and water",hl("hh_hw")],["Safe drinking water",hl("hh_water")],["Household uses a latrine",hl("hh_lat")]];}
+    ["Handwashing place with soap and water",hl("hh_hw")],["Safe drinking water",hl("hh_water")],["Household uses a latrine",hl("hh_lat")],["Child's stool put in a latrine",hl("hh_feces")]];}
 function vDash(){const own=people(myHH()),ot=onTime(own,TRACK()),me=by("staff",S.sess.id)||{},chw=me.role==="chv"?me.chwId:me.id;
   const team=S.staff.filter(x=>x.chwId===chw).map(x=>x.id),P=people(S.hh.filter(h=>team.includes(h.chvId)));
   const top='<div class="grid">'+stat(t("Visits on time"),(pct(ot[0],ot[1])??"–")+"%",ot[0]+" / "+ot[1])+stat(t("Households"),own.H.length)+stat(t("Children under 24 months"),own.C.filter(active).length)+stat(t("Pregnant women"),own.W.filter(w=>w.preg&&active(w)).length)+"</div>";
