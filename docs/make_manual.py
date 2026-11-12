@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "shots"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "CBIO_Home_Visit_Register_User_Manual.pdf"
 HERE = os.path.dirname(os.path.abspath(__file__)); JPG = os.path.join(HERE, "shots"); os.makedirs(JPG, exist_ok=True)
-VER, DATE = "0.3.2", "12 November 2026"
+VER, DATE = "0.4.0", "12 November 2026"
 URL = "https://tdavismph.github.io/cbio-home-visit-register/"
 INK, MUTED, LINE, BAND, ACC = colors.HexColor("#16302b"), colors.HexColor("#5b6b68"), colors.HexColor("#c9d3d1"), colors.HexColor("#e6eeec"), colors.HexColor("#1f66a8")
 st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Helvetica"), textColor=k.pop("color", INK), **k)
@@ -73,7 +73,7 @@ A(Paragraph("<b>Status of this build.</b> Use test data only. Records of real fa
             "All names in the screenshots come from the built-in example data and do not refer to real people.", NOTE))
 A(Paragraph("Contents", H2))
 for x in ["1. What the system does", "2. Getting started: installing, signing in, working offline", "3. Care Group Volunteer: step by step", "4. Community Health Worker: step by step",
-          "5. Administrator: step by step", "6. What the reports can tell you", "7. Problems and their solutions", "Annex A. Visit schedule", "Annex B. How the due list is ordered"]: A(Paragraph(x, TOC))
+          "5. Administrator: step by step", "6. What the reports can tell you", "7. Problems and their solutions", "8. Several partners and countries", "Annex A. Visit schedule", "Annex B. How the due list is ordered"]: A(Paragraph(x, TOC))
 A(PageBreak())
 
 # ------------------------------------------------------------------ 1
@@ -111,8 +111,8 @@ A(steps("Connect the tablet to the internet and open the address in the browser.
         "<b>Android (Chrome):</b> tap the three-dot menu, then <b>Add to Home screen</b> (on some tablets <b>Install app</b>). <b>iPad or iPhone (Safari):</b> tap the Share button, then <b>Add to Home Screen</b>.",
         "From then on, open the app from its icon on the home screen."))
 A(Paragraph("Trying it with example data", H2))
-A(Paragraph("On the first screen, <b>Try it with example data</b> loads an invented programme of 8 CHWs, 96 volunteers and 1,152 households. Nothing in example mode is sent to the database. "
-            "A selector at the top right lets you look at the app as the Administrator, as any CHW or as any volunteer. The address <font color='#1f66a8'>%s#demo</font> always opens the example data and does not "
+A(Paragraph("On the first screen, <b>Try it with example data</b> loads two invented programmes: one in Kenya (8 CHWs, 96 volunteers, 1,152 households) and one in Ghana (9 CHWs, 108 volunteers, 1,296 households). Nothing in example mode is sent to the database. "
+            "A selector at the top right lets you look at the app as IGHA (all countries), as the Administrator of either programme, as any CHW or as any volunteer. The address <font color='#1f66a8'>%s#demo</font> always opens the example data and does not "
             "disturb a worker who is signed in on the same tablet, which makes it suitable for demonstrations." % URL, P))
 A(fig("The first screen (left) and the sign-in screen (right).", ("01_welcome", (0, 215)), ("02_signin", (0, 260))))
 A(Paragraph("Signing in", H2))
@@ -294,9 +294,42 @@ A(table(["Problem", "What to do"], [
     ["A visit form will not save.", "A question with several choices has no answer. Its title turns red with an asterisk. Tap the choices that apply or None of the above."],
     ["There is no Start visit button on a card.", "The next scheduled visit is not yet within 14 days of its due date (3 days for a volunteer's fortnightly visit). Open the card and use Follow-up visit if a visit is needed now."],
     ["Two workers changed the same record while offline.", "The database keeps the version saved most recently. Visits are separate records and are never overwritten by another worker's visit."],
-    ["A tablet is lost or a worker leaves.", "The Administrator sets a new PIN for that worker, which prevents a new sign-in with the old PIN. Records already synced are safe in the database. A tablet that is already signed in stays signed in and still opens with the old PIN: this build has no remote sign-out, and that gap should be closed before real data are entered."],
+    ["A tablet is lost or a worker leaves.", "The Administrator sets a new PIN for that worker. The old PIN then cannot sign in, and the lost tablet can no longer send or receive records. Records already synced are safe in the database. Records already stored on the lost tablet can still be opened there with the old PIN while it is offline; the app cannot erase a tablet remotely, which is a matter for the security review."],
     ["The Administrator wants a copy of the data.", "Use the downloads on the Reports tab, Copy as CSV on the Indicators tab, or Export records from this tablet (file) in Settings."],
     ["The example data appears where real data is expected.", "Tap Leave example mode on the yellow bar, then sign in."]], [W * .36, W * .64]))
+A(PageBreak())
+A(Paragraph("8. Several partners and countries", H1))
+A(Paragraph("From version 0.4 the app supports several partners in several countries. The design has three levels.", P))
+A(table(["Level", "Who", "What they see"], [
+    ["Programme", "A programme is one partner's work in one country. The <b>programme administrator</b> manages its CHWs and volunteers.", "The identified records of that programme only."],
+    ["Country", "Each country has its own database. The <b>country administrator</b> (the account made by first-time setup) creates programmes and their administrators.", "The identified records of every programme in that country."],
+    ["IGHA", "IGHA staff use a separate central database that receives a de-identified copy from each country.", "Every country, without names, villages, household details or free text."]], [W * .14, W * .5, W * .36]))
+A(Paragraph("Settings by country", H2))
+A(Paragraph("Each country has its own baseline mortality, baseline coverage and immunization schedule, and every figure for a country is calculated with that country's settings. The Kenya settings use the Kenya Demographic and Health Survey 2022. "
+            "The Ghana settings use the Ghana Demographic and Health Survey 2022 (neonatal mortality 17 per 1,000 live births), the Ghana Maternal Health Survey 2017 (maternal mortality 310 per 100,000 live births) and the Ghana Health Service schedule, "
+            "which adds a hepatitis B birth dose, yellow fever at 9 months and meningitis A at 18 months. The causes of death used in the Ghana model are still the Kenya values and need to be replaced with Ghana estimates, particularly for malaria. "
+            "A programme can save its own settings on the Model tab when its area differs from the national picture; otherwise it uses the country's. The Ghana example is in English only.", P))
+A(Paragraph("The IGHA view", H2))
+A(Paragraph("In the example data, choose <b>IGHA · all countries</b> in the selector at the top right (the address ending in #demo opens there). The <b>Countries</b> tab shows each country in its own column for a chosen period: "
+            "programme size and activity, mortality compared with that country's baseline, delays found in verbal autopsies, and the behaviour and coverage indicators with a bar for each country and a mark at that country's baseline. "
+            "Each table can be downloaded. The <b>Reports</b> tab gives reports 1 to 4 of section 6 for one country at a time; Care Groups are numbered and no worker is named, and the action lists are not shown because they name women and children.", P))
+A(fig("The IGHA Countries tab: programmes (left) and mortality by country (right).", ("40_igha_a", (0, 1250)), ("41_igha_b", (75, 1010)), maxh=125 * mm))
+A(fig("The IGHA Countries tab: behaviour and coverage indicators for each country, with each country's baseline.", ("42_igha_c", (75, 1250)), w=118 * mm, maxh=150 * mm))
+A(Paragraph("<b>Reading the comparison.</b> The two columns describe different populations with different baselines, so the useful comparison is each country against its own baseline and its own earlier periods, and only then between countries. "
+            "With about 1,000 to 1,300 households per country, the recorded and expected deaths are in single figures, and a difference between countries can be chance.", P))
+A(Paragraph("How records are de-identified", H2))
+A(bullets("Names, heads of household, villages and all free text (the verbal autopsy account, diagnosis and treatment notes) are removed.",
+          "Every record number is replaced by a code that cannot be traced back to the original, while the links between a household, its women and children, their visits and their worker are kept.",
+          "All dates belonging to one household are moved by the same number of days, between 14 earlier and 14 later. Ages and intervals stay exact, so the indicators are unaffected, but a date of birth no longer matches the real one.",
+          "De-identified records are not anonymous: a death in a small Care Group may still be recognisable to someone who knows the community. The central copy therefore still needs controlled access and a data-sharing agreement with each partner."))
+A(Paragraph("Setting up a country and its programmes", H2))
+A(steps("Create a database for the country and run <font face='Courier'>server/setup.sql</font> in it. Add the country's entry to the list of databases in the app. The country's address is the app address followed by <font face='Courier'>?c=</font> and its code, for example <font face='Courier'>?c=gh</font> for Ghana; Kenya is the default.",
+        "Open that address and use <b>First-time setup</b> to create the country administrator.",
+        "On the <b>Workers</b> tab, under <b>Programmes</b>, add each programme with its partner, then add a programme administrator for each and give that person the sign-in name and PIN.",
+        "Each programme administrator signs in and adds the programme's CHWs and volunteers as in section 5.2. Care Groups are numbered within each programme."))
+A(fig("The country administrator's Workers tab with two programmes.", ("44_programmes", (0, 700)), w=112 * mm))
+A(Paragraph("<b>What is not yet in place.</b> The central IGHA database and the scheduled job that copies each country's de-identified records into it have not been set up, so the IGHA view works only with the example data. "
+            "No database exists yet for Ghana. A database created before version 0.4 needs the setup file run again to gain the programme functions; until then the app works as before and hides them.", NOTE))
 A(Spacer(1, 10))
 A(Paragraph("Annex A. Visit schedule (Kenya configuration)", H1))
 A(table(["CHW visit", "Due", "Counts as on time if made within", "Volunteer asks the same question set every 2 weeks while the woman or child is at"], [

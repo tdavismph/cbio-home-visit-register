@@ -2,7 +2,7 @@
 
 Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and Care Group Volunteers (CGVs) in CBIO+ programs. Kenya is the first country configuration.
 
-**Status: pilot build 0.3.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
+**Status: pilot build 0.4.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
 
 ## What it does
 
@@ -14,6 +14,25 @@ Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and
 - Modelled lives saved and DALYs averted (Lives Saved Tool method, simplified), measured mortality, coverage indicators
 - Administrator Reports page: programme summary (lives saved and DALYs averted to date), coverage for a chosen period beside the previous period and the baseline, mortality, worker activity, and action lists; each table downloads as a CSV file and the page prints or saves as a PDF
 - English and Swahili; works offline once opened
+
+## Several partners and countries (version 0.4)
+
+The design is one database per country, holding the identified records, and one central IGHA database that receives a de-identified copy.
+
+Built and tested:
+
+- **Programmes.** A programme is one partner's work in one country. In `server/setup.sql`, workers and records carry a programme; a programme administrator sees and manages only that programme; the country administrator (the account made by first-time setup) creates programmes and their administrators and sees all of them. Each programme can save its own settings; otherwise it uses the country's.
+- **Country settings.** Kenya and Ghana presets (baseline mortality, baseline coverage, immunization schedule) are in `index.html` (`DEFAULT_CFG`, `GH_CFG`). Ghana is English only.
+- **Country address.** Each country database has an entry in `SERVERS` in `index.html`; its address is the app address followed by `?c=` and the country code (for example `?c=gh`). Kenya is the default. Each country keeps separate storage on the tablet.
+- **De-identified export.** `cbio_deid_export(token, since)` (country administrator only) returns records without names, villages or free text, with record numbers replaced by untraceable codes and all dates of a household moved by the same number of days (between -14 and +14), so ages and intervals stay exact.
+- **IGHA view in the example data.** The link ending in `#demo` opens as IGHA and shows Kenya and Ghana side by side: programmes, mortality, and behaviour and coverage indicators, each calculated with that country's settings.
+
+Not yet built:
+
+- The central IGHA database and the scheduled job that copies each country's de-identified export into it. Until then the IGHA view works only with the example data.
+- A Supabase project for Ghana (the `gh` entry in `SERVERS` is empty).
+
+An existing database needs `server/setup.sql` run again to gain the programme functions. The app also works with a database that has not been updated; the programme features are then hidden.
 
 ## Documents
 

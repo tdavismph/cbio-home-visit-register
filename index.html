@@ -89,7 +89,7 @@ h2.rep{margin-top:10px;padding-top:10px;border-top:2px solid var(--line)}
 .pair{position:relative;min-width:150px;padding-block:1px}
 .pb{height:9px;background:var(--sunk);border-radius:3px;margin-block:2px;position:relative;overflow:hidden}
 .pb i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
-.pb i.cur,.key.cur{background:var(--accent)} .pb i.prv,.key.prv{background:var(--muted);opacity:.6}
+.pb i.cur,.key.cur{background:var(--accent)} .pb i.c2,.key.c2{background:var(--warn)} .pb i.prv,.key.prv{background:var(--muted);opacity:.6}
 .pair>b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
 .key{display:inline-block;width:22px;height:9px;border-radius:3px;vertical-align:middle} .key.tick{width:2px;height:14px;background:var(--ink);border-radius:0}
 @media print{
@@ -149,6 +149,30 @@ const DEFAULT_CFG={ver:10,country:"Kenya",
      ["rota","Rotavirus vaccine, full course","pn","diarrhoea",.135,1,.85,"Approximation; baseline assumed",0],
      ["vita","Vitamin A in the last 6 months (6-23 months)","pn","diarrhoea",.12,.6,.636,"Imdad 2017; baseline KDHS 2022",1],
      ["hw","Handwashing place with soap and water","pn","diarrhoea",.48,1,.535,"Cairncross 2010; baseline KDHS 2022",1]]};
+
+const clone=o=>JSON.parse(JSON.stringify(o));
+// Ghana: mortality and baseline coverage from the Ghana DHS 2022; maternal mortality from the Ghana Maternal Health Survey 2017; schedule from the Ghana Health Service.
+const GH_CFG=(()=>{const c=clone(DEFAULT_CFG);c.country="Ghana";c.langs=["en"];
+  c.vax=[["BCG",0],["OPV0",0],["HEPB0",0],["OPV1",42],["PENTA1",42],["PCV1",42],["ROTA1",42],["OPV2",70],["PENTA2",70],["PCV2",70],["ROTA2",70],
+         ["OPV3",98],["PENTA3",98],["PCV3",98],["ROTA3",98],["IPV1",98],["IPV2",213],["MR1",274],["YF",274],["MR2",548],["MENA",548]];
+  c.rates={nmr:17,pn:16,mmr:310};
+  const B={sba:[.876,"Lee 2011; baseline GDHS 2022",1],fac:[.862,"Blencowe 2011; baseline GDHS 2022",1],td:[.738,"Blencowe 2010; baseline GDHS 2022",1],
+    ebf_d:[.526,"Lamberti 2011; baseline GDHS 2022",1],ebf_p:[.526,"Lamberti 2013; baseline GDHS 2022",1],ors:[.398,"Munos 2010; baseline GDHS 2022",1],zinc:[.35,"Walker & Black 2010; baseline GDHS 2022",1],
+    pneu:[.612,"Theodoratou 2010; baseline GDHS 2022 (care sought)",1],itn:[.49,"Eisele 2010; baseline GDHS 2022 (children under 5)",1],mr1:[.87,"Sudfeld 2010; baseline GDHS 2022",1],
+    vita:[.746,"Imdad 2017; baseline GDHS 2022 (6-59 months)",1],hw:[.472,"Cairncross 2010; baseline GDHS 2022",1]};
+  c.iv.forEach(r=>{if(B[r[0]]){r[6]=B[r[0]][0];r[7]=B[r[0]][1];r[8]=B[r[0]][2];}});return c;})();
+const CFGS={Kenya:DEFAULT_CFG,Ghana:GH_CFG};
+// Example programmes. Each programme is one partner in one country, with its own settings. p = coverage levels used to generate the example records.
+const PROGS=[
+ {id:"ke",country:"Kenya",name:"Kisii programme",partner:"Partner A (example)",seed:7,n:8,x:"",p:{},
+  fn:["Kerubo","Moraa","Nyaboke","Bosibori","Kemunto","Gesare","Mokeira","Nyanchama","Bonareri","Kwamboka","Nyakerario","Monyangi"],ln:["Ongeri","Nyamweya","Mogaka","Ombati","Onsongo","Makori","Nyangau","Obiri","Moturi","Onchiri"],
+  bn:["Brian","Faith","Kevin","Mercy","Dennis","Joy","Victor","Grace","Evans","Lilian","Amos","Naomi"],vil:["Nyakoe","Mosocho","Bobaracho","Nyatieko","Kiogoro","Itibo","Matongo","Raganga","Keumbu","Suneka","Nyosia","Bogiakumu"],
+  chw:["Agnes Moraa","Peter Ombati","Jane Kemunto","Samuel Nyangau","Ruth Bosibori","David Mogaka","Esther Gesare","Joseph Makori"]},
+ {id:"gh",country:"Ghana",name:"Ejura programme",partner:"Partner B (example)",seed:23,n:9,x:"g",langs:["en"],
+  p:{fac:.9,eibf:.7,chx:.45,warm:.78,ebfT:.68,mTd:.82,vaxE:.97,vaxL:.86,neo:.019,pnd:.017,n_ebf:.97,hh_lat:.72,hh_feces:.5,hh_water:.86,n_itn:.74,c_ors:.72,c_zinc:.58,c_pneu:.8,hh_hw:.61,c_fp:.46,c_vita:.88,p_ifa:.88,p_itn:.66,p_meal:.6,cgv:.82,chwv:.84},
+  fn:["Ama","Akosua","Abena","Adwoa","Afia","Yaa","Akua","Esi","Serwaa","Afriyie","Konadu","Pokuaa"],ln:["Mensah","Boateng","Owusu","Asante","Osei","Agyeman","Appiah","Frimpong","Amoako","Opoku"],
+  bn:["Kofi","Ama","Kwame","Efua","Yaw","Abena","Kwabena","Akua","Kojo","Adwoa","Akwasi","Afia"],vil:["Aframso","Bonyon","Dromankuma","Hiawoanwu","Kasei","Nkwanta","Anyinasu","Babaso","Kyenkyenkura","Miminaso","Teacherkrom","Nyamebekyere"],
+  chw:["Comfort Boateng","Emmanuel Osei","Gifty Mensah","Isaac Appiah","Mavis Owusu","Daniel Asante","Patience Agyeman","Samuel Frimpong","Abigail Opoku"]}];
 
 /* ---------- language ---------- */
 const SW={"Due list":"Orodha ya kazi","Register":"Rejesta","Referrals":"Rufaa","My results":"Matokeo yangu","Overview":"Muhtasari","Indicators":"Viashiria","Model":"Kielelezo","Settings":"Mipangilio",
@@ -217,10 +241,15 @@ const t=s=>(LANGS[lang]&&LANGS[lang].d[s])||s;
 const KEY="cbio_reg_v3";
 let S={hh:[],w:[],c:[],v:[],r:[],d:[],staff:[],cen:[],cfg:JSON.parse(JSON.stringify(DEFAULT_CFG)),sess:{role:"chv",id:null},lang:"en",mode:null,auth:null}; // mode: null (welcome screen), "example" or "live"
 let VIX=null; // index of visits by person and by household
+let PGD=null; // example mode: the records of each programme, {programme id:{hh:[],w:[],...}}. S holds the records of the programme in view.
+const curProg=()=>(S.progs||[]).find(p=>p.id===S.pid)||null;
+function setProg(pid){if(!PGD||!PGD[pid]||S.pid===pid)return;if(S.pid&&PGD[S.pid])PGD[S.pid].vix=VIX;for(const ty of TYPES)S[ty]=PGD[pid][ty];S.pid=pid;S.cfg=curProg().cfg;VIX=PGD[pid].vix||null;}
+function withProg(pid,fn){const old=S.pid;setProg(pid);try{return fn(curProg());}finally{if(old&&old!==pid)setProg(old);}}
 const TYPES=["hh","w","c","v","r","d","staff","cen"];
-const DEMO=location.hash==="#demo"; // a link ending in #demo always opens the example data, with its own storage, and leaves a signed-in worker untouched
+const DEMO=location.hash==="#demo";
+const CC=((()=>{try{return new URLSearchParams(location.search).get("c");}catch(e){return null;}})()||"ke").toLowerCase().replace(/[^a-z]/g,"")||"ke"; // country database in use // a link ending in #demo always opens the example data, with its own storage, and leaves a signed-in worker untouched
 const IDB={db:null,
-  open(){return new Promise(res=>{try{const r=indexedDB.open(DEMO?"cbio-register-demo":"cbio-register",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>{IDB.db=r.result;res(true);};r.onerror=()=>res(false);}catch(e){res(false);}});},
+  open(){return new Promise(res=>{try{const r=indexedDB.open(DEMO?"cbio-register-demo":"cbio-register"+(CC==="ke"?"":"-"+CC),1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>{IDB.db=r.result;res(true);};r.onerror=()=>res(false);}catch(e){res(false);}});},
   get(k){return new Promise(res=>{if(!IDB.db){try{return res(JSON.parse(localStorage.getItem(KEY+"_"+k)));}catch(e){return res(null);}}
     try{const r=IDB.db.transaction("kv").objectStore("kv").get(k);r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null);}catch(e){res(null);}});},
   set(k,v){if(!IDB.db){try{localStorage.setItem(KEY+"_"+k,JSON.stringify(v));}catch(e){}return;}try{IDB.db.transaction("kv","readwrite").objectStore("kv").put(v,k);}catch(e){}}};
@@ -228,29 +257,33 @@ async function load(){await IDB.open();const j=await IDB.get("state");if(j&&j.cf
   const L=await IDB.get("langs")||{};for(const k in L)LANGS[k]=L[k];
   lang=LANGS[S.lang]?S.lang:"en";for(const ty of TYPES)S[ty]=S[ty]||[];
   if(S.mode==="example"){const keep={};for(const ty of TYPES){keep[ty]=S[ty]||[];S[ty]=[];}demo(); // example records are rebuilt at each start, not stored
-    for(const ty of TYPES)for(const r of keep[ty]){const i=S[ty].findIndex(x=>x.id===r.id);if(i<0)S[ty].push(r);else S[ty][i]=r;}VIX=null;}}
-function save(){const o=Object.assign({},S);for(const ty of TYPES)o[ty]=S[ty].filter(r=>!r.demo);IDB.set("state",JSON.parse(JSON.stringify(o)));}
-function put(type,rec){rec.u=Date.now();if(rec.demo){rec.demo=false;rec.ex=true;}if(S.mode==="example")rec.ex=true;rec.dirty=!rec.ex;VIX=null;syncSoon();
+    for(const ty of TYPES)for(const r of keep[ty]){const pid=r.pg&&PGD[r.pg]?r.pg:(Object.keys(PGD).find(k=>PGD[k][ty].some(x=>x.id===r.id))||PROGS[0].id),a=PGD[pid][ty],i=a.findIndex(x=>x.id===r.id);if(i<0)a.push(r);else a[i]=r;}
+    VIX=null;for(const k in PGD)PGD[k].vix=null;}}
+function save(){const o=Object.assign({},S);for(const ty of TYPES)o[ty]=(PGD?[].concat(...Object.keys(PGD).map(k=>PGD[k][ty])):S[ty]).filter(r=>!r.demo);IDB.set("state",JSON.parse(JSON.stringify(o)));}
+function put(type,rec){rec.u=Date.now();if(rec.demo){rec.demo=false;rec.ex=true;}if(S.mode==="example")rec.ex=true;if(PGD)rec.pg=S.pid;rec.dirty=!rec.ex;VIX=null;syncSoon();
   const a=S[type],i=a.findIndex(x=>x.id===rec.id);if(i<0)a.push(rec);else a[i]=rec;save();return rec;}
 const by=(type,id)=>S[type].find(x=>x.id===id);
 
 /* ---------- sync (shared store, when signed in and online) ---------- */
 /* ---------- server: sign-in and sync ---------- */
-const SERVER=window.CBIO_SERVER||{url:"https://gfnsviikjfczavcgpiok.supabase.co",key:"sb_publishable_yOmoOtyENRLgPBzt4W8u2Q_LoQ7nN-x"}; // public values, safe to publish
+// One entry per country database. A country's address is the app address followed by ?c= and its code, for example ?c=gh. Kenya is the default.
+const SERVERS={ke:{country:"Kenya",url:"https://gfnsviikjfczavcgpiok.supabase.co",key:"sb_publishable_yOmoOtyENRLgPBzt4W8u2Q_LoQ7nN-x"},
+  gh:{country:"Ghana",url:"",key:""}}; // Kenya: public values, safe to publish. Ghana: fill in when its database exists.
+const SERVER=window.CBIO_SERVER||SERVERS[CC]||{country:CC.toUpperCase(),url:""};
 async function rpc(fn,args){let r;
   try{r=await fetch(SERVER.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{"Content-Type":"application/json",apikey:SERVER.key,Authorization:"Bearer "+SERVER.key},body:JSON.stringify(args||{})});}catch(e){throw {code:"offline"};}
   const j=await r.json().catch(()=>null);
   if(!r.ok){const m=(j&&(j.message||j.error))||"";throw {code:/not_signed_in/.test(m)?"not_signed_in":"server_"+r.status,message:m};}
   return j;}
 async function pinHash(salt,pin){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+":"+pin));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
-const ERR={wrong_code_or_pin:"Wrong sign-in name or PIN.",locked:"Too many wrong PINs. Try again in 15 minutes.",already_set_up:"The server already has an administrator. Sign in instead.",
+const ERR={country_admin_only:"Only the country administrator can do this.",no_such_programme:"Choose a programme first.",wrong_code_or_pin:"Wrong sign-in name or PIN.",locked:"Too many wrong PINs. Try again in 15 minutes.",already_set_up:"The server already has an administrator. Sign in instead.",
   bad_input:"A name is required. The sign-in name needs 3 or more characters and the PIN 6 or more digits.",code_taken:"That sign-in name is already used.",offline:"No connection. Connect and try again.",
   admin_only:"Only the administrator can do this.",no_such_chw:"Choose a CHW.",server_404:"The server is not set up yet. Run server/setup.sql in Supabase first."};
 const errText=c=>t(ERR[c]||"The server did not respond as expected.")+(ERR[c]?"":" ("+c+")");
 let LOCKED=false,authMsg="",syncMsg="",syncing=false,syncT=null;
 const live=()=>S.mode==="live"&&!!(S.auth&&S.auth.token);
 function scopeOf(ty,r){const hhId=ty==="hh"?r.id:ty==="d"?((by("w",r.subj)||by("c",r.subj)||{}).hhId):r.hhId,h=ty==="hh"?r:by("hh",hhId);return h?h.chvId:null;} // the Care Group Volunteer who owns the household
-function wipe(){for(const ty of TYPES)S[ty]=[];VIX=null;}
+function wipe(){for(const ty of TYPES)S[ty]=[];VIX=null;if(PGD){PGD=null;S.pid=null;S.progs=null;S.cfg=clone(CFGS[SERVER.country]||DEFAULT_CFG);}}
 async function afterLogin(res,pin){
   const same=S.mode==="live"&&S.auth&&S.auth.worker&&S.auth.worker.id===res.worker.id;
   if(!same)wipe(); // a different worker never sees the previous worker's records
@@ -264,6 +297,7 @@ async function sync(){
   syncing=true;syncMsg="…";renderBar();
   try{const T=S.auth.token;
     S.staff=await rpc("cbio_workers_list",{p_token:T});
+    try{S.plist=await rpc("cbio_programmes_list",{p_token:T});}catch(e){if(e.code==="not_signed_in"||e.code==="offline")throw e;S.plist=null;} // absent on a database set up before version 0.4
     const out=[];for(const ty of TYPES){if(ty==="staff")continue;for(const r of S[ty])if(r.dirty){const cgv=scopeOf(ty,r);if(cgv)out.push({r,p:{id:r.id,ty,cgv,u:r.u,body:Object.assign({},r,{dirty:false})}});}}
     for(let i=0;i<out.length;i+=200){const part=out.slice(i,i+200);await rpc("cbio_push",{p_token:T,p_records:part.map(x=>x.p)});part.forEach(x=>{x.r.dirty=false;});}
     for(let n=0;n<50;n++){ // the first request re-reads a little, in case another tablet's save landed out of order
@@ -497,58 +531,65 @@ function mortality(P){const {W,C}=P,lb=C.filter(c=>c.place&&c.reg<=addD(c.dob,28
 
 /* ---------- demo data (clearly marked examples) ---------- */
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let x=Math.imul(seed^seed>>>15,1|seed);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296;};}
-function demo(){
-  const R=rng(7),ch=p=>R()<p?1:0,pick=a=>a[Math.floor(R()*a.length)];
-  const fn=["Kerubo","Moraa","Nyaboke","Bosibori","Kemunto","Gesare","Mokeira","Nyanchama","Bonareri","Kwamboka","Nyakerario","Monyangi"],ln=["Ongeri","Nyamweya","Mogaka","Ombati","Onsongo","Makori","Nyangau","Obiri","Moturi","Onchiri"];
-  const bn=["Brian","Faith","Kevin","Mercy","Dennis","Joy","Victor","Grace","Evans","Lilian","Amos","Naomi"],vil=["Nyakoe","Mosocho","Bobaracho","Nyatieko","Kiogoro","Itibo","Matongo","Raganga","Keumbu","Suneka","Nyosia","Bogiakumu"];
+function demo(){ // one set of example records for each programme
+  const old={};(S.progs||[]).forEach(p=>old[p.id]=p.cfg);
+  S.progs=PROGS.map(p=>({id:p.id,country:p.country,name:p.name,partner:p.partner,langs:p.langs||null,cfg:old[p.id]&&old[p.id].ver===DEFAULT_CFG.ver&&old[p.id].country===p.country?old[p.id]:clone(CFGS[p.country])}));
+  PGD={};S.pid=null;VIX=null;
+  for(const p of PROGS){PGD[p.id]={vix:null};for(const ty of TYPES)PGD[p.id][ty]=[];setProg(p.id);demoOne(p);VIX=null;}
+  const s=S.sess;if(!["admin","igha"].includes(s.role)&&!(PGD[s.prog]&&PGD[s.prog].staff.some(x=>x.id===s.id)))S.sess={role:"chw",id:"s_chw0",prog:"ke"};
+  if(S.sess.role==="admin"&&!PGD[S.sess.prog])S.sess={role:"igha",id:null,prog:null};
+  setProg(PGD[S.sess.prog]?S.sess.prog:PROGS[0].id);
+}
+function demoOne(sp){
+  const R=rng(sp.seed),ch=p=>R()<p?1:0,pick=a=>a[Math.floor(R()*a.length)],X=sp.x,pr=(k,d)=>sp.p[k]??d;
+  const {fn,ln,bn,vil}=sp;
   const D=o=>Object.assign(o,{demo:true,u:1});
   const W0=addD(TODAY,-182),later=(x,y)=>x>y?x:y;let k=0;
-  for(let ar=0;ar<8;ar++){const cw=D({id:"s_chw"+ar,role:"chw",name:["Agnes Moraa","Peter Ombati","Jane Kemunto","Samuel Nyangau","Ruth Bosibori","David Mogaka","Esther Gesare","Joseph Makori"][ar],cg:ar+1,village:vil[ar]});S.staff.push(cw);
-  for(let ci=0;ci<12;ci++){const cv=D({id:"s_chv"+ar+ci.toString(36),role:"chv",name:pick(fn)+" "+pick(ln),chwId:cw.id,cg:ar+1,village:vil[ar]+" "+(ci+1)});S.staff.push(cv);
-    for(let h=0;h<12;h++){k++;const fresh=ar===7,hh=D({id:"h_d"+k,chvId:cv.id,village:cv.village,head:pick(fn)+" "+pick(ln),far:ch(.2)});S.hh.push(hh);
+  for(let ar=0;ar<sp.n;ar++){const cw=D({id:"s_chw"+ar+X,role:"chw",prog:sp.id,name:sp.chw[ar],cg:ar+1,village:vil[ar]});S.staff.push(cw);
+  for(let ci=0;ci<12;ci++){const cv=D({id:"s_chv"+ar+ci.toString(36)+X,role:"chv",prog:sp.id,name:pick(fn)+" "+pick(ln),chwId:cw.id,cg:ar+1,village:vil[ar]+" "+(ci+1)});S.staff.push(cv);
+    for(let h=0;h<12;h++){k++;const fresh=ar===sp.n-1,hh=D({id:"h_d"+k+X,chvId:cv.id,village:cv.village,head:pick(fn)+" "+pick(ln),far:ch(.2)});S.hh.push(hh);
       {const lb5=1+Math.floor(R()*2.2),deaths=[];for(let b=0;b<lb5;b++)if(R()<.043){const r=R(),m=r<.51?0:r<.78?1+Math.floor(R()*11):12+Math.floor(R()*48);deaths.push({sex:pick(["f","m"]),ageM:m,days:m?null:Math.floor(R()*R()*27),place:pick(["Home","Home","Hospital"]),br:ch(.4)?0:1,di:ch(.3)?0:1,fe:ch(.5)?0:1,cause:[m?pick(["Pneumonia","Diarrhoea","Malaria","Malnutrition"]):pick(["Complications of early birth","Complicated delivery","Other"])]});}
-        hh.pop=3+Math.floor(R()*5);hh.prevDeath=deaths.length?1:0;S.cen.push(D({id:"n_d"+k,hhId:hh.id,date:addD(TODAY,fresh?-5:-790),by:cw.id,pop:hh.pop,wra:1+ch(.25),lb5,sb5:R()<.03?1:0,mat5:R()<.004?1:0,deaths}));}
-      const mName=pick(fn)+" "+pick(ln),mid="w_d"+k,who=r=>r==="chw"?cw.id:cv.id;
+        hh.pop=3+Math.floor(R()*5);hh.prevDeath=deaths.length?1:0;S.cen.push(D({id:"n_d"+k+X,hhId:hh.id,date:addD(TODAY,fresh?-5:-790),by:cw.id,pop:hh.pop,wra:1+ch(.25),lb5,sb5:R()<.03?1:0,mat5:R()<.004?1:0,deaths}));}
+      const mName=pick(fn)+" "+pick(ln),mid="w_d"+k+X,who=r=>r==="chw"?cw.id:cv.id;
       if(h>1&&R()<.2){ // pregnant woman
         const edd=addD(TODAY,Math.floor(R()*200)-8),reg0=addD(edd,-Math.floor(120+R()*80));
         const w=D({id:mid,hhId:hh.id,name:mName,age:18+Math.floor(R()*20),preg:true,edd,reg:reg0>TODAY?addD(TODAY,-20):reg0,anc:1});S.w.push(w);
         if(fresh){w.reg=addD(TODAY,-(3+h%5));w.cFirst=ch(.3);w.cNoAnc=ch(.3);w.anc=w.cNoAnc?0:1;continue;}
         const pa=(slot,dt,role)=>{const ga=280-diff(edd,dt),anc=Math.max(0,[84,140,182,210,238,252,266,280].filter(x=>x<=ga).length-(R()<.1?2:R()<.3?1:0));
-          const a={p_danger:R()<.02?[1]:[],p_anc:anc,p_ifa:ch(.82),p_td:ga>196?1+ch(.8):Math.floor(R()*3),p_itn:ch(.78),p_meal:ch(slot==="P2"?.68:.52),p_knows:ch(slot==="P2"?.85:.6)};
+          const a={p_danger:R()<.02?[1]:[],p_anc:anc,p_ifa:ch(pr("p_ifa",.82)),p_td:ga>196?1+ch(.8):Math.floor(R()*3),p_itn:ch(pr("p_itn",.78)),p_meal:ch(pr("p_meal",slot==="P2"?.68:.52)),p_knows:ch(slot==="P2"?.85:.6)};
           if(slot==="P1")Object.assign(a,{p_hiv:ch(.95),p_muac:22+Math.round(R()*80)/10,hh_hw:ch(.7),hh_water:ch(.75),hh_lat:ch(.9)});
           else{a.p_plan=[0,1,2,3].filter(()=>R()<.7);if(role==="chw"){a.p_sys=105+Math.floor(R()*40);a.p_dia=65+Math.floor(R()*26);}}
           visit("w",w,slot,dt,who(role),role,a);};
-        for(let dt=later(w.reg,W0);diff(TODAY,dt)>4;dt=addD(dt,14))if(R()<.88)pa(stageAt("w",w,dt),dt,"chv");
+        for(let dt=later(w.reg,W0);diff(TODAY,dt)>4;dt=addD(dt,14))if(R()<pr("cgv",.88))pa(stageAt("w",w,dt),dt,"chv");
         pa("P1",w.reg,"chw");if(diff(TODAY,addD(edd,-42))>12&&R()<.8)pa("P2",addD(edd,-40),"chw");
       }else{
         const age=h===0?2+ci*9:h===1?44+ci*31:Math.floor(R()*700)+1,dob=addD(TODAY,-age),late=h>1&&R()<.25,reg=late?addD(dob,Math.floor(R()*Math.min(age,200))):addD(dob,-90);
         if(fresh){const ag=h===0?3+ci%4:h===1?12+ci:age,db=addD(TODAY,-ag),rg=addD(TODAY,-(3+h%5));S.w.push(D({id:mid,hhId:hh.id,name:mName,preg:false,reg:rg,del:db}));
-          S.c.push(D({id:"c_d"+k,hhId:hh.id,mId:mid,name:pick(bn),sex:pick(["f","m"]),dob:db,reg:rg>db?rg:db,small:ch(.1),cSick:ch(.05),cNoVax:ch(.08),vax:{}}));continue;}
-        let dd=null;if(h>1&&!late){const r=R();if(r<.023&&age>1)dd=addD(dob,Math.min(age-1,Math.floor(R()*R()*27)));else if(age>35&&r<.023+.015*Math.min(1,(age-28)/702))dd=addD(dob,28+Math.floor(R()*(age-29)));}
+          S.c.push(D({id:"c_d"+k+X,hhId:hh.id,mId:mid,name:pick(bn),sex:pick(["f","m"]),dob:db,reg:rg>db?rg:db,small:ch(.1),cSick:ch(.05),cNoVax:ch(.08),vax:{}}));continue;}
+        let dd=null;if(h>1&&!late){const r=R();if(r<pr("neo",.023)&&age>1)dd=addD(dob,Math.min(age-1,Math.floor(R()*R()*27)));else if(age>35&&r<pr("neo",.023)+pr("pnd",.015)*Math.min(1,(age-28)/702))dd=addD(dob,28+Math.floor(R()*(age-29)));}
         const life=dd?diff(dd,dob):age;
         S.w.push(D({id:mid,hhId:hh.id,name:mName,age:18+Math.floor(R()*20),preg:false,reg,del:dob}));
-        const fac=ch(.93),c=D({id:"c_d"+k,hhId:hh.id,mId:mid,name:pick(bn),sex:pick(["f","m"]),dob,reg:reg<dob?dob:reg,place:fac?"f":"h",sba:fac||ch(.2),eibf:ch(.82),chx:ch(.7),warm:ch(.85),small:ch(.1),ebfT:ch(.8),mTd:ch(.9)?2:1,mAnc:2+Math.floor(R()*6),vax:{}});
+        const fac=ch(pr("fac",.93)),c=D({id:"c_d"+k+X,hhId:hh.id,mId:mid,name:pick(bn),sex:pick(["f","m"]),dob,reg:reg<dob?dob:reg,place:fac?"f":"h",sba:fac||ch(.2),eibf:ch(pr("eibf",.82)),chx:ch(pr("chx",.7)),warm:ch(pr("warm",.85)),small:ch(.1),ebfT:ch(pr("ebfT",.8)),mTd:ch(pr("mTd",.9))?2:1,mAnc:2+Math.floor(R()*6),vax:{}});
         if(c.small)c.bw=1800+Math.floor(R()*650);
-        for(const x of S.cfg.vax)if(life>x[1]+5&&R()<(x[1]>200?.92:.985))c.vax[x[0]]=addD(dob,x[1]+Math.floor(R()*10));
+        for(const x of S.cfg.vax)if(life>x[1]+5&&R()<(x[1]>200?pr("vaxL",.92):pr("vaxE",.985)))c.vax[x[0]]=addD(dob,x[1]+Math.floor(R()*10));
         S.c.push(c);
-        if(dd){c.death=dd;S.d.push(D({id:"d_d"+k,subj:c.id,kind:"c",date:dd,place:pick(["Home","Home","Hospital","Clinic"]),va:R()<.8?{who:"Mother",cause:life<28?pick(["Preterm or small baby","Birth asphyxia","Sepsis or other infection"]):pick(["Pneumonia","Diarrhoea","Malaria","Sepsis or other infection"]),delays:[ch(.5),ch(.45),ch(.3),ch(.15)],narr:"Example record."}:undefined}));}
+        if(dd){c.death=dd;S.d.push(D({id:"d_d"+k+X,subj:c.id,kind:"c",date:dd,place:pick(["Home","Home","Hospital","Clinic"]),va:R()<.8?{who:"Mother",cause:life<28?pick(["Preterm or small baby","Birth asphyxia","Sepsis or other infection"]):pick(["Pneumonia","Diarrhoea","Malaria","Sepsis or other infection"]),delays:[ch(.5),ch(.45),ch(.3),ch(.15)],narr:"Example record."}:undefined}));}
         const mk=(slot,dt,role)=>{const ill=[0,1,2].filter(()=>R()<.12),a={};
           for(const q of QS){if(!q.slots.includes(slot)||q.role==="chw")continue;
             if(q.id==="c_ill")a.c_ill=ill;else if(q.ty==="multi")a[q.id]=q.neutral?[0,1,2,3].filter(()=>R()<.6):(R()<.004?[0]:[]);
             else if(q.id==="c_muac")a.c_muac=Math.round((12.1+R()*3)*10)/10;else if(q.id==="c_mdd")a.c_mdd=2+Math.floor(R()*5);
-            else if(q.id==="n_cord")a.n_cord=c.chx?0:1+ch(.3);else if(q.ty==="yn"){if(q.cond&&!q.cond(a,c))continue;a[q.id]=ch({n_ebf:c.ebfT?.985:.25,hh_lat:.9,hh_feces:.66,hh_water:.78,n_itn:.82,c_ors:.85,c_zinc:.7,c_pneu:.9,hh_hw:.74,c_fp:.6,c_vita:.82}[q.id]||.8);}}
+            else if(q.id==="n_cord")a.n_cord=c.chx?0:1+ch(.3);else if(q.ty==="yn"){if(q.cond&&!q.cond(a,c))continue;a[q.id]=ch(q.id==="n_ebf"?(c.ebfT?pr("n_ebf",.985):.25):pr(q.id,{hh_lat:.9,hh_feces:.66,hh_water:.78,n_itn:.82,c_ors:.85,c_zinc:.7,c_pneu:.9,hh_hw:.74,c_fp:.6,c_vita:.82}[q.id]||.8));}}
           if(role==="chw"&&slot==="N1"){a.n_wt=c.bw||2600+Math.floor(R()*1200);a.n_temp=Math.round((36.3+R()*.9)*10)/10;a.n_rr=38+Math.floor(R()*18);}
           visit("c",c,slot,dt,who(role),role,a);};
-        for(let dt=later(c.reg,W0);diff(TODAY,dt)>4&&(!dd||dt<dd);dt=addD(dt,14))if(R()<.88)mk(stageAt("c",c,dt),dt,"chv");
-        for(const sl of S.cfg.slots){if(sl[1]!=="dob")continue;const due=addD(dob,sl[2]);if(due>TODAY||due<c.reg||(dd&&due>=dd)||R()>.88||(diff(TODAY,due)<14&&R()<.75))continue;mk(sl[0],addD(due,Math.min(Math.floor(R()*3),diff(TODAY,due))),"chw");}
+        for(let dt=later(c.reg,W0);diff(TODAY,dt)>4&&(!dd||dt<dd);dt=addD(dt,14))if(R()<pr("cgv",.88))mk(stageAt("c",c,dt),dt,"chv");
+        for(const sl of S.cfg.slots){if(sl[1]!=="dob")continue;const due=addD(dob,sl[2]);if(due>TODAY||due<c.reg||(dd&&due>=dd)||R()>pr("chwv",.88)||(diff(TODAY,due)<14&&R()<.75))continue;mk(sl[0],addD(due,Math.min(Math.floor(R()*3),diff(TODAY,due))),"chw");}
       }
     }}}
   // example referrals at different stages
   const cs=S.c.filter(c=>!c.death),RS=["Fast or difficult breathing","Not feeding well","Fever for 7 days or more","Severe acute malnutrition","Cannot drink or breastfeed"];
   for(let i=5,n=0;i<cs.length;i+=41,n++){const c=cs[i],st=["open","done","arrived","done","open","done"][n%6];
-    S.r.push(D({id:"r_d"+n,subj:c.id,kind:"c",hhId:c.hhId,date:addD(TODAY,-(1+n%9)),reason:RS[n%5],by:"s_chw0",st,dx:st==="done"?"Pneumonia":"",tx:st==="done"?"Amoxicillin 5 days":"",fu:st==="done"?addD(TODAY,n%3):""}));}
+    S.r.push(D({id:"r_d"+n+X,subj:c.id,kind:"c",hhId:c.hhId,date:addD(TODAY,-(1+n%9)),reason:RS[n%5],by:"s_chw0"+X,st,dx:st==="done"?"Pneumonia":"",tx:st==="done"?"Amoxicillin 5 days":"",fu:st==="done"?addD(TODAY,n%3):""}));}
   function visit(kind,p,slot,date,byId,role,a){S.v.push(D({id:"v_"+p.id+slot+date.replace(/-/g,"")+role[2],subj:p.id,kind,hhId:p.hhId,slot,date,by:byId,role,a}));}
-  VIX=null;if(S.sess.role!=="admin"&&!S.staff.some(x=>x.id===S.sess.id))S.sess={role:"chw",id:"s_chw0"};
 }
 
 /* ---------- UI state and rendering ---------- */
@@ -558,14 +599,18 @@ const gated=()=>!S.mode||(S.mode==="live"&&(!live()||LOCKED));
 function renderBar(){
   const s=S.sess,me=by("staff",s.id)||(S.auth&&S.auth.worker&&S.auth.worker.id===s.id?S.auth.worker:null),g=gated();
   $("#role").hidden=g||S.mode==="live";$("#net").hidden=g;
-  $("#who").textContent=s.role==="admin"?t("Administrator"):me?((s.role==="chv"?"CGV":"CHW")+" · "+me.name+(me.cg?" · Care Group "+me.cg:"")+" · "+t(s.role==="chv"?"Every 2 weeks":"10 scheduled visits")):"";
+  const cp=curProg();
+  const lp=S.mode==="live"&&S.auth&&S.auth.worker&&S.auth.worker.prog?(S.plist||[]).find(x=>x.id===S.auth.worker.prog):null;
+  $("#who").textContent=s.role==="igha"?"IGHA · all countries · de-identified":s.role==="admin"?t("Administrator")+(cp?" · "+cp.country+" · "+cp.partner:lp?" · "+lp.name:S.mode==="live"&&S.plist&&S.plist.length?" · "+(SERVER.country||"")+" · all programmes":""):me?((s.role==="chv"?"CGV":"CHW")+" · "+me.name+(me.cg?" · Care Group "+me.cg:"")+" · "+t(s.role==="chv"?"Every 2 weeks":"10 scheduled visits")):"";
   const on=navigator.onLine,n=dirtyN();
   $("#net").innerHTML='<span class="dot'+(on?"":" off")+'"></span> '+esc(on?t("Online"):t("Offline"))+(n?" · "+n+" "+esc(t("Not synced")):"")+(live()&&on?' <button class="link" data-act="sync">'+esc(t("Sync now"))+" "+esc(syncMsg)+"</button>":"");
-  $("#lang").innerHTML=Object.keys(LANGS).map(k=>'<option value="'+esc(k)+'"'+(k===lang?" selected":"")+">"+esc(LANGS[k].name)+"</option>").join("");
-  $("#role").innerHTML='<option value="admin|"'+(s.role==="admin"?" selected":"")+">"+esc(t("Administrator"))+"</option>"+
-    S.staff.filter(x=>x.role==="chw").map(w=>'<optgroup label="Care Group '+(w.cg||"")+'"><option value="chw|'+w.id+'"'+(s.id===w.id?" selected":"")+">CHW · "+esc(w.name)+"</option>"+
-      S.staff.filter(x=>x.chwId===w.id).map(v=>'<option value="chv|'+v.id+'"'+(s.id===v.id?" selected":"")+">CGV · "+esc(v.name)+"</option>").join("")+"</optgroup>").join("");
-  const tabs=s.role==="admin"?[["admin","Overview"],["rep","Reports"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
+  const okL=s.role==="igha"?["en"]:cp&&cp.langs;if(okL&&!okL.includes(lang))lang="en";else if(!okL&&LANGS[S.lang])lang=S.lang;
+  $("#lang").innerHTML=Object.keys(LANGS).filter(k=>!okL||okL.includes(k)).map(k=>'<option value="'+esc(k)+'"'+(k===lang?" selected":"")+">"+esc(LANGS[k].name)+"</option>").join("");
+  $("#role").innerHTML=PGD?'<option value="igha||"'+(s.role==="igha"?" selected":"")+">IGHA · all countries</option>"+S.progs.map(p=>{const st=PGD[p.id].staff,on=s.prog===p.id;
+      return '<optgroup label="'+esc(p.country)+'"><option value="admin||'+p.id+'"'+(on&&s.role==="admin"?" selected":"")+">Administrator · "+esc(p.country)+"</option></optgroup>"+
+        st.filter(x=>x.role==="chw").map(w=>'<optgroup label="'+esc(p.country)+" · Care Group "+(w.cg||"")+'"><option value="chw|'+w.id+"|"+p.id+'"'+(on&&s.id===w.id?" selected":"")+">CHW · "+esc(w.name)+"</option>"+
+          st.filter(x=>x.chwId===w.id).map(v=>'<option value="chv|'+v.id+"|"+p.id+'"'+(on&&s.id===v.id?" selected":"")+">CGV · "+esc(v.name)+"</option>").join("")+"</optgroup>").join("");}).join(""):"";
+  const tabs=s.role==="igha"?[["igha","Countries"],["rep","Reports"]]:s.role==="admin"?[["admin","Overview"],["rep","Reports"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
     [["due","Due list"],["reg","Register"],["refs","Referrals"],["dash","My results"],["set","Settings"]];
   if(g){$("#who").textContent="";$("#nav").innerHTML="";return;}
   $("#nav").innerHTML=tabs.map(x=>'<button class="tab'+(UI.view===x[0]?" on":"")+'" data-go="'+x[0]+'">'+esc(t(x[1]))+"</button>").join("");
@@ -574,9 +619,10 @@ function render(){
   renderBar();const s=S.sess;
   if(gated()){const v=!S.mode?(["login","setup"].includes(UI.view)?UI.view:"welcome"):!live()?"login":"lock";
     $("#app").innerHTML={welcome:vWelcome,login:vLogin,setup:vSetup,lock:vLock}[v]();return;}
-  if(s.role==="admin"&&["due","dash"].includes(UI.view))UI.view="admin";
-  if(s.role!=="admin"&&["admin","ind","model","staff","rep"].includes(UI.view))UI.view="due";
-  const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff,rep:vRep};
+  if(s.role==="igha"&&!["igha","rep"].includes(UI.view))UI.view="igha";
+  if(s.role==="admin"&&["due","dash","igha"].includes(UI.view))UI.view="admin";
+  if(!["admin","igha"].includes(s.role)&&["admin","ind","model","staff","rep","igha"].includes(UI.view))UI.view="due";
+  const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff,rep:vRep,igha:vIgha};
   const banner=S.mode==="example"?'<div class="note warn row"><span class="grow">'+esc(t("Example data. These are not real people."))+'</span><button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button></div>":"";
   $("#app").innerHTML=banner+(V[UI.view]||vDue)();
 }
@@ -737,14 +783,20 @@ function censusCard(){const c=censusStats();if(!c.hh)return "";const r=(n,d,k)=>
     '<div class="row"><button data-act="usecensus"'+(c.lb<500?" disabled":"")+'>Use the census rates as the model baseline</button>'+(c.lb<500?'<span class="small muted">Needs at least 500 live births.</span>':"")+"</div></div>";}
 const pinF=(id,label)=>'<div class="q"><label class="t" for="'+id+'">'+esc(t(label))+'</label><input id="'+id+'" type="password" inputmode="numeric" autocomplete="off"></div>';
 const msgP=()=>authMsg?'<p class="note warn">'+esc(authMsg)+"</p>":"";
-function vWelcome(){return '<div class="card"><h1>CBIO+ Home Visit Register</h1><p class="muted">'+esc(t("For Community Health Workers and Care Group Volunteers."))+'</p><div class="row"><button class="pri" data-go="login">'+esc(t("Sign in"))+'</button><button data-act="example">'+esc(t("Try it with example data"))+'</button></div><p class="small muted">'+esc(t("Signing in needs a connection the first time. After that the app works offline and sends your records when a connection returns."))+'</p><button class="link" data-go="setup">'+esc(t("First-time setup (administrator only)"))+"</button></div>";}
+function vWelcome(){return '<div class="card"><h1>CBIO+ Home Visit Register</h1><p class="muted">'+esc(t("For Community Health Workers and Care Group Volunteers."))+" · "+esc(SERVER.country||"")+'</p>'+(SERVER.url?"":'<p class="note warn">No database has been set up for this country code yet. The example data still works.</p>')+'<div class="row"><button class="pri" data-go="login">'+esc(t("Sign in"))+'</button><button data-act="example">'+esc(t("Try it with example data"))+'</button></div><p class="small muted">'+esc(t("Signing in needs a connection the first time. After that the app works offline and sends your records when a connection returns."))+'</p><button class="link" data-go="setup">'+esc(t("First-time setup (administrator only)"))+"</button></div>";}
 function vLogin(){return '<div class="card"><h1>'+esc(t("Sign in"))+"</h1>"+msgP()+fld("f_code","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_pin","PIN")+'<div class="row"><button class="pri" data-act="login">'+esc(t("Sign in"))+"</button>"+(S.mode?"":'<button data-go="welcome">'+esc(t("Back"))+"</button>")+"</div></div>";}
 function vSetup(){return '<div class="card"><h1>'+esc(t("First-time setup (administrator only)"))+"</h1><p class='muted'>"+esc(t("This creates the administrator account. It works once, on a server with no administrator yet."))+"</p>"+msgP()+fld("f_name","Name")+fld("f_code","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_pin","PIN (6 or more digits)")+pinF("f_pin2","PIN again")+'<div class="row"><button class="pri" data-act="bootstrap">'+esc(t("Save"))+'</button><button data-go="welcome">'+esc(t("Back"))+"</button></div></div>";}
 function vLock(){const w=S.auth.worker;return '<div class="card"><h1>'+esc(w.name)+"</h1>"+msgP()+pinF("f_pin","PIN")+'<div class="row"><button class="pri" data-act="unlock">'+esc(t("Open"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button></div></div>";}
-function vStaff(){const chws=S.staff.filter(x=>x.role==="chw"),L=S.mode==="live";
+function vStaff(){const chws=S.staff.filter(x=>x.role==="chw"),L=S.mode==="live",PL=L&&Array.isArray(S.plist)?S.plist:null,CA=!!PL&&!(S.auth.worker||{}).prog; // CA: country administrator
+  const pn=id=>{const x=(PL||[]).find(y=>y.id===id);return x?x.name:"";},psel=id=>'<div class="q"><label class="t" for="'+id+'">Programme</label><select id="'+id+'">'+PL.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name+(x.partner?" · "+x.partner:""))+"</option>").join("")+"</select></div>";
+  const progs=!PL?"":CA?'<div class="card"><h2>Programmes</h2><p class="small muted">A programme is one partner\'s work in this country. Its administrator sees only that programme. You see all of them.</p>'+
+      (PL.length?'<div class="tblwrap"><table><tr><th>Programme</th><th>Partner</th><th>Administrators (sign-in name)</th></tr>'+PL.map(x=>"<tr><td>"+esc(x.name)+"</td><td>"+esc(x.partner||"")+"</td><td>"+esc((x.admins||[]).map(a=>a.name+" ("+a.code+")").join(", ")||"none yet")+"</td></tr>").join("")+"</table></div>":'<p class="muted">No programmes yet. Without programmes, all workers belong to one unnamed programme.</p>')+
+      "<h3>Add a programme</h3>"+fld("f_gname","Programme name")+fld("f_gpartner","Partner organisation")+'<div class="row"><button class="pri" data-act="addprog">'+esc(t("Save"))+"</button></div>"+
+      (PL.length?"<h3>Add a programme administrator</h3>"+fld("f_aname","Name")+psel("f_aprog")+fld("f_acode","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_apin","PIN (6 or more digits)")+'<div class="row"><button class="pri" data-act="addpadmin">'+esc(t("Save"))+"</button></div>":"")+"</div>"
+    :PL.length?'<p class="muted">Programme: <b>'+esc(PL[0].name)+"</b>"+(PL[0].partner?" · "+esc(PL[0].partner):"")+"</p>":"";
   const cred=p=>L?fld("f_"+p+"code","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_"+p+"pin","PIN (6 or more digits)"):"";
-  return "<h1>Workers</h1>"+(authMsg?'<p class="note warn">'+esc(authMsg)+"</p>":"")+chws.map(w=>'<div class="card"><h2>CHW · '+esc(w.name)+' <span class="muted small">Care Group '+(w.cg||"")+" · "+esc(w.village||"")+(w.code?" · sign-in: "+esc(w.code):"")+'</span></h2><div class="row">'+S.staff.filter(x=>x.chwId===w.id).map(v=>'<span class="chip">'+esc(v.name)+(v.code?" ("+esc(v.code)+")":"")+" · "+S.hh.filter(h=>h.chvId===v.id).length+" households</span>").join("")+"</div></div>").join("")+
-  '<div class="card"><h3>Add a CHW (starts a new Care Group)</h3>'+fld("f_wname","Name")+fld("f_wvil","Village")+cred("w")+'<div class="row"><button class="pri" data-act="addchw">'+esc(t("Save"))+"</button></div></div>"+
+  return "<h1>Workers</h1>"+(authMsg?'<p class="note warn">'+esc(authMsg)+"</p>":"")+progs+chws.map(w=>'<div class="card"><h2>CHW · '+esc(w.name)+' <span class="muted small">'+(CA&&w.prog?esc(pn(w.prog))+" · ":"")+"Care Group "+(w.cg||"")+" · "+esc(w.village||"")+(w.code?" · sign-in: "+esc(w.code):"")+'</span></h2><div class="row">'+S.staff.filter(x=>x.chwId===w.id).map(v=>'<span class="chip">'+esc(v.name)+(v.code?" ("+esc(v.code)+")":"")+" · "+S.hh.filter(h=>h.chvId===v.id).length+" households</span>").join("")+"</div></div>").join("")+
+  '<div class="card"><h3>Add a CHW (starts a new Care Group)</h3>'+fld("f_wname","Name")+fld("f_wvil","Village")+(CA&&PL.length?psel("f_wprog"):"")+cred("w")+'<div class="row"><button class="pri" data-act="addchw">'+esc(t("Save"))+"</button></div></div>"+
   (chws.length?'<div class="card"><h3>Add a Care Group Volunteer</h3>'+fld("f_vname","Name")+fld("f_vvil","Village")+'<div class="q"><label class="t" for="f_vchw">CHW</label><select id="f_vchw">'+chws.map(w=>'<option value="'+w.id+'">'+esc(w.name)+"</option>").join("")+"</select></div>"+cred("v")+'<div class="row"><button class="pri" data-act="addcgv">'+esc(t("Save"))+"</button></div></div>":"")+
   (L&&S.staff.length?'<div class="card"><h3>Give a worker a new PIN</h3><div class="q"><label class="t" for="f_pwho">Worker</label><select id="f_pwho">'+S.staff.map(w=>'<option value="'+w.id+'">'+esc((w.role==="chv"?"CGV":"CHW")+" · "+w.name)+"</option>").join("")+"</select></div>"+pinF("f_ppin","PIN (6 or more digits)")+'<div class="row"><button class="pri" data-act="setpin">'+esc(t("Save"))+"</button></div></div>":"");}
 /* ---------- reports (administrator) ---------- */
@@ -784,12 +836,14 @@ function tbl(id,title,head,rows,opt){opt=opt||{};REPDATA[id]={title,head,rows};c
     rows.slice(0,cap).map(r=>"<tr>"+r.map((c,i)=>"<td"+(num.includes(i)?' class="n"':"")+">"+esc(c)+"</td>").join("")+"</tr>").join("")+"</table></div>"+
     (rows.length?"":'<p class="small muted">None.</p>')+(rows.length>cap?'<p class="small muted">Showing '+cap+" of "+rows.length+". The downloaded table has all of them.</p>":"")+
     '<div class="row noprint"><button data-act="csv" data-id="'+id+'">Download this table</button></div>';}
-function vRep(){REPDATA={};const R=repRange(),PR=prevRange(R),{chws,P}=repArea(),{C,W,H}=P,ids=new Set(C.map(c=>c.id).concat(W.map(w=>w.id)));
+function vRep(){REPDATA={};const IG=S.sess.role==="igha";if(IG){if(!PGD[REP.prog])REP.prog=S.progs[0].id;setProg(REP.prog);}
+  const wn=w=>IG?"Care Group "+w.cg:w.name+" (Care Group "+w.cg+")";
+  const R=repRange(),PR=prevRange(R),{chws,P}=repArea(),{C,W,H}=P,ids=new Set(C.map(c=>c.id).concat(W.map(w=>w.id)));
   const pc=(n,d)=>d?Math.round(100*n/d)+"%":"–",V=S.v.filter(v=>ids.has(v.subj)&&inR(v.date,R)),D=S.d.filter(d=>ids.has(d.subj)&&inR(d.date,R)),RF=S.r.filter(r=>ids.has(r.subj)&&inR(r.date,R));
-  const B=C.filter(c=>c.place&&inR(c.dob,R)),m=lives(P),y=S.cfg.yll,areaName=REP.area?(chws[0]?chws[0].name+" · Care Group "+chws[0].cg:""):"All areas ("+chws.length+" Care Groups)";
+  const B=C.filter(c=>c.place&&inR(c.dob,R)),m=lives(P),y=S.cfg.yll,areaName=(curProg()?curProg().country+" · ":"")+(REP.area?(chws[0]?(IG?"":chws[0].name+" · ")+"Care Group "+chws[0].cg:""):"All areas ("+chws.length+" Care Groups)");
   let h='<div class="row"><h1 class="grow">Reports</h1><button class="pri noprint" data-act="print">Print or save as PDF</button></div>'+
-    '<div class="card noprint"><div class="row"><div class="q grow"><label class="t" for="rp_per">Period</label><select id="rp_per" data-rep="per">'+[["m","Last month"],["q","Last quarter"],["y","Last 12 months"],["all","Since start"],["c","Choose dates"]].map(o=>'<option value="'+o[0]+'"'+(REP.per===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></div>"+
-    '<div class="q grow"><label class="t" for="rp_area">Area</label><select id="rp_area" data-rep="area"><option value="">All areas</option>'+S.staff.filter(x=>x.role==="chw").map(w=>'<option value="'+w.id+'"'+(REP.area===w.id?" selected":"")+">Care Group "+(w.cg||"")+" · "+esc(w.name)+"</option>").join("")+"</select></div></div>"+
+    '<div class="card noprint"><div class="row"><div class="q grow"><label class="t" for="rp_per">Period</label><select id="rp_per" data-rep="per">'+[["m","Last month"],["q","Last quarter"],["y","Last 12 months"],["all","Since start"],["c","Choose dates"]].map(o=>'<option value="'+o[0]+'"'+(REP.per===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></div>"+(IG?'<div class="q grow"><label class="t" for="rp_prog">Country</label><select id="rp_prog" data-rep="prog">'+S.progs.map(p=>'<option value="'+p.id+'"'+(REP.prog===p.id?" selected":"")+">"+esc(p.country+" · "+p.name)+"</option>").join("")+"</select></div>":"")+
+    '<div class="q grow"><label class="t" for="rp_area">Area</label><select id="rp_area" data-rep="area"><option value="">All areas</option>'+S.staff.filter(x=>x.role==="chw").map(w=>'<option value="'+w.id+'"'+(REP.area===w.id?" selected":"")+">Care Group "+(w.cg||"")+(IG?"":" · "+esc(w.name))+"</option>").join("")+"</select></div></div>"+
     (REP.per==="c"?'<div class="row"><div class="q"><label class="t" for="rp_a">From</label><input type="date" id="rp_a" data-rep="a" value="'+REP.a+'"></div><div class="q"><label class="t" for="rp_b">To</label><input type="date" id="rp_b" data-rep="b" value="'+REP.b+'" max="'+TODAY+'"></div></div>':"")+"</div>"+
     '<p class="muted"><b>'+esc(areaName)+"</b> · "+esc(R.label)+(R.all?"":": "+R.a+" to "+R.b)+" · prepared "+TODAY+(S.mode==="example"?" · example data":"")+"</p>";
   // 1 programme summary
@@ -820,9 +874,10 @@ function vRep(){REPDATA={};const R=repRange(),PR=prevRange(R),{chws,P}=repArea()
   // 4 worker activity
   const actRow=(name,hhs,isCgv)=>{const Q=people(hhs),qi=new Set(Q.C.map(c=>c.id).concat(Q.W.map(w=>w.id))),o=onTime(Q,"ten",R),f=onTime(Q,"fort",R),rf=S.r.filter(r=>qi.has(r.subj)&&inR(r.date,R)),dd=S.d.filter(d=>qi.has(d.subj)&&inR(d.date,R));
     return [name,hhs.length,isCgv?"":o[0]+" / "+o[1],isCgv?"":pc(o[0],o[1]),f[0]+" / "+f[1],pc(f[0],f[1]),rf.filter(r=>r.st==="arrived"||r.st==="done").length+" / "+rf.length,isCgv?"":dd.filter(d=>d.va).length+" / "+dd.length];};
-  const act=[];chws.forEach(w=>{const vs=S.staff.filter(x=>x.chwId===w.id);act.push(actRow("CHW · "+w.name+" (Care Group "+w.cg+")",S.hh.filter(h=>vs.some(v=>v.id===h.chvId))));if(REP.area)vs.forEach(v=>act.push(actRow("   Volunteer · "+v.name,S.hh.filter(h=>h.chvId===v.id),1)));});
+  const act=[];chws.forEach(w=>{const vs=S.staff.filter(x=>x.chwId===w.id);act.push(actRow("CHW · "+wn(w),S.hh.filter(h=>vs.some(v=>v.id===h.chvId))));if(REP.area)vs.forEach((v,vi)=>act.push(actRow("   Volunteer · "+(IG?vi+1:v.name),S.hh.filter(h=>h.chvId===v.id),1)));});
   h+='<h2 class="rep">4. Worker activity</h2><div class="card">'+tbl("activity","Worker activity",["Worker","Households","CHW visits on time / due","%","Volunteer visits made / expected","%","Referrals reached facility / made","Verbal autopsies done / deaths"],act,{num:[1,2,3,4,5,6,7]})+
     '<p class="small muted">CHW visits are the 10 scheduled visits that fell due in the period. Volunteer visits are fortnightly visits made as a share of those expected in the period. Choose one area to see each volunteer.</p></div>';
+  if(IG)return h+'<h2 class="rep">5. Action lists</h2><div class="card"><p class="muted">Not shown at IGHA level. Action lists name women and children, and names stay in the country database.</p></div>';
   // 5 action lists (as of today)
   const cgv=p=>{const hh=by("hh",p.hhId)||{},st=by("staff",hh.chvId)||{};return [hh.village||"",st.name||""];},who=p=>p.dob?p.name+" ("+ageTxt(p)+")":p.name+" (pregnant)";
   const act1=C.filter(c=>active(c)&&ageD(c)<730).concat(W.filter(w=>w.preg&&active(w))).filter(p=>p.reg<=addD(R.b,-14)&&!visitsOf(p.id).some(v=>inR(v.date,R))).map(p=>[who(p)].concat(cgv(p),["Registered "+p.reg]));
@@ -834,6 +889,42 @@ function vRep(){REPDATA={};const R=repRange(),PR=prevRange(R),{chws,P}=repArea()
     '<div class="card"><h3>Open referrals ('+act2.length+")</h3>"+tbl("openrefs","Open referrals",AH,act2,{cap:25})+"</div>"+
     '<div class="card"><h3>Zero-dose and under-immunized children ('+act3.length+")</h3>"+tbl("vaccines","Zero-dose and under-immunized children",AH,act3,{cap:25})+"</div>"+
     '<div class="card"><h3>Children with low MUAC ('+act4.length+")</h3>"+tbl("muac","Children with low MUAC",AH,act4,{cap:25})+"</div>";
+  return h;}
+/* ---------- IGHA level: each country shown separately, without names ---------- */
+function vIgha(){REPDATA={};const R=repRange(),PG=S.progs||[],pc=(n,d)=>d?Math.round(100*n/d)+"%":"–";
+  if(!PGD||!PG.length)return '<div class="card"><h1>Countries</h1><p>The country comparison needs the de-identified central database, which is not yet connected. Open the example data to see how it works.</p></div>';
+  const X=PG.map(p=>withProg(p.id,()=>{const P=people(S.hh),{C,W,H}=P,D=S.d.filter(d=>inR(d.date,R)),B=C.filter(c=>c.place&&inR(c.dob,R)),V=S.v.filter(v=>inR(v.date,R)),va=D.filter(d=>d.va),
+      cd=D.filter(d=>d.kind==="c").map(d=>{const c=by("c",d.subj);return c?diff(d.date,c.dob):0;}),RF=S.r.filter(r=>inR(r.date,R));
+    return {p,r:S.cfg.rates,H:H.length,chw:S.staff.filter(x=>x.role==="chw").length,cgv:S.staff.filter(x=>x.role==="chv").length,kids:C.filter(active).length,preg:W.filter(w=>w.preg&&active(w)).length,B:B.length,
+      vChw:V.filter(v=>v.role==="chw").length,vCgv:V.filter(v=>v.role==="chv").length,ot:onTime(P,"ten",R),fo:onTime(P,"fort",R),rf:[RF.filter(r=>r.st==="arrived"||r.st==="done").length,RF.length],
+      neo:cd.filter(a=>a<28).length,pn:cd.filter(a=>a>=28).length,mat:D.filter(d=>d.kind==="w").length,sb:W.filter(w=>w.sb&&inR(w.del,R)).length,ex:exposure(C,R),m:lives(P),y:S.cfg.yll,
+      nva:va.length,nd:D.length,dl:DELAYS.map((x,i)=>va.filter(d=>(d.va.delays||[])[i]).length),cov:covP(P,R)};}));
+  const names=X.map(x=>x.p.country),row=(label,f)=>[label].concat(X.map(f)),num=X.map((x,i)=>i+1);
+  let h='<div class="row"><h1 class="grow">Countries</h1><button class="pri noprint" data-act="print">Print or save as PDF</button></div>'+
+    '<div class="note">This view is de-identified. It contains no names, villages or household details; those stay in each country database. Each country is calculated with its own settings: baseline mortality, baseline coverage and immunization schedule.</div>'+
+    '<div class="card noprint"><div class="q"><label class="t" for="rp_per">Period</label><select id="rp_per" data-rep="per">'+[["m","Last month"],["q","Last quarter"],["y","Last 12 months"],["all","Since start"]].map(o=>'<option value="'+o[0]+'"'+(REP.per===o[0]?" selected":"")+">"+o[1]+"</option>").join("")+"</select></div></div>"+
+    '<p class="muted"><b>'+X.length+" countries</b> · "+esc(R.label)+(R.all?"":": "+R.a+" to "+R.b)+" · prepared "+TODAY+(S.mode==="example"?" · example data":"")+"</p>";
+  h+='<h2 class="rep">1. Programmes</h2><div class="card">'+tbl("ig_prog","Programmes",["Measure"].concat(names),[row("Programme",x=>x.p.name),row("Partner",x=>x.p.partner),row("Care Groups (one CHW each)",x=>x.chw),row("Care Group Volunteers",x=>x.cgv),row("Households",x=>x.H),
+      row("Children under 24 months",x=>x.kids),row("Pregnant women",x=>x.preg),row("Live births recorded in the period",x=>x.B),row("CHW home visits in the period",x=>x.vChw),row("Volunteer home visits in the period",x=>x.vCgv),
+      row("CHW scheduled visits on time",x=>pc(x.ot[0],x.ot[1])+" ("+x.ot[0]+"/"+x.ot[1]+")"),row("Volunteer fortnightly visits made",x=>pc(x.fo[0],x.fo[1])+" ("+x.fo[0]+"/"+x.fo[1]+")"),row("Referrals that reached the facility",x=>x.rf[0]+" / "+x.rf[1])],{num})+"</div>";
+  const rt=(n,d)=>d?(n/d*1000).toFixed(1):"–";
+  h+='<h2 class="rep">2. Mortality</h2><div class="card">'+tbl("ig_mort","Mortality by country",["Measure"].concat(names),[
+      row("Neonatal deaths (0-27 days) recorded in the period",x=>x.neo),row("Neonatal deaths expected at baseline mortality",x=>x.ex.eNeo.toFixed(1)),
+      row("Neonatal deaths per 1,000 live births, measured",x=>rt(x.neo,x.B)),row("Neonatal deaths per 1,000 live births, national baseline",x=>x.r.nmr),
+      row("Deaths at 1-23 months recorded in the period",x=>x.pn),row("Deaths at 1-23 months expected at baseline mortality",x=>x.ex.ePn.toFixed(1)),
+      row("Maternal deaths recorded",x=>x.mat),row("Maternal deaths expected at baseline mortality",x=>(x.B*x.r.mmr/1e5).toFixed(2)),row("Stillbirths recorded",x=>x.sb),
+      row("Deaths reviewed by verbal autopsy",x=>x.nva+" of "+x.nd),row("Lives saved to date (modelled)",x=>f2(x.m.lives)+" (range "+f2(x.m.lo)+" to "+f2(x.m.hi)+")"),row("DALYs averted to date",x=>Math.round(x.m.lives*x.y.undisc))],{num})+
+    '<p class="small muted">Deaths expected at baseline mortality is the number that would have occurred among the children and births under observation in the period if mortality had stayed at that country\'s baseline rate. '+
+    'At this size the recorded and expected numbers are small, and differences between the two countries can be chance. Lives saved and DALYs averted are modelled and cumulative from the start of each programme.</p></div>'+
+    '<div class="card"><h3>Delays found in verbal autopsies</h3>'+tbl("ig_delays","Delays found in verbal autopsies",["Delay (share of deaths reviewed)"].concat(names),DELAYS.map((d,i)=>row(d,x=>x.nva?pc(x.dl[i],x.nva)+" ("+x.dl[i]+"/"+x.nva+")":"–")),{num})+"</div>";
+  let g="";
+  h+='<h2 class="rep">3. Behaviour and coverage indicators</h2><div class="card"><p class="small">'+X.map((x,i)=>'<span class="key '+(i?"c2":"cur")+'"></span> '+esc(x.p.country)).join(" &nbsp; ")+' &nbsp; <span class="key tick"></span> Baseline for that country</p><div class="tblwrap"><table><tr><th>Indicator</th>'+X.map(x=>'<th class="n">'+esc(x.p.country)+'</th><th style="min-width:110px"></th>').join("")+"</tr>";
+  X[0].cov.forEach((i0,k)=>{if(i0.g!==g){g=i0.g;h+='<tr><th colspan="'+(1+2*X.length)+'">'+esc(g)+"</th></tr>";}
+    h+="<tr><td>"+esc(i0.label)+"</td>"+X.map((x,xi)=>{const i=x.cov[k],p=i.d?100*i.n/i.d:0;return '<td class="n"><b>'+pc(i.n,i.d)+'</b> <span class="muted">'+i.n+"/"+i.d+'</span></td><td><div class="pair"><div class="pb"><i class="'+(xi?"c2":"cur")+'" style="width:'+p+'%"></i></div>'+(i.base!==undefined?'<b style="left:'+Math.round(i.base*100)+'%"></b>':"")+"</div></td>";}).join("")+"</tr>";});
+  REPDATA.ig_cov={title:"Behaviour and coverage indicators by country",head:["Group","Indicator"].concat(...names.map(n=>[n+" numerator",n+" denominator",n+" %",n+" baseline %"])),
+    rows:X[0].cov.map((i0,k)=>[i0.g,i0.label].concat(...X.map(x=>{const i=x.cov[k];return [i.n,i.d,i.d?Math.round(100*i.n/i.d):"",i.base!==undefined?Math.round(i.base*100):""];})))};
+  h+='</table></div><p class="small muted">Practices asked at home visits are counted per visit in the period. Birth indicators cover births in the period. Immunization is the status at the end of the period among children whose card has been seen, against each country\'s own schedule. '+
+    'Baselines come from each country\'s most recent Demographic and Health Survey and are shown only for interventions in the lives-saved model.</p><div class="row noprint"><button data-act="csv" data-id="ig_cov">Download this table</button></div></div>';
   return h;}
 function vRefs(){
   const P=people(myHH()),ids=new Set(P.W.concat(P.C).map(p=>p.id)),R=S.r.filter(r=>ids.has(r.subj)).sort((a,b)=>a.date<b.date?1:-1);
@@ -872,7 +963,7 @@ function covTable(P){const m=model(P);
 function vAdmin(){
   const P=people(S.hh),m=lives(P),mo=mortality(P),ot=onTime(P),y=S.cfg.yll,r=S.cfg.rates;
   const openR=S.r.filter(x=>x.st==="open").length;
-  let h="<h1>"+esc(t("Overview"))+' <span class="muted small">'+esc(S.cfg.country)+'</span></h1><div class="grid">'+livesCard(P)+
+  let h="<h1>"+esc(t("Overview"))+' <span class="muted small">'+esc(S.cfg.country+(curProg()?" · "+curProg().name+" · "+curProg().partner:""))+'</span></h1><div class="grid">'+livesCard(P)+
     stat("Per 1,000 live births",m.per1000.toFixed(1),"deaths averted before 24 months at current coverage")+
     stat(t("Households"),S.hh.length,S.staff.filter(x=>x.role==="chw").length+" CHW areas · "+P.C.filter(active).length+" children · "+P.W.filter(w=>w.preg&&active(w)).length+" pregnant")+
     stat(t("Visits on time"),(pct(ot[0],ot[1])??"–")+"%",ot[0]+" / "+ot[1])+stat(t("Open referrals"),openR)+"</div>";
@@ -917,7 +1008,7 @@ function vSet(){
     '<div class="row"><input id="newlang" class="grow" placeholder="'+esc(t("Type a language name"))+'" list="lgs"><datalist id="lgs">'+["French","Portuguese","Spanish","Haitian Creole","Luo","Kikuyu","Somali","Amharic","Hausa","Twi","Ewe","Arabic","Hindi","Bengali","K'iche'","Quechua"].map(x=>"<option>"+x+"</option>").join("")+'</datalist><button class="pri" data-act="getlang">'+esc(t("Download"))+'</button></div><p class="small muted" id="langmsg">A new language needs a connection once. It is then stored on this tablet and works offline.</p></div>';
   h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
   h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
-  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.3. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.4. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
   return h;}
 
 /* ---------- actions ---------- */
@@ -958,7 +1049,7 @@ document.addEventListener("click",e=>{
     const rec=F.did?by("d",F.did):{id:uid("d"),subj:p.id,kind:F.kind,date:val("f_date")||TODAY};rec.place=PL[a.place??0];
     if(document.getElementById("f_cause"))rec.va={who:val("f_who"),rel:val("f_rel"),narr:val("f_narr"),delays:[0,1,2,3].map(i=>a["dl"+i]===1?1:0),why:a.why||[],home:a.home===1?1:0,notes:val("f_dnote"),cause:val("f_cause"),by:S.sess.id,date:TODAY};
     put("d",rec);p.death=rec.date;put(F.kind==="w"?"w":"c",p);return go(S.sess.role==="chw"?"due":"reg");}
-  if(A==="example"){S.mode="example";wipe();demo();S.sess={role:"chw",id:"s_chw0"};save();return go("due");}
+  if(A==="example"){S.mode="example";wipe();S.sess={role:"chw",id:"s_chw0",prog:"ke"};demo();save();return go("due");}
   if(A==="login"||A==="bootstrap"){const pin=val("f_pin"),code=val("f_code"),nm=val("f_name");
     if(A==="bootstrap"&&pin!==val("f_pin2")){authMsg=t("The two PINs are different.");return keep();}
     authMsg=t("Signing in…");keep();
@@ -969,8 +1060,12 @@ document.addEventListener("click",e=>{
     if(n&&!(F&&F.outOK)){UI.f=Object.assign(UI.f||{},{outOK:1});const txt=n+" "+t("records have not been sent to the server and will be lost. Connect and sync first, or tap Sign out again to discard them.");if(m)m.textContent=txt;else{authMsg=txt;render();}return;}
     if(live())rpc("cbio_logout",{p_token:S.auth.token}).catch(()=>{});
     S.auth=null;S.mode=null;LOCKED=false;authMsg="";wipe();save();return go("welcome");}
+  if(A==="addprog"&&S.mode==="live"){rpc("cbio_save_programme",{p_token:S.auth.token,p_programme:{name:val("f_gname"),partner:val("f_gpartner"),country:SERVER.country||S.cfg.country}})
+      .then(res=>{authMsg=res&&res.ok?t("Saved"):errText(res&&res.error||"server");UI.f=null;return sync().then(()=>go("staff"));},e=>{authMsg=errText(e.code);keep();});return;}
+  if(A==="addpadmin"&&S.mode==="live"){rpc("cbio_save_worker",{p_token:S.auth.token,p_worker:{role:"admin",name:val("f_aname"),code:val("f_acode"),prog:val("f_aprog")},p_pin:val("f_apin")})
+      .then(res=>{authMsg=res&&res.ok?t("Saved")+": "+res.worker.name+" ("+res.worker.code+")":errText(res&&res.error||"server");UI.f=null;return sync().then(()=>go("staff"));},e=>{authMsg=errText(e.code);keep();});return;}
   if((A==="addchw"||A==="addcgv"||A==="setpin")&&S.mode==="live"){const P=A==="addchw"?"w":"v";
-    const body=A==="setpin"?{id:val("f_pwho")}:{role:A==="addchw"?"chw":"chv",name:val("f_"+P+"name"),village:val("f_"+P+"vil"),code:val("f_"+P+"code"),chwId:A==="addcgv"?val("f_vchw"):null};
+    const body=A==="setpin"?{id:val("f_pwho")}:{role:A==="addchw"?"chw":"chv",name:val("f_"+P+"name"),village:val("f_"+P+"vil"),code:val("f_"+P+"code"),chwId:A==="addcgv"?val("f_vchw"):null,prog:A==="addchw"&&document.getElementById("f_wprog")?val("f_wprog"):null};
     rpc("cbio_save_worker",{p_token:S.auth.token,p_worker:body,p_pin:A==="setpin"?val("f_ppin"):val("f_"+P+"pin")})
       .then(res=>{authMsg=res&&res.ok?t("Saved")+": "+res.worker.name+(res.worker.code?" ("+res.worker.code+")":""):errText(res&&res.error||"server");UI.f=null;return sync().then(()=>go("staff"));},e=>{authMsg=errText(e.code);keep();});return;}
   if(A==="addchw"){if(!val("f_wname"))return;put("staff",{id:uid("s"),role:"chw",name:val("f_wname"),village:val("f_wvil"),cg:1+Math.max(0,...S.staff.map(x=>x.cg||0))});return go("staff");}
@@ -990,7 +1085,7 @@ document.addEventListener("click",e=>{
     $("#tapb").onclick=ev=>{ev.stopPropagation();n++;$("#rn").textContent=n;};
     rrT=setInterval(()=>{left--;const l=$("#rl");if(!l){clearInterval(rrT);return;}l.textContent=left;if(left<=0){clearInterval(rrT);F.a.n_rr=n;keep();}},1000);return;}
   if(A==="cleardemo"){S.mode=null;wipe();save();return go("welcome");}
-  if(A==="resetcfg"){S.cfg=JSON.parse(JSON.stringify(DEFAULT_CFG));save();pushCfg();return render();}
+  if(A==="resetcfg"){S.cfg=clone(CFGS[S.cfg.country]||DEFAULT_CFG);if(curProg())curProg().cfg=S.cfg;save();pushCfg();return render();}
   if(A==="copycsv"){const I=indicators(people(S.hh)),csv="group,indicator,numerator,denominator,percent\n"+I.map(i=>[i.g,i.label,i.n,i.d,pct(i.n,i.d)??""].map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");
     const ok=()=>$("#copymsg").textContent="Copied";try{navigator.clipboard.writeText(csv).then(ok,()=>$("#copymsg").textContent="Copy is blocked here");}catch(err){$("#copymsg").textContent="Copy is blocked here";}return;}
   if(A==="getlang")return getLang(val("newlang"));
@@ -1003,8 +1098,8 @@ document.addEventListener("input",e=>{const d=e.target.dataset;
   if(e.target.id==="regq"){UI.f={q:e.target.value};const y=window.scrollY;render();const i=$("#regq");i.focus();i.setSelectionRange(i.value.length,i.value.length);window.scrollTo(0,y);}});
 document.addEventListener("change",e=>{const el=e.target,d=el.dataset;
   if(el.id==="lang"){lang=S.lang=el.value;save();render();}
-  if(el.id==="role"&&S.mode==="example"){const [r,id]=el.value.split("|");S.sess={role:r,id:id||null};save();go(r==="admin"?"admin":"due");}
-  if(d.rep){REP[d.rep]=el.value;const y=window.scrollY;render();window.scrollTo(0,y);return;}
+  if(el.id==="role"&&S.mode==="example"){const [r,id,pg]=el.value.split("|");S.sess={role:r,id:id||null,prog:pg||null};if(pg)setProg(pg);save();go(r==="igha"?"igha":r==="admin"?"admin":"due");}
+  if(d.rep){REP[d.rep]=el.value;if(d.rep==="prog")REP.area="";const y=window.scrollY;render();window.scrollTo(0,y);return;}
   if(d.num&&UI.view==="visit")keep();
   if(d.cfg){const path=d.cfg.split("."),v=+el.value;if(isNaN(v))return;let o=S.cfg;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;save();pushCfg();const y=window.scrollY;render();window.scrollTo(0,y);}});
 addEventListener("online",()=>{renderBar();sync();});addEventListener("offline",renderBar);
@@ -1029,10 +1124,10 @@ async function getLang(name){
 /* ---------- start ---------- */
 (async()=>{
   await load();
-  if(DEMO&&S.mode!=="example"){S.mode="example";S.auth=null;wipe();demo();S.sess={role:"admin",id:null};save();}
+  if(!S.mode&&CFGS[SERVER.country]&&S.cfg.country!==SERVER.country)S.cfg=clone(CFGS[SERVER.country]);
+  if(DEMO&&S.mode!=="example"){S.mode="example";S.auth=null;wipe();S.sess={role:"igha",id:null,prog:null};demo();save();}
   if(S.mode==="live"&&S.auth&&S.auth.worker){S.sess={role:S.auth.worker.role==="admin"?"admin":S.auth.worker.role,id:S.auth.worker.id};LOCKED=!!S.auth.token;} // ask for the PIN each time the app opens
-  else if(S.mode==="example"&&S.sess.role!=="admin"&&!by("staff",S.sess.id))S.sess={role:"chw",id:"s_chw0"};
-  UI.view=S.sess.role==="admin"?"admin":"due";
+  UI.view=S.sess.role==="igha"?"igha":S.sess.role==="admin"?"admin":"due";
   obs.observe(document.getElementById("app"),{childList:true});
   render();
   if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
