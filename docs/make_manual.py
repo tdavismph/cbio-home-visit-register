@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "shots"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "CBIO_Home_Visit_Register_User_Manual.pdf"
 HERE = os.path.dirname(os.path.abspath(__file__)); JPG = os.path.join(HERE, "shots"); os.makedirs(JPG, exist_ok=True)
-VER, DATE = "0.5.1", "13 November 2026"
+VER, DATE = "0.6.0", "13 November 2026"
 URL = "https://tdavismph.github.io/cbio-home-visit-register/"
 INK, MUTED, LINE, BAND, ACC = colors.HexColor("#16302b"), colors.HexColor("#5b6b68"), colors.HexColor("#c9d3d1"), colors.HexColor("#e6eeec"), colors.HexColor("#1f66a8")
 st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Helvetica"), textColor=k.pop("color", INK), **k)
@@ -73,7 +73,7 @@ A(Paragraph("<b>Status of this build.</b> Use test data only. Records of real fa
             "All names in the screenshots come from the built-in example data and do not refer to real people.", NOTE))
 A(Paragraph("Contents", H2))
 for x in ["1. What the system does", "2. Getting started: installing, signing in, working offline", "3. Care Group Volunteer: step by step", "4. Community Health Worker: step by step",
-          "5. Administrator: step by step", "6. What the reports can tell you", "7. Problems and their solutions", "8. Several partners and countries", "Annex A. Visit schedule", "Annex B. How the due list is ordered"]: A(Paragraph(x, TOC))
+          "5. Administrator: step by step", "6. What the reports can tell you", "7. Problems and their solutions", "8. Several partners and countries", "9. QIVC: observing the quality of work", "Annex A. Visit schedule", "Annex B. How the due list is ordered"]: A(Paragraph(x, TOC))
 A(PageBreak())
 
 # ------------------------------------------------------------------ 1
@@ -87,6 +87,7 @@ A(table(["User", "What she or he does in the app", "Sees"], [
      "and checks for danger signs. She carries a MUAC tape and the tablet only.", "Her own 12 households"],
     ["Community Health Worker (CHW)", "One paid CHW supports one Care Group of 12 volunteers (144 households). The CHW makes 10 scheduled visits to each household: 2 in pregnancy, then at day 1-2, day 3, day 7, 6 weeks, 14 weeks, 6, 9 and 18 months. "
      "Each takes about 15 minutes and includes measurements. The CHW also manages referrals and carries out verbal autopsies (structured interviews with the family after a death).", "All 144 households of the Care Group"],
+    ["Supervisor", "Observes CHWs and volunteers at work and fills out a QIVC (Quality Improvement and Verification Checklist) for each observation (section 9).", "Workers and their QIVC scores; no household records"],
     ["Administrator", "Creates the worker accounts, reads the dashboards and reports, and adjusts the settings of the lives-saved model.", "Everything"]], [W * .22, W * .58, W * .20]))
 A(Paragraph("Main functions", H2))
 A(bullets("<b>Census form.</b> Adds a household, its pregnant women and children under 24 months, a few risk questions, and a short set of questions on births and deaths in the last 5 years (used to estimate baseline mortality).",
@@ -155,7 +156,7 @@ A(Paragraph("To report a death, open the woman or child from the Register, tap <
 A(Paragraph("3.5 See your results", H2))
 A(Paragraph("<b>My results</b> shows the share of your fortnightly visits that were made, and the percentage of your households following each practice you promote. The bar is your households; the vertical mark is the average for "
             "your whole Care Group area. A practice where your bar is well short of the mark is a good subject for your next visits. With 12 households, one family changes a percentage by about 8 points, "
-            "so small differences from the mark are not meaningful.", P))
+            "so small differences from the mark are not meaningful. Below these, <b>My QIVC scores</b> shows the result of each time your CHW or a supervisor observed your work (section 9).", P))
 A(fig("The volunteer's results page.", ("10_cgv_dash", (130, 1215)), w=112 * mm, maxh=150 * mm))
 A(PageBreak())
 
@@ -213,13 +214,15 @@ A(steps("Open the app and tap <b>First-time setup (administrator only)</b>.", "E
 A(Paragraph("5.2 Add workers", H2))
 A(steps("Open <b>Workers</b>.", "Under <b>Add a CHW</b>, enter the CHW's name, village, a sign-in name and a PIN, and tap <b>Save</b>. Each CHW starts a new Care Group.",
         "Under <b>Add a Care Group Volunteer</b>, enter her name and village, choose her CHW, and give her a sign-in name and PIN.",
+        "Under <b>Add a supervisor</b>, enter the supervisor's name, a sign-in name and a PIN. Supervisors fill out QIVCs (section 9).",
         "Give each worker her sign-in name and PIN in person. Sign-in names must be unique. Under <b>Give a worker a new PIN</b> you can replace a forgotten PIN."))
 A(Paragraph("Households are assigned to the volunteer who registers them in the census form. A CHW who registers a household holds it herself until volunteers are in place.", P))
 A(fig("First-time setup (left) and the Workers page after one CHW has been added (right).", ("03_setup", (0, 380)), ("29_workers", (0, 1300)), maxh=125 * mm))
 A(Paragraph("5.3 The Administrator's tabs", H2))
 A(table(["Tab", "Contents"], [
     ["Overview", "Lives saved to date, households, visits on time, open referrals, measured mortality, and baseline mortality from the census. All figures are cumulative from the start."],
-    ["Reports", "Five reports for a chosen period and area, with printing and downloads (section 6)."],
+    ["Reports", "Six reports for a chosen period and area, with printing and downloads (section 6)."],
+    ["QIVC", "Scores from observations of each CHW and volunteer, by Care Group, and the form for a new observation (section 9)."],
     ["Indicators", "Every coverage indicator, cumulative, with numerator and denominator. <b>Copy as CSV</b> copies the table for pasting into a spreadsheet."],
     ["Model", "The lives-saved calculation: each intervention with its baseline coverage, current coverage and lives saved, and the settings (baseline mortality rates, effect sizes, years of life per death averted)."],
     ["Register", "All households, with search."], ["Referrals", "All referrals and their status."], ["Workers", "CHWs and volunteers, with the number of households each holds."],
@@ -280,7 +283,18 @@ A(Paragraph("<b>What it shows.</b> For each CHW: households, scheduled visits ma
 A(Paragraph("<b>What it can tell you.</b> Where visits are being missed, and so where supervision, a lighter workload or a replacement is needed. Low completion of referrals points to barriers between the household and the facility.", P))
 A(Paragraph("<b>What it cannot tell you.</b> It measures whether visits were recorded and not how well they were done. A worker whose tablet has not synced appears inactive, so check the sync status before drawing conclusions. "
             "The table is for supportive supervision; it does not show lives saved by worker, because that cannot be estimated reliably for 12 households.", P))
-A(Paragraph("Report 5. Action lists", H2))
+A(Paragraph("Report 5. Quality of work (QIVC)", H2))
+A(fig("Quality of work: scores by Care Group for the period.", ("55_rep_q1", (75, 640)), w=118 * mm))
+A(Paragraph("<b>What it shows.</b> Three tables built from the QIVCs (section 9). The first gives, for each Care Group, the CHW's mean score in the period, how many volunteers were observed, the volunteers' mean score, and how many volunteers scored below 70%. "
+            "When one area is chosen, each volunteer has her own row.", P))
+A(Paragraph("<b>Steps most often not done.</b> Every step of the two checklists, ranked by the share of observations in which it applied and was not done, separately for CHWs and volunteers. "
+            "The steps at the top are the subjects for refresher training and for the next supervision visits.", P))
+A(fig("Steps most often not done (left) and workers who need the most support (right).", ("56_rep_q2", (130, 900)), ("57_rep_q3", (130, 900)), maxh=120 * mm))
+A(Paragraph("<b>Workers who need the most support.</b> Each worker is judged on whichever checklist has her lower latest score. She is listed when that score is below target (70% for volunteers, 80% for CHWs) or has fallen by 10 points or more. "
+            "The table gives her first, previous and latest scores on that checklist and the change. Those below target and not improving come first, lowest score first; not improving means the latest score is less than 5 points above the one before, or there has been only one observation.", P))
+A(Paragraph("<b>What it cannot tell you.</b> A QIVC records one observed visit or session, and a worker may perform differently when watched. Scores from different observers are comparable only if the observers mark the steps the same way, "
+            "so observers should practise together on the same visit before scores are compared across areas. One low score is a reason to observe again and coach.", P))
+A(Paragraph("Report 6. Action lists", H2))
 A(fig("Action lists: open referrals and children who have missed vaccines.", ("31_rep_actions", (75, 760)), w=118 * mm))
 A(Paragraph("<b>What it shows.</b> Four lists of named women and children, each with village and volunteer: those with no home visit in the period; open referrals with the number of days open; "
             "children who have had no vaccine (zero-dose) or have missed a dose that is more than 2 weeks overdue; and children aged 6 months or more whose last MUAC was under 12.5 cm (under 11.5 cm is marked severe). "
@@ -342,6 +356,34 @@ A(steps("Create a database for the country and run <font face='Courier'>server/s
 A(fig("The country administrator's Workers tab with two programmes.", ("44_programmes", (0, 700)), w=112 * mm))
 A(Paragraph("<b>What is not yet in place.</b> The central IGHA database and the scheduled job that copies each country's de-identified records into it have not been set up, so the IGHA view works only with the example data. "
             "No database exists yet for Ghana. A database created before version 0.4 needs the setup file run again to gain the programme functions; until then the app works as before and hides them.", NOTE))
+A(PageBreak())
+A(Paragraph("9. QIVC: observing the quality of work", H1))
+A(Paragraph("A QIVC (Quality Improvement and Verification Checklist) is a list of steps that an observer marks while watching a worker. It serves two purposes: the worker receives specific feedback straight after the observation, "
+            "and the programme can see which steps are being missed and which workers need more support. The app has two checklists.", P))
+A(table(["Checklist", "Used when", "Steps"], [
+    ["Home visit", "The observer accompanies a CHW or a volunteer on a home visit.", "39 steps: starting the visit, using the visit form correctly (asking every question, checking danger signs, looking at the card, measuring MUAC, saving), counselling methods, discussion, and the summary at the end. "
+     "A few steps apply only to CHWs (other measurements, referrals) or only to volunteers (asking for CHW support)."],
+    ["Group session", "The observer watches a volunteer lead a practice promotion session, or a CHW lead a Care Group meeting.", "42 steps: set-up, overall communication, beginning, middle and end of the session."]], [W * .16, W * .34, W * .5]))
+A(Paragraph("Who can observe whom", H2))
+A(bullets("A <b>CHW</b> observes the volunteers of her own Care Group.", "A <b>Supervisor</b> observes CHWs and volunteers. The Supervisor has a separate sign-in, sees the workers and their scores, and does not see household records.",
+          "The <b>Administrator</b> can observe any worker. No worker can fill out or change a QIVC about herself."))
+A(Paragraph("Filling out a QIVC", H2))
+A(steps("Open the <b>QIVC</b> tab and tap <b>Observe</b> beside the worker, or <b>New QIVC</b>.", "Choose what was observed (home visit or group session) and the date.",
+        "Watch the whole visit or session without interrupting. Mark each step <b>Yes</b>, <b>No</b>, or <b>N/A</b> where the step did not apply (for example, no danger sign was found).",
+        "Give the ratings from 1 to 10 for the content and the overall performance, and write recommendations in the comments box.",
+        "Tap <b>Save</b>. Every step must be marked first; any still unmarked turn red.", "Go through the result with the worker straight away: begin with what she did well, then the steps not done, and agree what she will practise."))
+A(fig("The supervisor's QIVC tab (left) and the start of the home-visit checklist (right).", ("50_qivc_list", (0, 1250)), ("51_qform_blank", (0, 1250)), maxh=125 * mm))
+A(Paragraph("The score", H2))
+A(Paragraph("The score is the number of steps marked Yes divided by the number marked Yes or No. Steps marked N/A are left out, and the 1-to-10 ratings are kept beside the score without entering it, as on the paper forms. "
+            "Scores below 70% for volunteers and below 80% for CHWs are shown in red.", P))
+A(Paragraph("Where the results appear", H2))
+A(bullets("<b>The worker</b> sees her own QIVCs under <b>My results</b>: each score, the steps not done, the ratings and the observer's comments.",
+          "<b>The QIVC tab</b> lists each Care Group with its CHW and volunteers: the latest home-visit and group-session scores, the number of QIVCs, the change, and a status. <b>Open</b> shows the worker's full history.",
+          "<b>Reports</b>, report 5, gives scores by Care Group for the period, the steps most often not done, and the workers who need the most support (section 6).",
+          "<b>The IGHA Countries tab</b> shows the mean score of CHWs and of volunteers for each country. Worker names and observers' comments are removed from the de-identified copy."))
+A(fig("A volunteer's QIVC history as the supervisor sees it (left) and as she sees it under My results (right).", ("53_qw", (0, 1250)), ("54_qmine", (75, 1250)), maxh=125 * mm))
+A(Paragraph("The checklists follow the Quality Improvement and Verification Checklists for practice promotion sessions and for individual counselling developed at Food for the Hungry. The home-visit checklist adds the steps on using this app's visit form. "
+            "The checklists are in English only in this version. A database set up before version 0.6 needs the setup file run again before supervisors can be added and QIVCs synced.", NOTE))
 A(Spacer(1, 10))
 A(Paragraph("Annex A. Visit schedule (Kenya configuration)", H1))
 A(table(["CHW visit", "Due", "Counts as on time if made within", "Volunteer asks the same question set every 2 weeks while the woman or child is at"], [

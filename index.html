@@ -58,6 +58,7 @@ textarea{width:100%;min-height:96px}
 .grow{flex:1 1 200px;min-width:0}
 .chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:13px;font-weight:700;background:var(--sunk)}
 .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.warn{background:var(--warn-bg);color:var(--warn)}
+label.t.miss{color:var(--bad)} label.t.miss::after{content:" *"}
 .chip.good{background:var(--good-bg);color:var(--good)} .chip.info{background:var(--info-bg);color:var(--accent)}
 .task{border-left:6px solid var(--line)} .task.p1{border-left-color:var(--bad)} .task.p2{border-left-color:var(--warn)} .task.p3{border-left-color:var(--good)}
 .q{display:flex;flex-direction:column;gap:8px;padding-block:12px;border-top:1px solid var(--line)}
@@ -174,12 +175,12 @@ const PROGS=[
  {id:"ke",country:"Kenya",name:"Kisii programme",partner:"Partner A (example)",seed:7,n:8,x:"",p:{},
   fn:["Kerubo","Moraa","Nyaboke","Bosibori","Kemunto","Gesare","Mokeira","Nyanchama","Bonareri","Kwamboka","Nyakerario","Monyangi"],ln:["Ongeri","Nyamweya","Mogaka","Ombati","Onsongo","Makori","Nyangau","Obiri","Moturi","Onchiri"],
   bn:["Brian","Faith","Kevin","Mercy","Dennis","Joy","Victor","Grace","Evans","Lilian","Amos","Naomi"],vil:["Nyakoe","Mosocho","Bobaracho","Nyatieko","Kiogoro","Itibo","Matongo","Raganga","Keumbu","Suneka","Nyosia","Bogiakumu"],
-  chw:["Agnes Moraa","Peter Ombati","Jane Kemunto","Samuel Nyangau","Ruth Bosibori","David Mogaka","Esther Gesare","Joseph Makori"]},
+  chw:["Agnes Moraa","Peter Ombati","Jane Kemunto","Samuel Nyangau","Ruth Bosibori","David Mogaka","Esther Gesare","Joseph Makori"],sup:"Grace Nyanchama"},
  {id:"gh",country:"Ghana",name:"Ejura programme",partner:"Partner B (example)",seed:23,n:9,x:"g",langs:["en"],
   p:{fac:.9,eibf:.7,chx:.45,warm:.78,ebfT:.68,mTd:.82,vaxE:.97,vaxL:.86,neo:.019,pnd:.017,n_ebf:.97,hh_lat:.72,hh_feces:.5,hh_water:.86,n_itn:.74,c_ors:.72,c_zinc:.58,c_pneu:.8,hh_hw:.61,c_fp:.46,c_vita:.88,p_ifa:.88,p_itn:.66,p_meal:.6,cgv:.82,chwv:.84},
   fn:["Ama","Akosua","Abena","Adwoa","Afia","Yaa","Akua","Esi","Serwaa","Afriyie","Konadu","Pokuaa"],ln:["Mensah","Boateng","Owusu","Asante","Osei","Agyeman","Appiah","Frimpong","Amoako","Opoku"],
   bn:["Kofi","Ama","Kwame","Efua","Yaw","Abena","Kwabena","Akua","Kojo","Adwoa","Akwasi","Afia"],vil:["Aframso","Bonyon","Dromankuma","Hiawoanwu","Kasei","Nkwanta","Anyinasu","Babaso","Kyenkyenkura","Miminaso","Teacherkrom","Nyamebekyere"],
-  chw:["Comfort Boateng","Emmanuel Osei","Gifty Mensah","Isaac Appiah","Mavis Owusu","Daniel Asante","Patience Agyeman","Samuel Frimpong","Abigail Opoku"]}];
+  chw:["Comfort Boateng","Emmanuel Osei","Gifty Mensah","Isaac Appiah","Mavis Owusu","Daniel Asante","Patience Agyeman","Samuel Frimpong","Abigail Opoku"],sup:"Kwame Mensah"}];
 
 /* ---------- language ---------- */
 const SW={"Due list":"Orodha ya kazi","Register":"Rejesta","Referrals":"Rufaa","My results":"Matokeo yangu","Overview":"Muhtasari","Indicators":"Viashiria","Model":"Kielelezo","Settings":"Mipangilio",
@@ -252,7 +253,7 @@ let PGD=null; // example mode: the records of each programme, {programme id:{hh:
 const curProg=()=>(S.progs||[]).find(p=>p.id===S.pid)||null;
 function setProg(pid){if(!PGD||!PGD[pid]||S.pid===pid)return;if(S.pid&&PGD[S.pid])PGD[S.pid].vix=VIX;for(const ty of TYPES)S[ty]=PGD[pid][ty];S.pid=pid;S.cfg=curProg().cfg;VIX=PGD[pid].vix||null;}
 function withProg(pid,fn){const old=S.pid;setProg(pid);try{return fn(curProg());}finally{if(old&&old!==pid)setProg(old);}}
-const TYPES=["hh","w","c","v","r","d","staff","cen"];
+const TYPES=["hh","w","c","v","r","d","staff","cen","q"]; // q = QIVC (observation checklist of a worker)
 const DEMO=location.hash==="#demo";
 const CC=((()=>{try{return new URLSearchParams(location.search).get("c");}catch(e){return null;}})()||"ke").toLowerCase().replace(/[^a-z]/g,"")||"ke"; // country database in use // a link ending in #demo always opens the example data, with its own storage, and leaves a signed-in worker untouched
 const IDB={db:null,
@@ -289,13 +290,14 @@ const ERR={country_admin_only:"Only the country administrator can do this.",no_s
 const errText=c=>t(ERR[c]||"The server did not respond as expected.")+(ERR[c]?"":" ("+c+")");
 let LOCKED=false,authMsg="",syncMsg="",syncing=false,syncT=null;
 const live=()=>S.mode==="live"&&!!(S.auth&&S.auth.token);
-function scopeOf(ty,r){const hhId=ty==="hh"?r.id:ty==="d"?((by("w",r.subj)||by("c",r.subj)||{}).hhId):r.hhId,h=ty==="hh"?r:by("hh",hhId);return h?h.chvId:null;} // the Care Group Volunteer who owns the household
+function scopeOf(ty,r){if(ty==="q")return r.wid; // a QIVC belongs with the worker observed
+  const hhId=ty==="hh"?r.id:ty==="d"?((by("w",r.subj)||by("c",r.subj)||{}).hhId):r.hhId,h=ty==="hh"?r:by("hh",hhId);return h?h.chvId:null;} // the Care Group Volunteer who owns the household
 function wipe(){for(const ty of TYPES)S[ty]=[];VIX=null;if(PGD){PGD=null;S.pid=null;S.progs=null;S.cfg=clone(CFGS[SERVER.country]||DEFAULT_CFG);}}
 async function afterLogin(res,pin){
   const same=S.mode==="live"&&S.auth&&S.auth.worker&&S.auth.worker.id===res.worker.id;
   if(!same)wipe(); // a different worker never sees the previous worker's records
   const salt=uid("x");S.auth={token:res.token,worker:res.worker,salt,pinHash:await pinHash(salt,pin),seq:same?(S.auth.seq||0):0};
-  S.mode="live";S.sess={role:res.worker.role==="admin"?"admin":res.worker.role,id:res.worker.id};
+  S.mode="live";S.sess={role:res.worker.role==="admin"?"admin":res.worker.role,id:res.worker.id};for(const ty of TYPES)if(!S[ty])S[ty]=[];
   if(!S.staff.some(x=>x.id===res.worker.id)&&res.worker.role!=="admin")S.staff.push(res.worker);
   LOCKED=false;authMsg="";save();go(S.sess.role==="admin"?"admin":"due");sync();}
 async function sync(){
@@ -600,6 +602,13 @@ function demoOne(sp){
   for(let i=5,n=0;i<cs.length;i+=41,n++){const c=cs[i],st=["open","done","arrived","done","open","done"][n%6];
     S.r.push(D({id:"r_d"+n+X,subj:c.id,kind:"c",hhId:c.hhId,date:addD(TODAY,-(1+n%9)),reason:RS[n%5],by:"s_chw0"+X,st,dx:st==="done"?"Pneumonia":"",tx:st==="done"?"Amoxicillin 5 days":"",fu:st==="done"?addD(TODAY,n%3):""}));}
   function visit(kind,p,slot,date,byId,role,a){S.v.push(D({id:"v_"+p.id+slot+date.replace(/-/g,"")+role[2],subj:p.id,kind,hhId:p.hhId,slot,date,by:byId,role,a}));}
+  // QIVCs: each CHW observes her volunteers; the supervisor observes the CHWs. Generated with its own random sequence.
+  const Q=rng(sp.seed+101),sup=D({id:"s_sup"+X,role:"sup",prog:sp.id,name:sp.sup});
+  for(const w of S.staff.filter(x=>x.role==="chw"||x.role==="chv")){if(w.cg===sp.n)continue;const base=(w.role==="chw"?.66:.6)+Q()*.3,gain=Q()<.22?-.03+Q()*.03:.03+Q()*.06,n=2+Math.floor(Q()*3),ob=w.role==="chv"?by("staff",w.chwId):sup;
+    for(let i=0;i<n;i++){const kind=i%2?"group":"home",pp=clamp(base+gain*i,.3,.98),a={},r={};for(const it of qItems(kind,w.role))a[it[0]]=Q()<.06?2:(Q()<(it[0]==="h28"||it[0]==="g28"||it[0]==="g41"?pp-.25:pp)?1:0);
+      QIV[kind].ratings.forEach(x=>r[x[0]]=clamp(Math.round(pp*10+Q()*2-1),1,10));const sc=qScore(a),da=(n-1-i)*75+10+Math.floor(Q()*25);
+      S.q.push(D({id:"q_"+w.id+"_"+i,wid:w.id,wrole:w.role,kind,date:addD(TODAY,-da),by:ob.id,byName:ob.name,a,r,notes:"",yes:sc.yes,used:sc.used,score:sc.score}));}}
+  S.staff.push(sup);
 }
 
 /* ---------- UI state and rendering ---------- */
@@ -611,17 +620,17 @@ function renderBar(){
   $("#role").hidden=g||S.mode==="live";$("#net").hidden=g;
   const cp=curProg();
   const lp=S.mode==="live"&&S.auth&&S.auth.worker&&S.auth.worker.prog?(S.plist||[]).find(x=>x.id===S.auth.worker.prog):null;
-  $("#who").textContent=s.role==="igha"?"IGHA · all countries · de-identified":s.role==="admin"?t("Administrator")+(cp?" · "+cp.country+" · "+cp.partner:lp?" · "+lp.name:S.mode==="live"&&S.plist&&S.plist.length?" · "+(SERVER.country||"")+" · all programmes":""):me?((s.role==="chv"?"CGV":"CHW")+" · "+me.name+(me.cg?" · Care Group "+me.cg:"")+" · "+t(s.role==="chv"?"Every 2 weeks":"10 scheduled visits")):"";
+  $("#who").textContent=s.role==="igha"?"IGHA · all countries · de-identified":s.role==="admin"?t("Administrator")+(cp?" · "+cp.country+" · "+cp.partner:lp?" · "+lp.name:S.mode==="live"&&S.plist&&S.plist.length?" · "+(SERVER.country||"")+" · all programmes":""):s.role==="sup"?"Supervisor"+(me?" · "+me.name:"")+(cp?" · "+cp.country:""):me?((s.role==="chv"?"CGV":"CHW")+" · "+me.name+(me.cg?" · Care Group "+me.cg:"")+" · "+t(s.role==="chv"?"Every 2 weeks":"10 scheduled visits")):"";
   const on=navigator.onLine,n=dirtyN();
   $("#net").innerHTML='<span class="dot'+(on?"":" off")+'"></span> '+esc(on?t("Online"):t("Offline"))+(n?" · "+n+" "+esc(t("Not synced")):"")+(live()&&on?' <button class="link" data-act="sync">'+esc(t("Sync now"))+" "+esc(syncMsg)+"</button>":"");
   const okL=s.role==="igha"?["en"]:cp&&cp.langs;if(okL&&!okL.includes(lang))lang="en";else if(!okL&&LANGS[S.lang])lang=S.lang;
   $("#lang").innerHTML=Object.keys(LANGS).filter(k=>!okL||okL.includes(k)).map(k=>'<option value="'+esc(k)+'"'+(k===lang?" selected":"")+">"+esc(LANGS[k].name)+"</option>").join("");
   $("#role").innerHTML=PGD?'<option value="igha||"'+(s.role==="igha"?" selected":"")+">IGHA · all countries</option>"+S.progs.map(p=>{const st=PGD[p.id].staff,on=s.prog===p.id;
-      return '<optgroup label="'+esc(p.country)+'"><option value="admin||'+p.id+'"'+(on&&s.role==="admin"?" selected":"")+">Administrator · "+esc(p.country)+"</option></optgroup>"+
+      return '<optgroup label="'+esc(p.country)+'"><option value="admin||'+p.id+'"'+(on&&s.role==="admin"?" selected":"")+">Administrator · "+esc(p.country)+"</option>"+st.filter(x=>x.role==="sup").map(v=>'<option value="sup|'+v.id+"|"+p.id+'"'+(on&&s.id===v.id?" selected":"")+">Supervisor · "+esc(v.name)+"</option>").join("")+"</optgroup>"+
         st.filter(x=>x.role==="chw").map(w=>'<optgroup label="'+esc(p.country)+" · Care Group "+(w.cg||"")+'"><option value="chw|'+w.id+"|"+p.id+'"'+(on&&s.id===w.id?" selected":"")+">CHW · "+esc(w.name)+"</option>"+
           st.filter(x=>x.chwId===w.id).map(v=>'<option value="chv|'+v.id+"|"+p.id+'"'+(on&&s.id===v.id?" selected":"")+">CGV · "+esc(v.name)+"</option>").join("")+"</optgroup>").join("");}).join(""):"";
-  const tabs=s.role==="igha"?[["igha","Countries"],["rep","Reports"]]:s.role==="admin"?[["admin","Overview"],["rep","Reports"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
-    [["due","Due list"],["reg","Register"],["refs","Referrals"],["dash","My results"],["set","Settings"]];
+  const tabs=s.role==="igha"?[["igha","Countries"],["rep","Reports"]]:s.role==="sup"?[["qivc","QIVC"],["set","Settings"]]:s.role==="admin"?[["admin","Overview"],["rep","Reports"],["qivc","QIVC"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
+    [["due","Due list"],["reg","Register"],["refs","Referrals"]].concat(s.role==="chw"?[["qivc","QIVC"]]:[],[["dash","My results"],["set","Settings"]]);
   if(g){$("#who").textContent="";$("#nav").innerHTML="";return;}
   $("#nav").innerHTML=tabs.map(x=>'<button class="tab'+(UI.view===x[0]?" on":"")+'" data-go="'+x[0]+'">'+esc(t(x[1]))+"</button>").join("");
 }
@@ -629,10 +638,12 @@ function render(){
   renderBar();const s=S.sess;
   if(gated()){const v=!S.mode?(["login","setup"].includes(UI.view)?UI.view:"welcome"):!live()?"login":"lock";
     $("#app").innerHTML={welcome:vWelcome,login:vLogin,setup:vSetup,lock:vLock}[v]();return;}
+  if(s.role==="sup"&&!["qivc","qform","qw","set"].includes(UI.view))UI.view="qivc";
+  if(s.role==="chv"&&["qivc","qform","qw"].includes(UI.view))UI.view="due";
   if(s.role==="igha"&&!["igha","rep"].includes(UI.view))UI.view="igha";
   if(s.role==="admin"&&["due","dash","igha"].includes(UI.view))UI.view="admin";
   if(!["admin","igha"].includes(s.role)&&["admin","ind","model","staff","rep","igha"].includes(UI.view))UI.view="due";
-  const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff,rep:vRep,igha:vIgha};
+  const V={due:vDue,reg:vReg,person:vPerson,visit:vVisit,birth:vBirth,death:vDeath,refs:vRefs,counter:vCounter,dash:vDash,admin:vAdmin,ind:vInd,model:vModel,set:vSet,addhh:vAddHH,addp:vAddP,census:vCensus,staff:vStaff,rep:vRep,igha:vIgha,qivc:vQivc,qform:vQform,qw:vQw};
   const banner=S.mode==="example"?'<div class="note warn row"><span class="grow">'+esc(t("Example data. These are not real people."))+'</span><button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button></div>":"";
   $("#app").innerHTML=banner+(V[UI.view]||vDue)();
 }
@@ -808,7 +819,8 @@ function vStaff(){const chws=S.staff.filter(x=>x.role==="chw"),L=S.mode==="live"
   return "<h1>Workers</h1>"+(authMsg?'<p class="note warn">'+esc(authMsg)+"</p>":"")+progs+chws.map(w=>'<div class="card"><h2>CHW · '+esc(w.name)+' <span class="muted small">'+(CA&&w.prog?esc(pn(w.prog))+" · ":"")+"Care Group "+(w.cg||"")+" · "+esc(w.village||"")+(w.code?" · sign-in: "+esc(w.code):"")+'</span></h2><div class="row">'+S.staff.filter(x=>x.chwId===w.id).map(v=>'<span class="chip">'+esc(v.name)+(v.code?" ("+esc(v.code)+")":"")+" · "+S.hh.filter(h=>h.chvId===v.id).length+" households</span>").join("")+"</div></div>").join("")+
   '<div class="card"><h3>Add a CHW (starts a new Care Group)</h3>'+fld("f_wname","Name")+fld("f_wvil","Village")+(CA&&PL.length?psel("f_wprog"):"")+cred("w")+'<div class="row"><button class="pri" data-act="addchw">'+esc(t("Save"))+"</button></div></div>"+
   (chws.length?'<div class="card"><h3>Add a Care Group Volunteer</h3>'+fld("f_vname","Name")+fld("f_vvil","Village")+'<div class="q"><label class="t" for="f_vchw">CHW</label><select id="f_vchw">'+chws.map(w=>'<option value="'+w.id+'">'+esc(w.name)+"</option>").join("")+"</select></div>"+cred("v")+'<div class="row"><button class="pri" data-act="addcgv">'+esc(t("Save"))+"</button></div></div>":"")+
-  (L&&S.staff.length?'<div class="card"><h3>Give a worker a new PIN</h3><div class="q"><label class="t" for="f_pwho">Worker</label><select id="f_pwho">'+S.staff.map(w=>'<option value="'+w.id+'">'+esc((w.role==="chv"?"CGV":"CHW")+" · "+w.name)+"</option>").join("")+"</select></div>"+pinF("f_ppin","PIN (6 or more digits)")+'<div class="row"><button class="pri" data-act="setpin">'+esc(t("Save"))+"</button></div></div>":"");}
+  (L?'<div class="card"><h3>Add a supervisor</h3><p class="small muted">A supervisor observes CHWs and volunteers and fills out QIVCs. A supervisor does not see household records.</p>'+fld("f_sname","Name")+(CA&&PL.length?psel("f_sprog"):"")+fld("f_scode","Sign-in name","text","",'autocapitalize="none" autocomplete="off"')+pinF("f_spin","PIN (6 or more digits)")+'<div class="row"><button class="pri" data-act="addsup">'+esc(t("Save"))+"</button></div></div>":"")+
+  (L&&S.staff.length?'<div class="card"><h3>Give a worker a new PIN</h3><div class="q"><label class="t" for="f_pwho">Worker</label><select id="f_pwho">'+S.staff.map(w=>'<option value="'+w.id+'">'+esc((w.role==="chv"?"CGV":w.role==="sup"?"Supervisor":"CHW")+" · "+w.name)+"</option>").join("")+"</select></div>"+pinF("f_ppin","PIN (6 or more digits)")+'<div class="row"><button class="pri" data-act="setpin">'+esc(t("Save"))+"</button></div></div>":"");}
 /* ---------- reports (administrator) ---------- */
 let REP={per:"q",area:"",a:"",b:""},REPDATA={};
 function repRange(){const d=new Date(),y=d.getFullYear(),m=d.getMonth();
@@ -887,7 +899,8 @@ function vRep(){REPDATA={};const IG=S.sess.role==="igha";if(IG){if(!PGD[REP.prog
   const act=[];chws.forEach(w=>{const vs=S.staff.filter(x=>x.chwId===w.id);act.push(actRow("CHW · "+wn(w),S.hh.filter(h=>vs.some(v=>v.id===h.chvId))));if(REP.area)vs.forEach((v,vi)=>act.push(actRow("   Volunteer · "+(IG?vi+1:v.name),S.hh.filter(h=>h.chvId===v.id),1)));});
   h+='<h2 class="rep">4. Worker activity</h2><div class="card">'+tbl("activity","Worker activity",["Worker","Households","CHW visits on time / due","%","Volunteer visits made / expected","%","Referrals reached facility / made","Verbal autopsies done / deaths"],act,{num:[1,2,3,4,5,6,7]})+
     '<p class="small muted">CHW visits are the 10 scheduled visits that fell due in the period. Volunteer visits are fortnightly visits made as a share of those expected in the period. Choose one area to see each volunteer.</p></div>';
-  if(IG)return h+'<h2 class="rep">5. Action lists</h2><div class="card"><p class="muted">Not shown at IGHA level. Action lists name women and children, and names stay in the country database.</p></div>';
+  h+=repQ(R,chws,IG);
+  if(IG)return h+'<h2 class="rep">6. Action lists</h2><div class="card"><p class="muted">Not shown at IGHA level. Action lists name women and children, and names stay in the country database.</p></div>';
   // 5 action lists (as of today)
   const cgv=p=>{const hh=by("hh",p.hhId)||{},st=by("staff",hh.chvId)||{};return [hh.village||"",st.name||""];},who=p=>p.dob?p.name+" ("+ageTxt(p)+")":p.name+" (pregnant)";
   const act1=C.filter(c=>active(c)&&ageD(c)<730).concat(W.filter(w=>w.preg&&active(w))).filter(p=>p.reg<=addD(R.b,-14)&&!visitsOf(p.id).some(v=>inR(v.date,R))).map(p=>[who(p)].concat(cgv(p),["Registered "+p.reg]));
@@ -895,7 +908,7 @@ function vRep(){REPDATA={};const IG=S.sess.role==="igha";if(IG){if(!PGD[REP.prog
   const act3=C.filter(c=>active(c)&&(cardSeen(c)||c.cNoVax)).map(c=>{const od=S.cfg.vax.filter(x=>ageD(c)>x[1]+14&&!(c.vax||{})[x[0]]).map(x=>x[0]);return od.length?[who(c)].concat(cgv(c),[(od.includes("PENTA1")?"Zero-dose. ":"")+"Missing: "+od.join(", ")]):null;}).filter(Boolean);
   const act4=C.filter(c=>active(c)&&ageD(c)>=180&&last(c.id,"c_muac")!==undefined&&last(c.id,"c_muac")<12.5).map(c=>[who(c)].concat(cgv(c),["MUAC "+last(c.id,"c_muac")+" cm"+(last(c.id,"c_muac")<11.5?" (severe)":"")]));
   const AH=["Woman or child","Village","Volunteer","Detail"];
-  h+='<h2 class="rep">5. Action lists (as of today)</h2><div class="card"><h3>No home visit in the period ('+act1.length+")</h3>"+tbl("novisit","No home visit in the period",AH,act1,{cap:25})+"</div>"+
+  h+='<h2 class="rep">6. Action lists (as of today)</h2><div class="card"><h3>No home visit in the period ('+act1.length+")</h3>"+tbl("novisit","No home visit in the period",AH,act1,{cap:25})+"</div>"+
     '<div class="card"><h3>Open referrals ('+act2.length+")</h3>"+tbl("openrefs","Open referrals",AH,act2,{cap:25})+"</div>"+
     '<div class="card"><h3>Zero-dose and under-immunized children ('+act3.length+")</h3>"+tbl("vaccines","Zero-dose and under-immunized children",AH,act3,{cap:25})+"</div>"+
     '<div class="card"><h3>Children with low MUAC ('+act4.length+")</h3>"+tbl("muac","Children with low MUAC",AH,act4,{cap:25})+"</div>";
@@ -908,7 +921,7 @@ function vIgha(){REPDATA={};const R=repRange(),PG=S.progs||[],pc=(n,d)=>d?Math.r
     return {p,r:S.cfg.rates,H:H.length,chw:S.staff.filter(x=>x.role==="chw").length,cgv:S.staff.filter(x=>x.role==="chv").length,kids:C.filter(active).length,preg:W.filter(w=>w.preg&&active(w)).length,B:B.length,
       vChw:V.filter(v=>v.role==="chw").length,vCgv:V.filter(v=>v.role==="chv").length,ot:onTime(P,"ten",R),fo:onTime(P,"fort",R),rf:[RF.filter(r=>r.st==="arrived"||r.st==="done").length,RF.length],
       neo:cd.filter(a=>a<28).length,pn:cd.filter(a=>a>=28).length,mat:D.filter(d=>d.kind==="w").length,sb:W.filter(w=>w.sb&&inR(w.del,R)).length,ex:exposure(C,R),m:lives(P),y:S.cfg.yll,
-      nva:va.length,nd:D.length,dl:DELAYS.map((x,i)=>va.filter(d=>(d.va.delays||[])[i]).length),cov:covP(P,R)};}));
+      q:{chw:qMean("chw"),chv:qMean("chv")},nva:va.length,nd:D.length,dl:DELAYS.map((x,i)=>va.filter(d=>(d.va.delays||[])[i]).length),cov:covP(P,R)};}));
   const names=X.map(x=>x.p.country),row=(label,f)=>[label].concat(X.map(f)),num=X.map((x,i)=>i+1);
   let h='<div class="row"><h1 class="grow">Countries</h1><button class="pri noprint" data-act="print">Print or save as PDF</button></div>'+
     '<div class="note">This view is de-identified. It contains no names, villages or household details; those stay in each country database. Each country is calculated with its own settings: baseline mortality, baseline coverage and immunization schedule.</div>'+
@@ -916,7 +929,7 @@ function vIgha(){REPDATA={};const R=repRange(),PG=S.progs||[],pc=(n,d)=>d?Math.r
     '<p class="muted"><b>'+X.length+" countries</b> · "+esc(R.label)+(R.all?"":": "+R.a+" to "+R.b)+" · prepared "+TODAY+(S.mode==="example"?" · example data":"")+"</p>";
   h+='<h2 class="rep">1. Programmes</h2><div class="card">'+tbl("ig_prog","Programmes",["Measure"].concat(names),[row("Programme",x=>x.p.name),row("Partner",x=>x.p.partner),row("Care Groups (one CHW each)",x=>x.chw),row("Care Group Volunteers",x=>x.cgv),row("Households",x=>x.H),
       row("Children under 24 months",x=>x.kids),row("Pregnant women",x=>x.preg),row("Live births recorded in the period",x=>x.B),row("CHW home visits in the period",x=>x.vChw),row("Volunteer home visits in the period",x=>x.vCgv),
-      row("CHW scheduled visits on time",x=>pc(x.ot[0],x.ot[1])+" ("+x.ot[0]+"/"+x.ot[1]+")"),row("Volunteer fortnightly visits made",x=>pc(x.fo[0],x.fo[1])+" ("+x.fo[0]+"/"+x.fo[1]+")"),row("Referrals that reached the facility",x=>x.rf[0]+" / "+x.rf[1])],{num})+"</div>";
+      row("CHW scheduled visits on time",x=>pc(x.ot[0],x.ot[1])+" ("+x.ot[0]+"/"+x.ot[1]+")"),row("Volunteer fortnightly visits made",x=>pc(x.fo[0],x.fo[1])+" ("+x.fo[0]+"/"+x.fo[1]+")"),row("Referrals that reached the facility",x=>x.rf[0]+" / "+x.rf[1]),row("QIVC score, CHWs (mean of each CHW's latest)",x=>x.q.chw),row("QIVC score, volunteers (mean of each volunteer's latest)",x=>x.q.chv)],{num})+"</div>";
   const rt=(n,d)=>d?(n/d*1000).toFixed(1):"–";
   h+='<h2 class="rep">2. Mortality</h2><div class="card">'+tbl("ig_mort","Mortality by country",["Measure"].concat(names),[
       row("Neonatal deaths (0-27 days) recorded in the period",x=>x.neo),row("Neonatal deaths expected at baseline mortality",x=>x.ex.eNeo.toFixed(1)),
@@ -935,6 +948,162 @@ function vIgha(){REPDATA={};const R=repRange(),PG=S.progs||[],pc=(n,d)=>d?Math.r
     rows:X[0].cov.map((i0,k)=>[i0.g,i0.label].concat(...X.map(x=>{const i=x.cov[k];return [i.n,i.d,i.d?Math.round(100*i.n/i.d):"",i.base!==undefined?Math.round(i.base*100):""];})))};
   h+='</table></div><p class="small muted">Practices asked at home visits are counted per visit in the period. Birth indicators cover births in the period. Immunization is the status at the end of the period among children whose card has been seen, against each country\'s own schedule. '+
     'Baselines come from each country\'s most recent Demographic and Health Survey and are shown only for interventions in the lives-saved model.</p><div class="row noprint"><button data-act="csv" data-id="ig_cov">Download this table</button></div></div>';
+  return h;}
+/* ---------- QIVC: Quality Improvement and Verification Checklists ---------- */
+// Each item: [id, section, question, worker type it applies to (blank = both)]. Answers: 1 yes, 0 no, 2 not applicable. Score = yes / (yes + no).
+const QIV={
+ home:{name:"Home visit",ratings:[["rc","Was the content of the messages CORRECT?"],["rr","Was the content of the messages RELEVANT?"],["ro","OVERALL evaluation of the home visit"]],items:[
+  ["h1","Start of the visit","Did the worker greet the family and explain the purpose of the visit?"],
+  ["h2","Start of the visit","Did the worker open the right woman or child from the Due list and start the visit form?"],
+  ["h3","Using the visit form","Did the worker ask every question on the form, without skipping any and without suggesting the answer?"],
+  ["h4","Using the visit form","Did the worker check each danger sign on the list, by asking or looking, before tapping any or None of the above?"],
+  ["h5","Using the visit form","Where the form asks for something on the card (vaccines, antenatal contacts, tetanus doses), did the worker look at the card?"],
+  ["h6","Using the visit form","If MUAC was due: did the worker measure it correctly (left arm, midpoint, tape flat and not tight) and enter the reading?"],
+  ["h7","Using the visit form","Did the CHW take the other measurements on the form correctly (weight, temperature, breathing counted for a full minute, blood pressure)?","chw"],
+  ["h8","Using the visit form","For items to be seen (handwashing place, latrine): did the worker look for herself and not only ask?"],
+  ["h9","Using the visit form","If a danger sign was found: did the worker tell the family to go to the health facility now and help them arrange it?"],
+  ["h10","Using the visit form","If the household needed the CHW: did the volunteer tap Ask for CHW support?","chv"],
+  ["h11","Using the visit form","If there was an open referral: did the CHW record the arrival or the counter-referral?","chw"],
+  ["h12","Using the visit form","Did the worker save the form before leaving and tell the family when the next visit will be?"],
+  ["h13","Methods","Did the worker introduce the topic well?"],
+  ["h14","Methods","Did the worker speak loud enough for the person to hear?"],
+  ["h15","Methods","Did the worker use changes in voice intonation (not monotone)?"],
+  ["h16","Methods","Did the worker use any props?"],
+  ["h17","Methods","Did the worker demonstrate any skills that she was promoting?"],
+  ["h18","Methods","Did the worker use language that the person could understand?"],
+  ["h19","Discussion","If the person was timid, did the worker encourage him or her to speak?"],
+  ["h20","Discussion","Did the worker ask the person lots of (non-rhetorical) questions?"],
+  ["h21","Discussion","Did the worker ask questions to get at the person's current knowledge?"],
+  ["h22","Discussion","Did the worker ask questions about the person's current practice?"],
+  ["h23","Discussion","Did the worker encourage comments by responding to the person's comments?"],
+  ["h24","Discussion","Did the worker ALWAYS reply to the person in a courteous and diplomatic way?"],
+  ["h25","Discussion","Did the person make lots of comments?"],
+  ["h26","Discussion","Did the worker hold the person's attention during the visit?"],
+  ["h27","Discussion","Did the worker compliment the person for what he or she was doing correctly, and urge him or her to continue?"],
+  ["h28","Discussion","Did the worker counsel on the practices that the form showed were not being done?"],
+  ["h29","Discussion","Where several practices were not being done: did the worker concentrate on the most important (no more than three)?"],
+  ["h30","Discussion","Did the worker urge the person to change any behaviours that needed to be changed?"],
+  ["h31","Discussion","Did the worker ask what would make it difficult to follow the advice?"],
+  ["h32","Discussion","If so, did the worker ask how family members and friends would feel about the change?"],
+  ["h33","Discussion","If so, did the worker help the person to work through any barriers?"],
+  ["h34","Summary and last steps","Did the worker verify that the person understood the main points?"],
+  ["h35","Summary and last steps","Did the worker summarize the essential points at the end?"],
+  ["h36","Summary and last steps","Did the worker ask the person to repeat back the key things to continue doing?"],
+  ["h37","Summary and last steps","Did the worker ask the person to mention the key things to stop doing?"],
+  ["h38","Summary and last steps","Did the worker ask the person to commit to the suggested behaviours?"],
+  ["h39","Summary and last steps","Did the worker ask if the person had any questions about his or her health?"]]},
+ group:{name:"Group session",ratings:[["rc","Was the content of the messages CORRECT?"],["rr","Was the content of the messages RELEVANT?"],["rk","Was the content of the messages COMPLETE?"],["ro","OVERALL evaluation of the session"]],items:[
+  ["g1","Set up","Did the facilitator seat people so that all could see each other's faces?"],
+  ["g2","Set up","Did the facilitator ask someone if they want to open the session in prayer, if appropriate in the local context?"],
+  ["g3","Set up","Did the facilitator wear appropriate clothing?"],
+  ["g4","Set up","Did the facilitator sit at the same level as the other participants?"],
+  ["g5","Set up","If using a lesson plan: did the facilitator follow the lesson plan in the curriculum?"],
+  ["g6","Overall communication","Did the facilitator speak loud enough that everyone could hear?"],
+  ["g7","Overall communication","Did the facilitator use proper eye contact with everyone?"],
+  ["g8","Overall communication","Did the facilitator use changes in voice intonation (not monotone)?"],
+  ["g9","Overall communication","Did the facilitator speak slowly and clearly?"],
+  ["g10","Overall communication","Did the facilitator move around the area without distracting the group?"],
+  ["g11","Overall communication","Did the facilitator always use examples and terms that were culturally appropriate?"],
+  ["g12","Overall communication","Did the facilitator encourage comments by nodding, smiling or other actions that show she was listening?"],
+  ["g13","Overall communication","Did the facilitator ALWAYS reply to participants in a courteous and diplomatic way?"],
+  ["g14","Overall communication","Did the facilitator prevent domination of the discussion by one or two people?"],
+  ["g15","Overall communication","Did the facilitator encourage timid participants to speak or participate?"],
+  ["g16","Overall communication","Did the facilitator use a participatory method (game, skit, song, story, other)?"],
+  ["g17","Overall communication","Did the facilitator ask the participants lots of (non-rhetorical) questions?"],
+  ["g18","Overall communication","Did the facilitator give participants adequate time to answer questions?"],
+  ["g19","Overall communication","Did the facilitator encourage discussion amongst participants?"],
+  ["g20","Beginning","Did the facilitator introduce the topic well (who she is, topic, time)?"],
+  ["g21","Beginning","Did the facilitator ask questions to relate the topic to the participants' experiences?"],
+  ["g22","Beginning","Did the facilitator ask about the current practices of the participants?"],
+  ["g23","Middle","Did the facilitator use the brainstorming technique at appropriate moments?"],
+  ["g24","Middle","Did the facilitator use any props?"],
+  ["g25","Middle","If pictures with key messages were used: did the facilitator explain the meaning of each picture?"],
+  ["g26","Middle","Did the facilitator demonstrate any skills that she was promoting?"],
+  ["g27","Middle","Optional, if taught: did the facilitator use any persuasion principles?"],
+  ["g28","Middle","Did the facilitator explore participants' barriers to the promoted practices?"],
+  ["g29","Middle","Did the facilitator elicit current and suggested strategies to overcome barriers from the participants?"],
+  ["g30","Middle","Did the facilitator suggest other strategies to overcome barriers?"],
+  ["g31","Middle","Did the facilitator encourage comments by paraphrasing what people said?"],
+  ["g32","Middle","Did the facilitator ask participants if they agree with other participants' responses?"],
+  ["g33","Middle","Did the participants make lots of comments?"],
+  ["g34","Middle","Did the facilitator summarize the participants' discussion?"],
+  ["g35","Middle","Did the facilitator reinforce statements by sharing relevant personal experience, or asking others to share theirs?"],
+  ["g36","Middle","Did the facilitator encourage participants to share what they know?"],
+  ["g37","End","Did the facilitator verify that people understood the main points using open-ended questions?"],
+  ["g38","End","Did the facilitator summarize the essential points at the end?"],
+  ["g39","End","Did the facilitator use any techniques to move people to action?"],
+  ["g40","End","Did the facilitator ask for participants' commitments related to the current lesson?"],
+  ["g41","End","Did the facilitator ask about commitments from previous lessons?"],
+  ["g42","End","Did the facilitator finish the session within the allotted time?"]]}};
+const qItems=(kind,role)=>QIV[kind].items.filter(i=>!i[3]||i[3]===role),qTarget=role=>role==="chv"?70:80; // scores below the target are flagged
+function qScore(a){let yes=0,used=0;for(const k in a){if(a[k]===1){yes++;used++;}else if(a[k]===0)used++;}return {yes,used,score:used?Math.round(100*yes/used):null};}
+const qOf=(wid,R)=>S.q.filter(q=>q.wid===wid&&q.score!==null&&(!R||q.date<=R.b)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+const qChip=(sc,role)=>sc===null||sc===undefined?'<span class="muted">–</span>':'<span class="chip '+(sc<qTarget(role)?"bad":"good")+'">'+sc+"%</span>";
+function qStat(w,R){ // judged on the checklist (home visit or group session) with the lower latest score; change is measured within that checklist
+  const L=qOf(w.id,R),n=L.length,lk=k=>{const x=L.filter(q=>q.kind===k);return x.length?x[x.length-1]:null;},hm=lk("home"),gr=lk("group"),weak=!hm?gr:!gr?hm:(gr.score<hm.score?gr:hm);
+  const K=weak?L.filter(q=>q.kind===weak.kind):[],last=weak,prev=K.length>1?K[K.length-2]:null,first=K.length?K[0]:null,low=!!last&&last.score<qTarget(w.role),ch=prev?last.score-prev.score:null;
+  return {L,n,last,prev,first,low,ch,home:lk("home"),group:lk("group"),status:!n?"Not yet observed":low?(prev&&ch>=5?"Below target, improving":"Below target and not improving"):(prev&&ch<=-10?"At target, but falling":"At target")};}
+function qMean(role){const x=S.staff.filter(w=>w.role===role).map(w=>{const L=qOf(w.id);return L[L.length-1];}).filter(Boolean);return x.length?Math.round(x.reduce((m,q)=>m+q.score,0)/x.length)+"% ("+x.length+" observed)":"–";}
+function qCan(){const s=S.sess;return s.role==="chw"?S.staff.filter(x=>x.chwId===s.id):["admin","sup"].includes(s.role)?S.staff.filter(x=>x.role==="chw"||x.role==="chv"):[];}
+const qWho=w=>(w.role==="chv"?"CGV":"CHW")+" · "+w.name;
+function vQivc(){const s=S.sess,chws=S.staff.filter(x=>x.role==="chw"&&(s.role!=="chw"||x.id===s.id)),can=new Set(qCan().map(w=>w.id)),all=[];chws.forEach(c=>{all.push(c);S.staff.filter(v=>v.chwId===c.id).forEach(v=>all.push(v));});
+  const st=all.map(w=>[w,qStat(w)]),lt=y=>y[1].L[y[1].L.length-1],mean=r=>{const x=st.filter(y=>y[0].role===r&&y[1].n);return x.length?Math.round(x.reduce((m,y)=>m+lt(y).score,0)/x.length)+"%":"–";};
+  const recent=st.filter(y=>y[1].n&&diff(TODAY,lt(y).date)<=90).length,low=st.filter(y=>y[1].low).length;
+  let h='<div class="row"><h1 class="grow">QIVC</h1><button class="pri" data-act="qnew">New QIVC</button></div><p class="muted">Quality Improvement and Verification Checklists. A supervisor observes a home visit or a group session and marks each step. The score is the share of steps done, among those that applied. '+
+    "Scores below "+qTarget("chv")+"% for volunteers and "+qTarget("chw")+'% for CHWs are marked in red.</p><div class="grid">'+(s.role==="chw"?"":stat("CHWs, mean latest score",mean("chw")))+stat("Volunteers, mean latest score",mean("chv"))+stat("Observed in the last 90 days",recent+" / "+all.length)+stat("Below target",low)+"</div>";
+  for(const c of chws){const rows=[c].concat(S.staff.filter(v=>v.chwId===c.id));
+    h+='<div class="card"><h2>Care Group '+(c.cg||"")+' <span class="muted small">'+esc(c.name)+'</span></h2><div class="tblwrap"><table><tr><th>Worker</th><th class="n">Home visit</th><th class="n">Group session</th><th class="n">QIVCs</th><th class="n">Change</th><th></th></tr>'+
+      rows.map(w=>{const q=qStat(w);return "<tr><td>"+esc(qWho(w))+'<div class="small muted">'+esc(q.status)+'</div></td><td class="n">'+qChip(q.home&&q.home.score,w.role)+'</td><td class="n">'+qChip(q.group&&q.group.score,w.role)+'</td><td class="n">'+q.n+'</td><td class="n">'+(q.ch===null?"–":(q.ch>0?"+":"")+q.ch)+
+        '</td><td><div class="row"><button data-act="qw" data-id="'+w.id+'">Open</button>'+(can.has(w.id)?'<button data-act="qnew" data-id="'+w.id+'">Observe</button>':"")+"</div></td></tr>";}).join("")+"</table></div></div>";}
+  return h+'<p class="small muted">Home visit and Group session show the latest score of each kind. The status and Change refer to whichever of the two is lower: Change is that score minus the previous score on the same checklist, in percentage points.</p>';}
+function qDetail(q,w){const no=qItems(q.kind,q.wrole).filter(i=>q.a[i[0]]===0),R=QIV[q.kind].ratings.filter(x=>q.r&&q.r[x[0]]);
+  return '<div class="card"><div class="row"><h3 class="grow">'+q.date+" · "+QIV[q.kind].name+"</h3>"+qChip(q.score,q.wrole)+'</div><p class="small muted">'+q.yes+" of "+q.used+" steps done"+(q.byName?" · observed by "+esc(q.byName):"")+"</p>"+
+    (no.length?"<p><b>Steps not done</b></p><ul>"+no.map(i=>"<li>"+esc(i[2])+"</li>").join("")+"</ul>":"<p>All the steps that applied were done.</p>")+
+    (R.length?'<p class="small">'+R.map(x=>esc(x[1])+" <b>"+q.r[x[0]]+"/10</b>").join(" · ")+"</p>":"")+(q.mtxt?'<p class="small">Participatory method: '+esc(q.mtxt)+"</p>":"")+(q.notes?"<p><b>Comments and recommendations:</b> "+esc(q.notes)+"</p>":"")+"</div>";}
+function qMine(wid){const w=by("staff",wid);if(!w||!["chw","chv"].includes(w.role))return "";const q=qStat(w);
+  return '<h2>My QIVC scores</h2>'+(q.n?'<p class="muted">'+esc(q.status)+". Target: "+qTarget(w.role)+"% or more.</p>"+q.L.slice().reverse().map(x=>qDetail(x,w)).join(""):'<div class="card"><p class="muted">No one has observed your work with a QIVC yet.</p></div>');}
+function vQw(){const w=by("staff",(UI.f||{}).id);if(!w)return vQivc();const q=qStat(w),can=qCan().some(x=>x.id===w.id);
+  return '<div class="row"><h1 class="grow">'+esc(qWho(w))+'</h1><button data-go="qivc">Back</button>'+(can?'<button class="pri" data-act="qnew" data-id="'+w.id+'">Observe</button>':"")+'</div><p class="muted">'+(w.cg?"Care Group "+w.cg+" · ":"")+esc(q.status)+" · target "+qTarget(w.role)+"% or more</p>"+
+    (q.n?'<div class="card"><div class="tblwrap"><table><tr><th>Date</th><th>Checklist</th><th class="n">Score</th></tr>'+q.L.map(x=>"<tr><td>"+x.date+"</td><td>"+QIV[x.kind].name+'</td><td class="n">'+qChip(x.score,w.role)+"</td></tr>").join("")+"</table></div></div>"+q.L.slice().reverse().map(x=>qDetail(x,w)).join(""):'<div class="card"><p class="muted">Not yet observed.</p></div>');}
+function vQform(){const F=UI.f,K=F.keep||{},L=qCan(),w=L.find(x=>x.id===F.wid)||null,kind=F.kind||"home";
+  let h='<div class="row"><h1 class="grow">New QIVC</h1><button data-go="qivc">Cancel</button></div>'+(F.msg?'<p class="note warn">'+esc(F.msg)+"</p>":"")+'<div class="card"><div class="q"><label class="t" for="f_qwho">Worker observed</label><select id="f_qwho" data-qsel="wid"><option value="">Choose</option>'+
+    L.map(x=>'<option value="'+x.id+'"'+(x.id===F.wid?" selected":"")+">"+esc(qWho(x)+(x.cg?" · Care Group "+x.cg:""))+"</option>").join("")+'</select></div><div class="q"><label class="t" for="f_qkind">What was observed</label><select id="f_qkind" data-qsel="kind">'+
+    Object.keys(QIV).map(k=>'<option value="'+k+'"'+(k===kind?" selected":"")+">"+QIV[k].name+(k==="group"?(w&&w.role==="chw"?" (Care Group meeting)":" (practice promotion session)"):" (using the visit form, and counselling)")+"</option>").join("")+
+    '</select></div><div class="q"><label class="t" for="f_qdate">Date</label><input type="date" id="f_qdate" max="'+TODAY+'" value="'+(K.f_qdate||TODAY)+'"></div></div>';
+  if(!w)return h+'<p class="muted">Choose the worker to see the checklist.</p>';
+  const items=qItems(kind,w.role),sc=qScore(F.a);let sec="";
+  h+='<p class="muted">'+items.length+" steps. Tap Yes, No, or N/A where the step did not apply in this "+(kind==="home"?"visit":"session")+".</p>";
+  items.forEach((it,n)=>{if(it[1]!==sec){sec=it[1];h+=(n?"</div>":"")+'<div class="card"><h3>'+esc(sec)+"</h3>";}const a=F.a[it[0]];
+    h+='<div class="q"><label class="t'+(F.miss&&a===undefined?" miss":"")+'">'+(n+1)+". "+esc(it[2])+'</label><div class="seg">'+[[1,"Yes"],[0,"No"],[2,"N/A"]].map(o=>'<button data-ans="'+it[0]+'" data-v="'+o[0]+'" class="'+(a===o[0]?"on":"")+'">'+o[1]+"</button>").join("")+"</div>"+
+      (it[0]==="g16"?'<input id="f_qmethod" placeholder="Which method?" value="'+esc(K.f_qmethod||"")+'" style="margin-top:6px">':"")+"</div>";});
+  h+='</div><div class="card"><h3>Content and overall rating</h3><p class="small muted">1 is poor and 10 is excellent. These ratings are kept beside the score and are not part of it.</p>'+QIV[kind].ratings.map(x=>'<div class="q"><label class="t" for="f_r_'+x[0]+'">'+esc(x[1])+'</label><select id="f_r_'+x[0]+'"><option value="">–</option>'+
+      [1,2,3,4,5,6,7,8,9,10].map(v=>'<option'+(String(K["f_r_"+x[0]]||"")===String(v)?" selected":"")+">"+v+"</option>").join("")+"</select></div>").join("")+
+    '<div class="q"><label class="t" for="f_qnotes">Recommendations, suggestions for action, comments</label><textarea id="f_qnotes" rows="4">'+esc(K.f_qnotes||"")+"</textarea></div></div>"+
+    '<div class="card"><div class="row"><div class="grow"><b>Score: '+(sc.score===null?"–":sc.score+"%")+'</b> <span class="muted">'+sc.yes+" yes of "+sc.used+" that applied · "+(items.length-items.filter(i=>F.a[i[0]]!==undefined).length)+' not yet marked</span></div><button class="pri" data-act="qsave">Save</button></div></div>';
+  return h;}
+function qSave(){stash();const F=UI.f,K=F.keep||{},w=qCan().find(x=>x.id===F.wid),kind=F.kind||"home";if(!w)return;const items=qItems(kind,w.role);
+  if(items.some(i=>F.a[i[0]]===undefined)){F.miss=1;F.msg="Mark every step Yes, No or N/A before saving. The steps still to mark are shown in red.";return keep();}
+  const a={};items.forEach(i=>a[i[0]]=F.a[i[0]]);const sc=qScore(a);if(!sc.used){F.msg="At least one step must be marked Yes or No.";return keep();}
+  const r={};QIV[kind].ratings.forEach(x=>{const v=+K["f_r_"+x[0]];if(v)r[x[0]]=v;});const me=by("staff",S.sess.id);
+  put("q",{id:uid("q"),wid:w.id,wrole:w.role,kind,date:K.f_qdate||TODAY,by:S.sess.id||"",byName:me?me.name:S.sess.role==="admin"?"Administrator":"",a,r,mtxt:K.f_qmethod||"",notes:K.f_qnotes||"",yes:sc.yes,used:sc.used,score:sc.score});
+  go("qw",{id:w.id});}
+// Report section: scores by area, the steps most often not done, and the workers who need the most support.
+function repQ(R,chws,IG){const pc=(n,d)=>d?Math.round(100*n/d)+"%":"–",inP=q=>q.score!==null&&inR(q.date,R),avg=a=>a.length?Math.round(a.reduce((m,x)=>m+x,0)/a.length):null,team=[],nm=(w,i)=>IG?(w.role==="chw"?"CHW":"Volunteer "+i)+" · Care Group "+w.cg:qWho(w)+" · Care Group "+w.cg;
+  const rows=[];chws.forEach(c=>{const vs=S.staff.filter(v=>v.chwId===c.id);team.push([c,0]);vs.forEach((v,i)=>team.push([v,i+1]));
+    const cq=S.q.filter(q=>q.wid===c.id&&inP(q)),vm=vs.map(v=>avg(S.q.filter(q=>q.wid===v.id&&inP(q)).map(q=>q.score))).filter(x=>x!==null),ca=avg(cq.map(q=>q.score)),va=avg(vm);
+    rows.push(["Care Group "+c.cg+(IG?"":" · "+c.name),cq.length,ca===null?"–":ca+"%",vm.length+" / "+vs.length,va===null?"–":va+"%",vm.filter(x=>x<qTarget("chv")).length]);
+    if(REP.area)vs.forEach((v,i)=>{const q=S.q.filter(x=>x.wid===v.id&&inP(x)),m=avg(q.map(x=>x.score));rows.push(["   "+(IG?"Volunteer "+(i+1):"Volunteer · "+v.name),q.length,"",q.length?"1 / 1":"0 / 1",m===null?"–":m+"%",m!==null&&m<qTarget("chv")?1:0]);});});
+  let h='<h2 class="rep">5. Quality of work (QIVC)</h2><div class="card"><h3>Scores in the period</h3>'+tbl("qivc","QIVC scores in the period",["Area","QIVCs of the CHW","CHW mean score","Volunteers observed","Volunteers' mean score","Volunteers below "+qTarget("chv")+"%"],rows,{num:[1,2,3,4,5]})+
+    '<p class="small muted">A QIVC (Quality Improvement and Verification Checklist) is filled out by a supervisor who observes a home visit or a group session. The score is the share of steps done among those that applied. Targets: '+qTarget("chw")+"% for CHWs and "+qTarget("chv")+"% for volunteers.</p></div>";
+  const ids=new Set(team.map(x=>x[0].id)),P=S.q.filter(q=>ids.has(q.wid)&&inP(q)),steps=[];
+  for(const kind in QIV)for(const role of ["chv","chw"]){const L=P.filter(q=>q.kind===kind&&q.wrole===role);if(!L.length)continue;
+    for(const it of qItems(kind,role)){let no=0,used=0;L.forEach(q=>{const v=q.a[it[0]];if(v===0){no++;used++;}else if(v===1)used++;});if(used>=5)steps.push([QIV[kind].name,role==="chv"?"Volunteers":"CHWs",it[2],no,used,no/used]);}}
+  steps.sort((a,b)=>b[5]-a[5]);
+  h+='<div class="card"><h3>Steps most often not done</h3>'+tbl("qsteps","Steps most often not done",["Checklist","Workers","Step","Not done / observed","% not done"],steps.map(x=>[x[0],x[1],x[2],x[3]+" / "+x[4],Math.round(100*x[5])+"%"]),{cap:12,num:[3,4]})+
+    '<p class="small muted">Steps are ranked by the share of observations in the period in which the step applied and was not done. Steps observed fewer than 5 times are left out. These are the subjects for refresher training.</p></div>';
+  const need=team.map(x=>[x[0],x[1],qStat(x[0],R)]).filter(x=>x[2].n&&(x[2].low||x[2].status==="At target, but falling")).sort((a,b)=>(a[2].status==="Below target and not improving"?0:a[2].low?1:2)-(b[2].status==="Below target and not improving"?0:b[2].low?1:2)||a[2].last.score-b[2].last.score);
+  h+='<div class="card"><h3>Workers who need the most support ('+need.length+")</h3>"+tbl("qneed","Workers who need the most support",["Worker","Weaker checklist","QIVCs of that kind","First score","Previous","Latest","Change","Status"],need.map(x=>{const q=x[2];return [nm(x[0],x[1]),QIV[q.last.kind].name,q.L.filter(y=>y.kind===q.last.kind).length,q.first.score+"%",q.prev?q.prev.score+"%":"–",q.last.score+"% ("+q.last.date+")",q.ch===null?"–":(q.ch>0?"+":"")+q.ch,q.status];}),{cap:25,num:[2,3,4,5,6]})+
+    '<p class="small muted">Uses every QIVC up to the end of the period. Each worker is judged on whichever checklist (home visit or group session) has her lower latest score, and change is measured between her last two QIVCs of that kind. A worker is listed when that score is below target, or when it fell by 10 points or more. Not improving means the latest score is less than 5 points above the one before it, or there is only one QIVC of that kind. Those below target and not improving come first, lowest score first.</p></div>';
   return h;}
 function vRefs(){
   const P=people(myHH()),ids=new Set(P.W.concat(P.C).map(p=>p.id)),R=S.r.filter(r=>ids.has(r.subj)).sort((a,b)=>a.date<b.date?1:-1);
@@ -959,7 +1128,8 @@ function behaviors(P){const {C,H}=P,cov=coverage(P),births=C.filter(c=>c.place),
     ["ORS given for diarrhoea",cov.ors],["Zinc given for diarrhoea",cov.zinc],["Care sought for cough with fast breathing",cov.pneu],
     ["Vaccines up to date",sh(C.filter(c=>active(c)&&ageD(c)>=14&&cardSeen(c)),c=>S.cfg.vax.every(x=>ageD(c)<=x[1]+14||(c.vax||{})[x[0]]))],
     ["Handwashing place with soap and water",hl("hh_hw")],["Safe drinking water",hl("hh_water")],["Household uses a latrine",hl("hh_lat")],["Child's stool put in a latrine",hl("hh_feces")]];}
-function vDash(){const own=people(myHH()),ot=onTime(own,TRACK()),me=by("staff",S.sess.id)||{},chw=me.role==="chv"?me.chwId:me.id;
+function vDash(){return vDash0()+qMine(S.sess.id);}
+function vDash0(){const own=people(myHH()),ot=onTime(own,TRACK()),me=by("staff",S.sess.id)||{},chw=me.role==="chv"?me.chwId:me.id;
   const team=S.staff.filter(x=>x.chwId===chw).map(x=>x.id),P=people(S.hh.filter(h=>team.includes(h.chvId)));
   const top='<div class="grid">'+stat(t("Visits on time"),(pct(ot[0],ot[1])??"–")+"%",ot[0]+" / "+ot[1])+stat(t("Households"),own.H.length)+stat(t("Children under 24 months"),own.C.filter(active).length)+stat(t("Pregnant women"),own.W.filter(w=>w.preg&&active(w)).length)+"</div>";
   if(me.role==="chv"){const B=behaviors(own),A=behaviors(P);
@@ -1021,7 +1191,7 @@ function vSet(){
     sw("mv","<b>Malaria vaccine</b> is in the immunization schedule here.",!!S.cfg.mv)+sw("yf","<b>Yellow fever vaccine</b> is in the immunization schedule here.",!!S.cfg.yf)+(adm?"":'<p class="small muted">Only the administrator can change these.</p>')+"</div>";
   h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
   h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
-  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.5. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.6. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
   return h;}
 
 /* ---------- actions ---------- */
@@ -1073,6 +1243,11 @@ document.addEventListener("click",e=>{
     if(n&&!(F&&F.outOK)){UI.f=Object.assign(UI.f||{},{outOK:1});const txt=n+" "+t("records have not been sent to the server and will be lost. Connect and sync first, or tap Sign out again to discard them.");if(m)m.textContent=txt;else{authMsg=txt;render();}return;}
     if(live())rpc("cbio_logout",{p_token:S.auth.token}).catch(()=>{});
     S.auth=null;S.mode=null;LOCKED=false;authMsg="";wipe();save();return go("welcome");}
+  if(A==="addsup"&&S.mode==="live"){rpc("cbio_save_worker",{p_token:S.auth.token,p_worker:{role:"sup",name:val("f_sname"),code:val("f_scode"),prog:document.getElementById("f_sprog")?val("f_sprog"):null},p_pin:val("f_spin")})
+      .then(res=>{authMsg=res&&res.ok?t("Saved")+": "+res.worker.name+" ("+res.worker.code+")":errText(res&&res.error||"server");UI.f=null;return sync().then(()=>go("staff"));},e=>{authMsg=errText(e.code);keep();});return;}
+  if(A==="qnew")return go("qform",{a:{},wid:d.id||"",kind:d.kind||"home"});
+  if(A==="qw")return go("qw",{id:d.id});
+  if(A==="qsave")return qSave();
   if(A==="addprog"&&S.mode==="live"){rpc("cbio_save_programme",{p_token:S.auth.token,p_programme:{name:val("f_gname"),partner:val("f_gpartner"),country:SERVER.country||S.cfg.country}})
       .then(res=>{authMsg=res&&res.ok?t("Saved"):errText(res&&res.error||"server");UI.f=null;return sync().then(()=>go("staff"));},e=>{authMsg=errText(e.code);keep();});return;}
   if(A==="addpadmin"&&S.mode==="live"){rpc("cbio_save_worker",{p_token:S.auth.token,p_worker:{role:"admin",name:val("f_aname"),code:val("f_acode"),prog:val("f_aprog")},p_pin:val("f_apin")})
@@ -1111,7 +1286,8 @@ document.addEventListener("input",e=>{const d=e.target.dataset;
   if(e.target.id==="regq"){UI.f={q:e.target.value};const y=window.scrollY;render();const i=$("#regq");i.focus();i.setSelectionRange(i.value.length,i.value.length);window.scrollTo(0,y);}});
 document.addEventListener("change",e=>{const el=e.target,d=el.dataset;
   if(el.id==="lang"){lang=S.lang=el.value;save();render();}
-  if(el.id==="role"&&S.mode==="example"){const [r,id,pg]=el.value.split("|");S.sess={role:r,id:id||null,prog:pg||null};if(pg)setProg(pg);save();go(r==="igha"?"igha":r==="admin"?"admin":"due");}
+  if(el.id==="role"&&S.mode==="example"){const [r,id,pg]=el.value.split("|");S.sess={role:r,id:id||null,prog:pg||null};if(pg)setProg(pg);save();go(r==="igha"?"igha":r==="admin"?"admin":r==="sup"?"qivc":"due");}
+  if(d.qsel){stash();UI.f[d.qsel]=el.value;if(d.qsel==="wid"||d.qsel==="kind")UI.f.a={};return keep();}
   if(d.opt){if(S.sess.role!=="admin")return;S.cfg[d.opt]=el.checked;applyOpts(S.cfg);save();if(live())pushCfg();render();return;}
   if(d.rep){REP[d.rep]=el.value;if(d.rep==="prog")REP.area="";const y=window.scrollY;render();window.scrollTo(0,y);return;}
   if(d.num&&UI.view==="visit")keep();
@@ -1139,7 +1315,7 @@ async function getLang(name){
 (async()=>{
   await load();
   if(!S.mode&&CFGS[SERVER.country]&&S.cfg.country!==SERVER.country)S.cfg=clone(CFGS[SERVER.country]);
-  fixCfg(S.cfg);(S.progs||[]).forEach(p=>fixCfg(p.cfg));
+  fixCfg(S.cfg);(S.progs||[]).forEach(p=>fixCfg(p.cfg));for(const ty of TYPES)if(!S[ty])S[ty]=[];
   if(DEMO&&S.mode!=="example"){S.mode="example";S.auth=null;wipe();S.sess={role:"igha",id:null,prog:null};demo();save();}
   if(S.mode==="live"&&S.auth&&S.auth.worker){S.sess={role:S.auth.worker.role==="admin"?"admin":S.auth.worker.role,id:S.auth.worker.id};LOCKED=!!S.auth.token;} // ask for the PIN each time the app opens
   UI.view=S.sess.role==="igha"?"igha":S.sess.role==="admin"?"admin":"due";

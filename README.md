@@ -2,7 +2,7 @@
 
 Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and Care Group Volunteers (CGVs) in CBIO+ programs. Kenya is the first country configuration.
 
-**Status: pilot build 0.5.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
+**Status: pilot build 0.6.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
 
 ## What it does
 
@@ -14,6 +14,10 @@ Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and
 - Modelled lives saved and DALYs averted (Lives Saved Tool method, simplified), measured mortality, coverage indicators
 - Administrator Reports page: programme summary (lives saved and DALYs averted to date), coverage for a chosen period beside the previous period and the baseline, mortality, worker activity, and action lists; each table downloads as a CSV file and the page prints or saves as a PDF
 - English and Swahili; works offline once opened
+
+## QIVC: quality of work (version 0.6)
+
+A supervisor observes a home visit or a group session and marks each step of a Quality Improvement and Verification Checklist (QIVC). Two checklists are built in: the group-session checklist (42 steps) and a home-visit checklist (39 steps) that adds correct use of the app's visit form to the individual counselling checklist. A CHW observes her own volunteers; a new Supervisor role (`sup`) observes CHWs and volunteers and sees no household records; the administrator can observe anyone; nobody can score herself. Score = Yes / (Yes + No); below 70% for volunteers and 80% for CHWs is flagged. Results appear under the worker's My results, on the QIVC tab (by Care Group, with each worker's history), in report 5 (scores by area, steps most often not done, workers who need the most support) and, as means, on the IGHA Countries tab. An existing database needs `server/setup.sql` run again for the Supervisor role and for QIVCs to sync.
 
 ## Area settings (version 0.5)
 

@@ -65,7 +65,7 @@ alter table public.cbio_workers add column if not exists prog text;   -- program
 alter table public.cbio_records add column if not exists prog text;   -- programme of the household's worker
 create index if not exists cbio_records_prog on public.cbio_records(prog);
 alter table public.cbio_workers drop constraint if exists cbio_workers_role_check;
-alter table public.cbio_workers add constraint cbio_workers_role_check check (role in ('admin','chw','chv'));
+alter table public.cbio_workers add constraint cbio_workers_role_check check (role in ('admin','chw','chv','sup'));   -- sup = supervisor, who fills out QIVCs
 
 alter table public.cbio_programmes enable row level security;
 revoke all on public.cbio_programmes from anon, authenticated;
@@ -141,7 +141,7 @@ begin
   return coalesce((select jsonb_agg(public.cbio_worker_json(w, me.role = 'admin') order by w.cg, w.role desc, w.name)
     from public.cbio_workers w
    where w.active and w.role <> 'admin'
-     and ((me.role = 'admin' and (me.prog is null or w.prog is not distinct from me.prog)) or w.id = me.id or w.chw_id = me.id or w.id = me.chw_id)), '[]'::jsonb);
+     and ((me.role in ('admin','sup') and (me.prog is null or w.prog is not distinct from me.prog)) or w.id = me.id or w.chw_id = me.id or w.id = me.chw_id)), '[]'::jsonb);
 end $$;
 
 -- Administrator: add or change a worker. p_pin sets a new PIN; leave it empty to keep the old one.
@@ -166,11 +166,13 @@ begin
     if coalesce(p_pin, '') <> '' then delete from public.cbio_sessions where worker_id = v_id; end if;
     return jsonb_build_object('ok', true, 'worker', public.cbio_worker_json(w, true));
   end if;
-  if v_role not in ('chw', 'chv', 'admin') or coalesce(trim(p_worker->>'name'), '') = '' or coalesce(length(p_pin), 0) < 6
+  if v_role not in ('chw', 'chv', 'admin', 'sup') or coalesce(trim(p_worker->>'name'), '') = '' or coalesce(length(p_pin), 0) < 6
      or coalesce(length(trim(p_worker->>'code')), 0) < 3 then return jsonb_build_object('ok', false, 'error', 'bad_input'); end if;
   if v_prog is not null and not exists (select 1 from public.cbio_programmes where id = v_prog) then return jsonb_build_object('ok', false, 'error', 'no_such_programme'); end if;
   if v_role = 'admin' then   -- a programme administrator, created by the country administrator
     if me.prog is not null or v_prog is null then return jsonb_build_object('ok', false, 'error', 'country_admin_only'); end if;
+    v_chw := null; v_cg := null;
+  elsif v_role = 'sup' then   -- a supervisor: observes workers and fills out QIVCs; sees no household records
     v_chw := null; v_cg := null;
   elsif v_role = 'chv' then
     select cg, prog into v_cg, v_prog from public.cbio_workers where id = v_chw and role = 'chw' and (me.prog is null or prog is not distinct from me.prog);
@@ -196,7 +198,12 @@ begin
   me := public.cbio_me(p_token);
   for r in select * from jsonb_array_elements(p_records) loop
     v_cgv := r->>'cgv'; v_chw := r->>'chw';
-    if me.role = 'chv' then
+    if r->>'ty' = 'q' then   -- a QIVC: written by an administrator, a supervisor, or the CHW of the volunteer observed (never by the worker observed)
+      if not (me.role in ('admin', 'sup') or (me.role = 'chw' and exists (select 1 from public.cbio_workers w where w.id = v_cgv and w.chw_id = me.id))) then k := k + 1; continue; end if;
+      select coalesce(w.chw_id, w.id) into v_chw from public.cbio_workers w where w.id = v_cgv;
+      if v_chw is null then k := k + 1; continue; end if;
+    elsif me.role = 'sup' then k := k + 1; continue;   -- a supervisor writes nothing else
+    elsif me.role = 'chv' then
       if v_cgv is distinct from me.id then k := k + 1; continue; end if;
       v_chw := me.chw_id;
     elsif me.role = 'chw' then
@@ -206,14 +213,15 @@ begin
       select coalesce(w.chw_id, w.id) into v_chw from public.cbio_workers w where w.id = v_cgv;
     end if;
     select w.prog into v_prog from public.cbio_workers w where w.id = v_cgv;
-    if me.role = 'admin' and me.prog is not null and v_prog is distinct from me.prog then k := k + 1; continue; end if;
-    if coalesce(r->>'id', '') = '' or r->>'ty' not in ('hh','w','c','v','r','d','cen') then k := k + 1; continue; end if;
+    if me.role in ('admin', 'sup') and me.prog is not null and v_prog is distinct from me.prog then k := k + 1; continue; end if;
+    if coalesce(r->>'id', '') = '' or r->>'ty' not in ('hh','w','c','v','r','d','cen','q') then k := k + 1; continue; end if;
     insert into public.cbio_records as t (id, ty, cgv, chw, prog, body, u, updated_by)
     values (r->>'id', r->>'ty', v_cgv, v_chw, v_prog, r->'body', coalesce((r->>'u')::bigint, 0), me.id)
     on conflict (id) do update
       set ty = excluded.ty, cgv = excluded.cgv, chw = excluded.chw, prog = excluded.prog, body = excluded.body, u = excluded.u,
           seq = nextval('public.cbio_seq'), updated_by = excluded.updated_by, updated_at = now()
-      where t.u < excluded.u and ((me.role = 'admin' and (me.prog is null or t.prog is not distinct from me.prog)) or t.chw = me.id or t.cgv = me.id);
+      where t.u < excluded.u and (t.ty = 'q') = (excluded.ty = 'q')
+        and ((me.role = 'admin' and (me.prog is null or t.prog is not distinct from me.prog)) or (me.role = 'sup' and t.ty = 'q') or t.chw = me.id or (t.cgv = me.id and t.ty <> 'q'));
     get diagnostics c = row_count;
     if c > 0 then n := n + 1; else k := k + 1; end if;
   end loop;
@@ -231,7 +239,8 @@ begin
     into out_
     from (select * from public.cbio_records t
            where t.seq > p_since
-             and ((me.role = 'admin' and (me.prog is null or t.prog is not distinct from me.prog)) or (me.role = 'chw' and t.chw = me.id) or (me.role = 'chv' and t.cgv = me.id))
+             and ((me.role = 'admin' and (me.prog is null or t.prog is not distinct from me.prog)) or (me.role = 'chw' and t.chw = me.id) or (me.role = 'chv' and t.cgv = me.id)
+                  or (me.role = 'sup' and t.ty = 'q' and (me.prog is null or t.prog is not distinct from me.prog)))
            order by t.seq limit 1000) q;
   return out_;
 end $$;
@@ -292,8 +301,8 @@ declare k text; v jsonb; o jsonb := '{}'::jsonb; a jsonb := '[]'::jsonb;
 begin
   if jsonb_typeof(j) = 'object' then
     for k, v in select * from jsonb_each(j) loop
-      if k in ('name','head','village','mother','who','rel','narr','notes','dnote','belief','dx','tx','code','dirty','ex','pg','demo') then continue; end if;
-      if k in ('id','hhId','mId','subj','chvId','chwId','by') and jsonb_typeof(v) = 'string' then
+      if k in ('name','head','village','mother','who','rel','narr','notes','dnote','belief','dx','tx','code','dirty','ex','pg','demo','byName','mtxt') then continue; end if;
+      if k in ('id','hhId','mId','subj','chvId','chwId','by','wid') and jsonb_typeof(v) = 'string' then
         o := o || jsonb_build_object(k, substr(md5(salt || (v #>> '{}')), 1, 16));
       elsif jsonb_typeof(v) = 'string' and (v #>> '{}') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then
         o := o || jsonb_build_object(k, to_char((v #>> '{}')::date + shift, 'YYYY-MM-DD'));
