@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "shots"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "CBIO_Home_Visit_Register_User_Manual.pdf"
 HERE = os.path.dirname(os.path.abspath(__file__)); JPG = os.path.join(HERE, "shots"); os.makedirs(JPG, exist_ok=True)
-VER, DATE = "0.4.0", "12 November 2026"
+VER, DATE = "0.5.1", "13 November 2026"
 URL = "https://tdavismph.github.io/cbio-home-visit-register/"
 INK, MUTED, LINE, BAND, ACC = colors.HexColor("#16302b"), colors.HexColor("#5b6b68"), colors.HexColor("#c9d3d1"), colors.HexColor("#e6eeec"), colors.HexColor("#1f66a8")
 st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Helvetica"), textColor=k.pop("color", INK), **k)
@@ -136,7 +136,8 @@ A(Paragraph("The <b>Due list</b> opens first. Each card is one woman or child. T
 A(fig("A volunteer's due list. The counts at the top right give the number of urgent, needs-attention and due cards.", ("04_cgv_due", (0, 700)), w=112 * mm))
 A(Paragraph("3.2 Make a home visit", H2))
 A(steps("Tap <b>Start visit</b> on the card. The form shows the questions for the stage the woman or child is in, with the number of items and the expected time.",
-        "Answer each question by tapping <b>Yes</b> or <b>No</b>, tapping the choices that apply, or typing a number.",
+        "Answer each question by tapping <b>Yes</b> or <b>No</b>, tapping the choices that apply, or typing a number. For a pregnant woman, one question asks how many of 10 food groups she ate yesterday: "
+        "count the groups as she lists what she ate (grains and roots; pulses; nuts and seeds; dairy; meat, poultry and fish; eggs; dark green leafy vegetables; other vitamin A-rich fruits and vegetables; other vegetables; other fruits).",
         "Where a question lists several choices (danger signs, vaccines on the card, illness in the last 2 weeks), tap every choice that applies. If none applies, tap <b>None of the above</b>. "
         "The form cannot be saved until each of these questions has an answer; this shows that the question was asked.",
         "If you want the CHW to see this household for any reason, tap <b>Ask for CHW support</b> near the bottom.",
@@ -222,7 +223,7 @@ A(table(["Tab", "Contents"], [
     ["Indicators", "Every coverage indicator, cumulative, with numerator and denominator. <b>Copy as CSV</b> copies the table for pasting into a spreadsheet."],
     ["Model", "The lives-saved calculation: each intervention with its baseline coverage, current coverage and lives saved, and the settings (baseline mortality rates, effect sizes, years of life per death averted)."],
     ["Register", "All households, with search."], ["Referrals", "All referrals and their status."], ["Workers", "CHWs and volunteers, with the number of households each holds."],
-    ["Settings", "Languages, the visit and immunization schedules, export of this tablet's records to a file, and sign-out."]], [W * .18, W * .82]))
+    ["Settings", "Area settings (section 5.5), languages, the visit and immunization schedules, export of this tablet's records to a file, and sign-out."]], [W * .18, W * .82]))
 A(Spacer(1, 6))
 A(fig("The Administrator's Overview page with the example data.", ("23_overview", (0, 1350)), w=118 * mm, maxh=165 * mm))
 A(Paragraph("5.4 Produce a report", H2))
@@ -230,6 +231,15 @@ A(steps("Open <b>Reports</b>.", "Choose the <b>Period</b>: last month, last quar
         "Choose the <b>Area</b>: all areas, or one CHW's Care Group. When one area is chosen, the worker activity report lists each volunteer.",
         "Tap <b>Print or save as PDF</b> to print the page or save it as a PDF file through the tablet's print dialog.",
         "Tap <b>Download this table</b> under any table to save it as a CSV file (a plain table that opens in Excel or Google Sheets). Downloaded action lists contain every row, including those not shown on screen."))
+A(Paragraph("5.5 Area settings", H2))
+A(Paragraph("Three switches on the <b>Settings</b> tab fit the app to the programme area. Only the Administrator can change them. They are saved with the programme's settings and reach the workers' tablets at their next sync.", P))
+A(bullets("<b>Malaria-endemic area.</b> When this is off, the questions on treated nets (for the pregnant woman and the baby) and on malaria testing for fever are not asked, and nets are left out of the lives-saved model. "
+          "The related indicators then show a dash. Leave it on wherever malaria is transmitted. Treated nets protect mainly against mosquitoes that bite at night; the mosquitoes that carry dengue and chikungunya bite mainly by day, "
+          "so those diseases are not a reason to turn the switch on.",
+          "<b>Malaria vaccine.</b> Adds the four malaria vaccine doses to the immunization schedule. The dose ages entered (6, 7, 9 and 24 months for Kenya; 6, 7, 9 and 18 months for Ghana) should be checked against the national schedule before use.",
+          "<b>Yellow fever vaccine.</b> Adds the yellow fever dose at 9 months. It is on in the Ghana settings and off in the Kenya settings."))
+A(Paragraph("Turning a vaccine on changes which children count as fully immunized and which appear on the list of children who have missed a dose, from that moment on.", P))
+A(fig("The area settings on the Administrator's Settings tab.", ("45_settings_area", (450, 740)), w=112 * mm))
 A(PageBreak())
 
 # ------------------------------------------------------------------ 6
@@ -295,6 +305,7 @@ A(table(["Problem", "What to do"], [
     ["There is no Start visit button on a card.", "The next scheduled visit is not yet within 14 days of its due date (3 days for a volunteer's fortnightly visit). Open the card and use Follow-up visit if a visit is needed now."],
     ["Two workers changed the same record while offline.", "The database keeps the version saved most recently. Visits are separate records and are never overwritten by another worker's visit."],
     ["A tablet is lost or a worker leaves.", "The Administrator sets a new PIN for that worker. The old PIN then cannot sign in, and the lost tablet can no longer send or receive records. Records already synced are safe in the database. Records already stored on the lost tablet can still be opened there with the old PIN while it is offline; the app cannot erase a tablet remotely, which is a matter for the security review."],
+    ["The questions on treated nets or malaria testing do not appear.", "The Malaria-endemic area switch is off for this programme. The Administrator can turn it on in Settings (section 5.5)."],
     ["The Administrator wants a copy of the data.", "Use the downloads on the Reports tab, Copy as CSV on the Indicators tab, or Export records from this tablet (file) in Settings."],
     ["The example data appears where real data is expected.", "Tap Leave example mode on the yellow bar, then sign in."]], [W * .36, W * .64]))
 A(PageBreak())
@@ -308,7 +319,8 @@ A(Paragraph("Settings by country", H2))
 A(Paragraph("Each country has its own baseline mortality, baseline coverage and immunization schedule, and every figure for a country is calculated with that country's settings. The Kenya settings use the Kenya Demographic and Health Survey 2022. "
             "The Ghana settings use the Ghana Demographic and Health Survey 2022 (neonatal mortality 17 per 1,000 live births), the Ghana Maternal Health Survey 2017 (maternal mortality 310 per 100,000 live births) and the Ghana Health Service schedule, "
             "which adds a hepatitis B birth dose, yellow fever at 9 months and meningitis A at 18 months. The causes of death used in the Ghana model are still the Kenya values and need to be replaced with Ghana estimates, particularly for malaria. "
-            "A programme can save its own settings on the Model tab when its area differs from the national picture; otherwise it uses the country's. The Ghana example is in English only.", P))
+            "A programme can save its own settings on the Model tab when its area differs from the national picture; otherwise it uses the country's. The area switches of section 5.5 (malaria-endemic area, malaria vaccine, yellow fever vaccine) are saved the same way. "
+            "The Ghana example is in English only.", P))
 A(Paragraph("The IGHA view", H2))
 A(Paragraph("In the example data, choose <b>IGHA · all countries</b> in the selector at the top right (the address ending in #demo opens there). The <b>Countries</b> tab shows each country in its own column for a chosen period: "
             "programme size and activity, mortality compared with that country's baseline, delays found in verbal autopsies, and the behaviour and coverage indicators with a bar for each country and a mark at that country's baseline. "
