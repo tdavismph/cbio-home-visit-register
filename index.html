@@ -133,6 +133,8 @@ const DEFAULT_CFG={ver:10,country:"Kenya",
  neo:{asphyxia:.316,preterm:.246,sepsis:.158,congenital:.138,ari:.067,tetanus:.009,diarrhoea:.003,other:.063},
  pn:{pneumonia:.22,diarrhoea:.21,malaria:.08,measles:.02,hiv:.08,other:.39},
  // [id, label, band, cause, effectiveness, affected fraction, baseline coverage, source, baseline is sourced?]
+ malaria:true,yf:false,mv:false, // area switches: malaria-endemic area; yellow fever vaccine and malaria vaccine in the schedule
+ optVax:{yf:[["YF",274]],mv:[["MV1",183],["MV2",213],["MV3",274],["MV4",730]]},
  iv:[["sba","Skilled attendant at birth (neonatal resuscitation)","neo","asphyxia",.30,1,.893,"Lee 2011; baseline KDHS 2022",1],
      ["fac","Facility delivery (clean birth practices)","neo","sepsis",.27,1,.881,"Blencowe 2011; baseline KDHS 2022",1],
      ["td","Mother protected against tetanus (Td2+)","neo","tetanus",.94,1,.75,"Blencowe 2010; baseline KDHS 2022",1],
@@ -155,13 +157,18 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const GH_CFG=(()=>{const c=clone(DEFAULT_CFG);c.country="Ghana";c.langs=["en"];
   c.vax=[["BCG",0],["OPV0",0],["HEPB0",0],["OPV1",42],["PENTA1",42],["PCV1",42],["ROTA1",42],["OPV2",70],["PENTA2",70],["PCV2",70],["ROTA2",70],
          ["OPV3",98],["PENTA3",98],["PCV3",98],["ROTA3",98],["IPV1",98],["IPV2",213],["MR1",274],["YF",274],["MR2",548],["MENA",548]];
-  c.rates={nmr:17,pn:16,mmr:310};
+  c.rates={nmr:17,pn:16,mmr:310};c.yf=true;c.optVax.mv=[["MV1",183],["MV2",213],["MV3",274],["MV4",548]];
   const B={sba:[.876,"Lee 2011; baseline GDHS 2022",1],fac:[.862,"Blencowe 2011; baseline GDHS 2022",1],td:[.738,"Blencowe 2010; baseline GDHS 2022",1],
     ebf_d:[.526,"Lamberti 2011; baseline GDHS 2022",1],ebf_p:[.526,"Lamberti 2013; baseline GDHS 2022",1],ors:[.398,"Munos 2010; baseline GDHS 2022",1],zinc:[.35,"Walker & Black 2010; baseline GDHS 2022",1],
     pneu:[.612,"Theodoratou 2010; baseline GDHS 2022 (care sought)",1],itn:[.49,"Eisele 2010; baseline GDHS 2022 (children under 5)",1],mr1:[.87,"Sudfeld 2010; baseline GDHS 2022",1],
     vita:[.746,"Imdad 2017; baseline GDHS 2022 (6-59 months)",1],hw:[.472,"Cairncross 2010; baseline GDHS 2022",1]};
   c.iv.forEach(r=>{if(B[r[0]]){r[6]=B[r[0]][0];r[7]=B[r[0]][1];r[8]=B[r[0]][2];}});return c;})();
 const CFGS={Kenya:DEFAULT_CFG,Ghana:GH_CFG};
+// Settings saved before the area switches existed gain them here.
+function fixCfg(c){if(!c)return c;const d=CFGS[c.country]||DEFAULT_CFG;for(const k of ["malaria","yf","mv"])if(c[k]===undefined)c[k]=d[k];if(!c.optVax)c.optVax=clone(d.optVax);return c;}
+// Rebuilds the immunization schedule from the two vaccine switches.
+function applyOpts(c){const o=c.optVax,ids=new Set(o.yf.concat(o.mv).map(x=>x[0]));let v=c.vax.filter(x=>!ids.has(x[0]));if(c.yf)v=v.concat(o.yf);if(c.mv)v=v.concat(o.mv);
+  c.vax=v.map((x,i)=>[x,i]).sort((a,b)=>a[0][1]-b[0][1]||a[1]-b[1]).map(x=>x[0]);return c;}
 // Example programmes. Each programme is one partner in one country, with its own settings. p = coverage levels used to generate the example records.
 const PROGS=[
  {id:"ke",country:"Kenya",name:"Kisii programme",partner:"Partner A (example)",seed:7,n:8,x:"",p:{},
@@ -198,7 +205,7 @@ const SW={"Due list":"Orodha ya kazi","Register":"Rejesta","Referrals":"Rufaa","
 "Tetanus (Td) doses on the card":"Dozi za pepopunda (Td) kwenye kadi","Slept under a treated net last night":"Alilala ndani ya chandarua chenye dawa jana usiku","HIV test done in this pregnancy (card)":"Kipimo cha VVU kimefanyika ujauzito huu (kadi)",
 "Birth plan (tick what is ready)":"Mpango wa kujifungua (chagua vilivyo tayari)","Facility chosen":"Kituo kimechaguliwa","Transport arranged":"Usafiri umepangwa","Money saved":"Pesa zimewekwa","Companion identified":"Msindikizaji amepatikana",
 "Woman can name 3 danger signs":"Mama anaweza kutaja dalili 3 za hatari","Woman's MUAC (cm)":"MUAC ya mama (sm)","Handwashing place with soap and water seen":"Mahali pa kunawa mikono penye sabuni na maji pameonekana",
-"Drinking water is treated or from a safe source":"Maji ya kunywa yametibiwa au yanatoka chanzo salama","Household uses a latrine":"Kaya inatumia choo","Child's stool put in a latrine":"Kinyesi cha mtoto hutupwa chooni","Pregnant women who ate an extra meal yesterday":"Wajawazito waliokula mlo wa ziada jana","Ate an extra meal or snack yesterday":"Alikula mlo wa ziada au kitafunwa jana","Child's last stool was put in a latrine (or the child used one)":"Kinyesi cha mwisho cha mtoto kilitupwa chooni (au mtoto alitumia choo)",
+"Drinking water is treated or from a safe source":"Maji ya kunywa yametibiwa au yanatoka chanzo salama","Household uses a latrine":"Kaya inatumia choo","Child's stool put in a latrine":"Kinyesi cha mtoto hutupwa chooni","Pregnant women who ate an extra meal yesterday":"Wajawazito waliokula mlo wa ziada jana","Ate an extra meal or snack yesterday":"Alikula mlo wa ziada au kitafunwa jana","Food groups she ate yesterday (0-10)":"Makundi ya vyakula aliyokula jana (0-10)","Child's last stool was put in a latrine (or the child used one)":"Kinyesi cha mwisho cha mtoto kilitupwa chooni (au mtoto alitumia choo)",
 "Blood pressure: upper number":"Shinikizo la damu: namba ya juu","Blood pressure: lower number":"Shinikizo la damu: namba ya chini",
 "Newborn danger signs (tick any present)":"Dalili za hatari kwa mtoto mchanga (chagua zilizopo)","Not feeding well":"Hanyonyi vizuri","Fast breathing (60 or more per minute)":"Anapumua haraka (60 au zaidi kwa dakika)",
 "Severe chest in-drawing":"Kifua kinabonyea sana","Feels hot (fever)":"Ana joto (homa)","Feels cold":"Ana baridi","Moves only when stimulated or not at all":"Anajisogeza tu akiguswa au hajisogezi kabisa",
@@ -304,7 +311,7 @@ async function sync(){
       const res=await rpc("cbio_pull",{p_token:T,p_since:Math.max(0,(S.auth.seq||0)-(n?0:50))});
       for(const x of res.records){const a=S[x.ty],r=x.body;if(!a||x.ty==="staff")continue;const i=a.findIndex(y=>y.id===r.id);if(i<0)a.push(r);else if((a[i].u||0)<(r.u||0))a[i]=r;}
       S.auth.seq=Math.max(S.auth.seq||0,res.seq||0);if(res.count<1000)break;}
-    const cfg=await rpc("cbio_settings_get",{p_token:T});if(cfg&&cfg.ver===DEFAULT_CFG.ver)S.cfg=cfg;
+    const cfg=await rpc("cbio_settings_get",{p_token:T});if(cfg&&cfg.ver===DEFAULT_CFG.ver)S.cfg=fixCfg(cfg);
     VIX=null;S.auth.last=Date.now();save();syncMsg="✓";syncing=false;render();
   }catch(e){syncing=false;
     if(e.code==="not_signed_in"){S.auth.token=null;save();authMsg=t("Please sign in again.");go("login");}
@@ -328,6 +335,7 @@ const QS=[
  ["p_td","num","Tetanus (Td) doses on the card",PR,"chv"],
  ["p_itn","yn","Slept under a treated net last night",PR,"chv"],
  ["p_meal","yn","Ate an extra meal or snack yesterday",PR,"chv"],
+ ["p_mdd","num","Food groups she ate yesterday (0-10)",PR,"chv"],
  ["p_hiv","yn","HIV test done in this pregnancy (card)",["P1"],"chv"],
  ["p_plan","multi","Birth plan (tick what is ready)",["P2"],"chv",["Facility chosen","Transport arranged","Money saved","Companion identified"],null,1],
  ["p_knows","yn","Woman can name 3 danger signs",PR,"chv"],
@@ -335,7 +343,7 @@ const QS=[
  ["hh_hw","yn","Handwashing place with soap and water seen",["P1","N7","M6","M18"],"chv"],
  ["hh_water","yn","Drinking water is treated or from a safe source",["P1","M6"],"chv"],
  ["hh_lat","yn","Household uses a latrine",["P1","M6","M18"],"chv"],
- ["hh_feces","yn","Child's last stool was put in a latrine (or the child used one)",["M6","M18"],"chv"],
+ ["hh_feces","yn","Child's last stool was put in a latrine (or the child used one)",["M6","M9","M18"],"chv"],
  ["p_sys","num","Blood pressure: upper number",["P2","FW"],"chw"],
  ["p_dia","num","Blood pressure: lower number",["P2","FW"],"chw"],
  ["n_danger","multi","Newborn danger signs (tick any present)",NB,"chv",ND],
@@ -365,7 +373,8 @@ const QS=[
  ["x_tx","multi","Treatment given",["FC"],"chw",["ORS and zinc","Amoxicillin","Malaria treatment after positive test"],null,1]
 ].map(q=>({id:q[0],ty:q[1],label:q[2],slots:q[3],role:q[4],opts:q[5],cond:q[6],neutral:q[7]}));
 const SLOTNAME={P1:"Pregnancy visit 1",P2:"Pregnancy visit 2 (birth plan)",N1:"Newborn day 1-2",N3:"Newborn day 3",N7:"Newborn day 7",W6:"6 weeks",W14:"14 weeks",M6:"6 months",M9:"9 months",M18:"18 months",FW:"Follow-up visit",FC:"Follow-up visit"};
-function questions(slot,role,a,subj){return QS.filter(q=>q.slots.includes(slot)&&(q.role==="chv"||role==="chw")&&(!q.cond||q.cond(a,subj)));}
+const MALQ=["p_itn","n_itn","c_mal"]; // asked only in malaria-endemic areas
+function questions(slot,role,a,subj){return QS.filter(q=>q.slots.includes(slot)&&(q.role==="chv"||role==="chw")&&(!q.cond||q.cond(a,subj))&&(S.cfg.malaria!==false||!MALQ.includes(q.id)));}
 
 /* ---------- people, schedule, tasks ---------- */
 const subj=(kind,id)=>by(kind==="w"?"w":"c",id);
@@ -468,7 +477,7 @@ function exposure(C,R){ // expected baseline deaths, from person-time observed w
 }
 function model(P,mult){ // LiST-style: cause-specific reduction = 1 - prod(1 - e*af*(p-b)/(1-e*af*b))
   mult=mult||1;const cov=coverage(P),ex=exposure(P.C),cfg=S.cfg,red={neo:{},pn:{}},parts=[];
-  for(const iv of cfg.iv){const [id,label,band,cause,e0,af,b]=iv,c=cov[id]||[0,0],p=c[1]?c[0]/c[1]:b,e=clamp(e0*mult,0,.99);
+  for(const iv of cfg.iv){if(iv[0]==="itn"&&cfg.malaria===false)continue;const [id,label,band,cause,e0,af,b]=iv,c=cov[id]||[0,0],p=c[1]?c[0]/c[1]:b,e=clamp(e0*mult,0,.99);
     const x=clamp(e*af*(p-b)/(1-e*af*b),-.99,.99);
     (red[band][cause]=red[band][cause]||[]).push({id,x});parts.push({id,label,band,cause,p,b,n:c[1],x});}
   let total=0,per1000=0;
@@ -516,6 +525,7 @@ function indicators(P){
   const hw=H.filter(h=>hhLast(h.id,"hh_water")!==undefined);add("Household behaviors","Safe drinking water",[hw.filter(h=>hhLast(h.id,"hh_water")===1).length,hw.length]);
   const hf=H.filter(h=>hhLast(h.id,"hh_feces")!==undefined);add("Household behaviors","Child's stool put in a latrine",[hf.filter(h=>hhLast(h.id,"hh_feces")===1).length,hf.length]);
   const pm=W.filter(w=>last(w.id,"p_meal")!==undefined);add("Nutrition","Pregnant women who ate an extra meal yesterday",[pm.filter(w=>last(w.id,"p_meal")===1).length,pm.length]);
+  const pd=W.filter(w=>last(w.id,"p_mdd")!==undefined);add("Nutrition","Pregnant women who ate 5 or more of 10 food groups yesterday",[pd.filter(w=>last(w.id,"p_mdd")>=5).length,pd.length]);
   add("Nutrition","Vitamin A in the last 6 months (6-23 months)",cov.vita,bl("vita"));
   const md=C.filter(c=>last(c.id,"c_mdd")!==undefined);add("Nutrition","Minimum dietary diversity (5 of 8 food groups)",[md.filter(c=>last(c.id,"c_mdd")>=5).length,md.length]);
   const mu=C.filter(c=>last(c.id,"c_muac")!==undefined);add("Nutrition","MUAC under 12.5 cm (6-23 months)",[mu.filter(c=>last(c.id,"c_muac")<12.5).length,mu.length]);
@@ -556,7 +566,7 @@ function demoOne(sp){
         const w=D({id:mid,hhId:hh.id,name:mName,age:18+Math.floor(R()*20),preg:true,edd,reg:reg0>TODAY?addD(TODAY,-20):reg0,anc:1});S.w.push(w);
         if(fresh){w.reg=addD(TODAY,-(3+h%5));w.cFirst=ch(.3);w.cNoAnc=ch(.3);w.anc=w.cNoAnc?0:1;continue;}
         const pa=(slot,dt,role)=>{const ga=280-diff(edd,dt),anc=Math.max(0,[84,140,182,210,238,252,266,280].filter(x=>x<=ga).length-(R()<.1?2:R()<.3?1:0));
-          const a={p_danger:R()<.02?[1]:[],p_anc:anc,p_ifa:ch(pr("p_ifa",.82)),p_td:ga>196?1+ch(.8):Math.floor(R()*3),p_itn:ch(pr("p_itn",.78)),p_meal:ch(pr("p_meal",slot==="P2"?.68:.52)),p_knows:ch(slot==="P2"?.85:.6)};
+          const a={p_danger:R()<.02?[1]:[],p_anc:anc,p_ifa:ch(pr("p_ifa",.82)),p_td:ga>196?1+ch(.8):Math.floor(R()*3),p_itn:ch(pr("p_itn",.78)),p_meal:ch(pr("p_meal",slot==="P2"?.68:.52)),p_mdd:2+Math.floor(R()*6),p_knows:ch(slot==="P2"?.85:.6)};
           if(slot==="P1")Object.assign(a,{p_hiv:ch(.95),p_muac:22+Math.round(R()*80)/10,hh_hw:ch(.7),hh_water:ch(.75),hh_lat:ch(.9)});
           else{a.p_plan=[0,1,2,3].filter(()=>R()<.7);if(role==="chw"){a.p_sys=105+Math.floor(R()*40);a.p_dia=65+Math.floor(R()*26);}}
           visit("w",w,slot,dt,who(role),role,a);};
@@ -827,7 +837,7 @@ function covP(P,R){ // coverage measured inside a period
     ["Immunization","Fully immunized for age",sh(CV.filter(c=>ageAt(c)>=14),c=>S.cfg.vax.every(x=>ageAt(c)<=x[1]+14||has(c,x[0])))],
     ["Sick child care","ORS for diarrhoea",ans("c_ors"),bl("ors")],["Sick child care","Zinc for diarrhoea",ans("c_zinc"),bl("zinc")],["Sick child care","Care and antibiotic for suspected pneumonia",ans("c_pneu"),bl("pneu")],["Sick child care","Malaria test for fever, same or next day",ans("c_mal")],
     ["Household practices","Child slept under a treated net",ans("n_itn"),bl("itn")],["Household practices","Handwashing place with soap and water",ans("hh_hw"),bl("hw")],["Household practices","Safe drinking water",ans("hh_water")],["Household practices","Household uses a latrine",ans("hh_lat")],["Household practices","Child's stool put in a latrine",ans("hh_feces")],
-    ["Nutrition","Pregnant women who ate an extra meal yesterday",ans("p_meal")],
+    ["Nutrition","Pregnant women who ate an extra meal yesterday",ans("p_meal")],["Nutrition","Pregnant women who ate 5 or more of 10 food groups yesterday",ans("p_mdd",x=>x>=5)],
     ["Nutrition","Vitamin A in the last 6 months (6-23 months)",ans("c_vita"),bl("vita")],["Nutrition","5 or more of 8 food groups yesterday",ans("c_mdd",x=>x>=5)],
     ["Family planning","Mothers using a modern method",ans("c_fp")],["System","Referrals that reached the facility",[RF.filter(r=>r.st==="arrived"||r.st==="done").length,RF.length]]
   ].map(x=>({g:x[0],label:x[1],n:x[2][0],d:x[2][1],base:x[3]}));}
@@ -1006,9 +1016,12 @@ function vModel(){const c=S.cfg,P=people(S.hh);
 function vSet(){
   let h="<h1>"+esc(t("Settings"))+'</h1><div class="card"><h3>'+esc(t("Languages on this tablet"))+'</h3><div class="row">'+Object.keys(LANGS).map(k=>'<span class="chip good">'+esc(LANGS[k].name)+"</span>").join("")+"</div>"+
     '<div class="row"><input id="newlang" class="grow" placeholder="'+esc(t("Type a language name"))+'" list="lgs"><datalist id="lgs">'+["French","Portuguese","Spanish","Haitian Creole","Luo","Kikuyu","Somali","Amharic","Hausa","Twi","Ewe","Arabic","Hindi","Bengali","K'iche'","Quechua"].map(x=>"<option>"+x+"</option>").join("")+'</datalist><button class="pri" data-act="getlang">'+esc(t("Download"))+'</button></div><p class="small muted" id="langmsg">A new language needs a connection once. It is then stored on this tablet and works offline.</p></div>';
+  const adm=S.sess.role==="admin",sw=(k,label,on)=>'<label class="row" style="gap:10px;align-items:flex-start;margin-block:8px"><input type="checkbox" data-opt="'+k+'"'+(on?" checked":"")+(adm?"":" disabled")+' style="width:22px;height:22px;flex:none"> <span>'+label+"</span></label>";
+  h+='<div class="card"><h3>Area settings ('+S.cfg.country+")</h3>"+sw("malaria","<b>Malaria-endemic area.</b> When this is off, the questions on treated nets and on malaria testing for fever are not asked, and nets are left out of the lives-saved model.",S.cfg.malaria!==false)+
+    sw("mv","<b>Malaria vaccine</b> is in the immunization schedule here.",!!S.cfg.mv)+sw("yf","<b>Yellow fever vaccine</b> is in the immunization schedule here.",!!S.cfg.yf)+(adm?"":'<p class="small muted">Only the administrator can change these.</p>')+"</div>";
   h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
   h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
-  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.4. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.5. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
   return h;}
 
 /* ---------- actions ---------- */
@@ -1099,6 +1112,7 @@ document.addEventListener("input",e=>{const d=e.target.dataset;
 document.addEventListener("change",e=>{const el=e.target,d=el.dataset;
   if(el.id==="lang"){lang=S.lang=el.value;save();render();}
   if(el.id==="role"&&S.mode==="example"){const [r,id,pg]=el.value.split("|");S.sess={role:r,id:id||null,prog:pg||null};if(pg)setProg(pg);save();go(r==="igha"?"igha":r==="admin"?"admin":"due");}
+  if(d.opt){if(S.sess.role!=="admin")return;S.cfg[d.opt]=el.checked;applyOpts(S.cfg);save();if(live())pushCfg();render();return;}
   if(d.rep){REP[d.rep]=el.value;if(d.rep==="prog")REP.area="";const y=window.scrollY;render();window.scrollTo(0,y);return;}
   if(d.num&&UI.view==="visit")keep();
   if(d.cfg){const path=d.cfg.split("."),v=+el.value;if(isNaN(v))return;let o=S.cfg;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;save();pushCfg();const y=window.scrollY;render();window.scrollTo(0,y);}});
@@ -1125,6 +1139,7 @@ async function getLang(name){
 (async()=>{
   await load();
   if(!S.mode&&CFGS[SERVER.country]&&S.cfg.country!==SERVER.country)S.cfg=clone(CFGS[SERVER.country]);
+  fixCfg(S.cfg);(S.progs||[]).forEach(p=>fixCfg(p.cfg));
   if(DEMO&&S.mode!=="example"){S.mode="example";S.auth=null;wipe();S.sess={role:"igha",id:null,prog:null};demo();save();}
   if(S.mode==="live"&&S.auth&&S.auth.worker){S.sess={role:S.auth.worker.role==="admin"?"admin":S.auth.worker.role,id:S.auth.worker.id};LOCKED=!!S.auth.token;} // ask for the PIN each time the app opens
   UI.view=S.sess.role==="igha"?"igha":S.sess.role==="admin"?"admin":"due";

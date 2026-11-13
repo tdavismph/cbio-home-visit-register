@@ -1,6 +1,6 @@
 // Service worker: keeps the app available with no connection.
 // Change VERSION whenever index.html changes, so tablets fetch the new files.
-const VERSION = "cbio-register-0.4.0";
+const VERSION = "cbio-register-0.5.0";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {

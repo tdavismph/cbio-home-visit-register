@@ -2,7 +2,7 @@
 
 Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and Care Group Volunteers (CGVs) in CBIO+ programs. Kenya is the first country configuration.
 
-**Status: pilot build 0.4.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
+**Status: pilot build 0.5.** Workers sign in with a name and PIN, records sync through a Supabase database, and each worker sees only her own households (a Care Group Volunteer), her Care Group (a CHW) or everything (the administrator). Use test data only until the hosting location and the data protection requirements are settled and the security has been independently reviewed.
 
 ## What it does
 
@@ -14,6 +14,10 @@ Pilot build 0.1 of a home visit register for Community Health Workers (CHWs) and
 - Modelled lives saved and DALYs averted (Lives Saved Tool method, simplified), measured mortality, coverage indicators
 - Administrator Reports page: programme summary (lives saved and DALYs averted to date), coverage for a chosen period beside the previous period and the baseline, mortality, worker activity, and action lists; each table downloads as a CSV file and the page prints or saves as a PDF
 - English and Swahili; works offline once opened
+
+## Area settings (version 0.5)
+
+The administrator's Settings tab has three switches, saved with the programme's settings: malaria-endemic area (when off, the questions on treated nets and malaria testing are not asked and nets are left out of the lives-saved model), malaria vaccine in the schedule, and yellow fever vaccine in the schedule. Version 0.5 also asks pregnant women how many of 10 food groups they ate yesterday, and asks about disposal of the child's stool at the 9-month stage as well as at 6 and 18 months.
 
 ## Several partners and countries (version 0.4)
 
