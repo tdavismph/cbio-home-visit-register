@@ -629,7 +629,7 @@ function renderBar(){
       return '<optgroup label="'+esc(p.country)+'"><option value="admin||'+p.id+'"'+(on&&s.role==="admin"?" selected":"")+">Administrator · "+esc(p.country)+"</option>"+st.filter(x=>x.role==="sup").map(v=>'<option value="sup|'+v.id+"|"+p.id+'"'+(on&&s.id===v.id?" selected":"")+">Supervisor · "+esc(v.name)+"</option>").join("")+"</optgroup>"+
         st.filter(x=>x.role==="chw").map(w=>'<optgroup label="'+esc(p.country)+" · Care Group "+(w.cg||"")+'"><option value="chw|'+w.id+"|"+p.id+'"'+(on&&s.id===w.id?" selected":"")+">CHW · "+esc(w.name)+"</option>"+
           st.filter(x=>x.chwId===w.id).map(v=>'<option value="chv|'+v.id+"|"+p.id+'"'+(on&&s.id===v.id?" selected":"")+">CGV · "+esc(v.name)+"</option>").join("")+"</optgroup>").join("");}).join(""):"";
-  const tabs=s.role==="igha"?[["igha","Countries"],["rep","Reports"]]:s.role==="sup"?[["qivc","QIVC"],["rep","Reports"],["set","Settings"]]:s.role==="admin"?[["admin","Overview"],["rep","Reports"],["qivc","QIVC"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
+  const tabs=s.role==="igha"?[["igha","Countries"],["rep","Reports"]]:s.role==="sup"?[["due","Due list"],["qivc","QIVC"],["rep","Reports"],["set","Settings"]]:s.role==="admin"?[["admin","Overview"],["rep","Reports"],["qivc","QIVC"],["ind","Indicators"],["model","Model"],["reg","Register"],["refs","Referrals"],["staff","Workers"],["set","Settings"]]:
     [["due","Due list"],["reg","Register"],["refs","Referrals"]].concat(s.role==="chw"?[["qivc","QIVC"]]:[],[["dash","My results"],["set","Settings"]]);
   if(g){$("#who").textContent="";$("#nav").innerHTML="";return;}
   $("#nav").innerHTML=tabs.map(x=>'<button class="tab'+(UI.view===x[0]?" on":"")+'" data-go="'+x[0]+'">'+esc(t(x[1]))+"</button>").join("");
@@ -638,7 +638,7 @@ function render(){
   renderBar();const s=S.sess;
   if(gated()){const v=!S.mode?(["login","setup"].includes(UI.view)?UI.view:"welcome"):!live()?"login":"lock";
     $("#app").innerHTML={welcome:vWelcome,login:vLogin,setup:vSetup,lock:vLock}[v]();return;}
-  if(s.role==="sup"&&!["qivc","qform","qw","rep","set"].includes(UI.view))UI.view="qivc";
+  if(s.role==="sup"&&!["due","qivc","qform","qw","rep","set"].includes(UI.view))UI.view="due";
   if(s.role==="chv"&&["qivc","qform","qw"].includes(UI.view))UI.view="due";
   if(s.role==="igha"&&!["igha","rep"].includes(UI.view))UI.view="igha";
   if(s.role==="admin"&&["due","dash","igha"].includes(UI.view))UI.view="admin";
@@ -651,6 +651,7 @@ const nameOf=(kind,p)=>esc(p.name||"?")+' <span class="muted small">'+(kind==="w
 function ageTxt(c){const a=ageD(c);return a<60?a+" d":Math.floor(a/30.44)+" mo";}
 
 function vDue(){
+  if(S.sess.role==="sup")return '<h1>'+esc(t("Due list"))+"</h1>"+(qDue()||'<div class="card"><p>No CHWs are registered yet.</p></div>');
   const P=people(myHH()),role=S.sess.role,rows=[];
   const one=(kind,p)=>{let T=tasks(kind,p,role);
     if(T.length)rows.push({kind,p,T,rk:risk(kind,p)});};
@@ -659,13 +660,14 @@ function vDue(){
   rows.sort((a,b)=>a.T[0].pri-b.T[0].pri||b.rk.s-a.rk.s);
   const cnt=[1,2,3].map(p=>rows.filter(r=>r.T[0].pri===p).length);
   return '<div class="row"><h1 class="grow">'+esc(t("Due list"))+'</h1><span class="chip bad">'+cnt[0]+" "+esc(t("Urgent"))+'</span><span class="chip warn">'+cnt[1]+" "+esc(t("Needs attention"))+'</span><span class="chip good">'+cnt[2]+" "+esc(t("Due"))+"</span></div>"+
-  (rows.length?rows.map(r=>{const hh=by("hh",r.p.hhId),sl=r.T.find(x=>x.slot),va=r.T.find(x=>x.va);
+  (()=>{const card=r=>{const hh=by("hh",r.p.hhId),sl=r.T.find(x=>x.slot),va=r.T.find(x=>x.va);
     return '<div class="card task p'+r.T[0].pri+'"><div class="row"><div class="grow"><b>'+nameOf(r.kind,r.p)+'</b><div class="small muted">'+esc(hh?hh.village+" · "+hh.head:"")+"</div></div>"+
     (va?'<button class="pri" data-act="va" data-id="'+va.va+'">'+esc(t("Verbal autopsy"))+"</button>":
      sl?'<button class="pri" data-act="visit" data-kind="'+r.kind+'" data-id="'+r.p.id+'" data-slot="'+sl.slot+'">'+esc(t("Start visit"))+"</button>":
      '<button data-act="person" data-kind="'+r.kind+'" data-id="'+r.p.id+'">'+esc(t("Open"))+"</button>")+
-    '</div><div class="row">'+r.T.map(x=>'<span class="chip '+x.cls+'">'+esc(x.txt)+"</span>").join("")+r.rk.R.filter(x=>!r.T.some(y=>y.txt.startsWith(t(x)))).map(x=>'<span class="chip">'+esc(t(x))+"</span>").join("")+"</div></div>";}).join("")
-  :'<div class="card"><p>'+esc(t("Nothing is due. All households are up to date."))+"</p></div>");
+    '</div><div class="row">'+r.T.map(x=>'<span class="chip '+x.cls+'">'+esc(x.txt)+"</span>").join("")+r.rk.R.filter(x=>!r.T.some(y=>y.txt.startsWith(t(x)))).map(x=>'<span class="chip">'+esc(t(x))+"</span>").join("")+"</div></div>";},sv=role==="chw"?qDue():"",top=rows.filter(r=>r.T[0].pri<3),rest=rows.filter(r=>r.T[0].pri>=3);
+    // urgent visits and those needing attention first, then the supervision visits, then the routine visits that are due
+    return (rows.length?top.map(card).join(""):'<div class="card"><p>'+esc(t("Nothing is due. All households are up to date."))+"</p></div>")+sv+(sv&&rest.length?'<h2 style="margin-top:18px">'+"Other home visits due <span class='muted small'>"+rest.length+"</span></h2>":"")+rest.map(card).join("");})();
 }
 function vReg(){
   const hhs=myHH(),q=(UI.f&&UI.f.q||"").toLowerCase();
@@ -1045,6 +1047,26 @@ function qStat(w,R){ // judged on the checklist (home visit or group session) wi
   return {L,n,last,prev,first,low,ch,home:lk("home"),group:lk("group"),status:!n?"Not yet observed":low?(prev&&ch>=5?"Below target, improving":"Below target and not improving"):(prev&&ch<=-10?"At target, but falling":"At target")};}
 function qMean(role){const x=S.staff.filter(w=>w.role===role).map(w=>{const L=qOf(w.id);return L[L.length-1];}).filter(Boolean);return x.length?Math.round(x.reduce((m,q)=>m+q.score,0)/x.length)+"% ("+x.length+" observed)":"–";}
 function qCan(){const s=S.sess;return s.role==="chw"?S.staff.filter(x=>x.chwId===s.id):["admin","sup"].includes(s.role)?S.staff.filter(x=>x.role==="chw"||x.role==="chv"):[];}
+// Supervision schedule: one home-visit and one group-session QIVC for each volunteer every 6 months (by her CHW), and for each CHW every 3 months (by the Supervisor).
+const qCycle=role=>role==="chv"?183:91;
+const qHash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+function qPlan(){const s=S.sess,T=s.role==="chw"?S.staff.filter(x=>x.chwId===s.id):s.role==="sup"?S.staff.filter(x=>x.role==="chw"):[];if(!T.length)return null;
+  const cyc=qCycle(T[0].role),P=[];
+  for(const w of T)for(const kind of ["home","group"]){const L=S.q.filter(q=>q.wid===w.id&&q.kind===kind&&q.score!==null&&q.date<=TODAY).map(q=>q.date).sort(),last=L.length?L[L.length-1]:null;
+    P.push({w,kind,last,due:!last||diff(TODAY,last)>cyc,next:last?addD(last,cyc):null,h:qHash((s.id||"")+w.id+kind)});}
+  // never observed first, in an arbitrary order that differs between observers but does not change from day to day; then the longest since the last QIVC of that kind
+  P.sort((a,b)=>(a.last||"")<(b.last||"")?-1:(a.last||"")>(b.last||"")?1:a.h-b.h);
+  const ids=new Set(T.map(w=>w.id)),week=S.q.filter(q=>ids.has(q.wid)&&q.score!==null&&diff(TODAY,q.date)>=0&&diff(TODAY,q.date)<=6).length;
+  return {T,P,cyc,week,per:Math.max(1,Math.ceil(P.length*7/cyc)),due:P.filter(x=>x.due).length};}
+function qDue(){const p=qPlan();if(!p)return "";const chv=p.T[0].role==="chv",mo=chv?6:3,D=p.P.filter(x=>x.due),left=Math.max(0,p.per-p.week),seen=new Set(),pick=[];
+  for(const x of D){if(pick.length>=left)break;if(seen.has(x.w.id))continue;seen.add(x.w.id);pick.push(x);}
+  const what=x=>x.kind==="home"?"Observe a home visit":chv?"Observe a group session":"Observe a Care Group meeting";
+  const card=(x,pri)=>'<div class="card task '+(pri?"p2":"p3")+'"><div class="row"><div class="grow"><b>'+esc(x.w.name)+'</b> <span class="muted small">'+(chv?"CGV":"CHW")+'</span><div class="small muted">'+esc((x.w.cg?"Care Group "+x.w.cg:"")+(x.w.village?" · "+x.w.village:""))+'</div></div><button'+(pri?' class="pri"':"")+' data-act="qnew" data-id="'+x.w.id+'" data-kind="'+x.kind+'">Observe</button></div><div class="row"><span class="chip '+(pri?"warn":"info")+'">'+what(x)+'</span><span class="chip">'+
+    (x.last?"Last QIVC of this kind: "+x.last:"Not yet observed")+"</span>"+(x.due?"":'<span class="chip good">Next due '+x.next+"</span>")+"</div></div>";
+  let h='<div class="row" style="margin-top:18px"><h2 class="grow">Priority supervision visits</h2><span class="chip '+(p.due?"warn":"good")+'">'+p.due+' due</span><span class="chip '+(p.week>=p.per?"good":"")+'">'+p.week+" of "+p.per+' this week</span></div><p class="small muted">One home-visit QIVC and one '+(chv?"group-session":"Care Group meeting")+" QIVC for each "+(chv?"volunteer":"CHW")+" every "+mo+" months: "+p.P.length+" in "+mo+" months, about "+p.per+" a week. A QIVC is due when none of that kind was done in the last "+mo+" months.</p>";
+  if(pick.length)h+=pick.map(x=>card(x,1)).join("");
+  else{const nx=D[0]||p.P[0];h+='<div class="card"><p>'+(D.length?"This week's supervision is done. "+D.length+" still due in this "+mo+"-month period. Next:":"No supervision visit is due. Every "+(chv?"volunteer":"CHW")+" has had both QIVCs in the last "+mo+" months. Next:")+"</p></div>"+card(nx,0);}
+  return h;}
 const qWho=w=>(w.role==="chv"?"CGV":"CHW")+" · "+w.name;
 function vQivc(){const s=S.sess,chws=S.staff.filter(x=>x.role==="chw"&&(s.role!=="chw"||x.id===s.id)),can=new Set(qCan().map(w=>w.id)),all=[];chws.forEach(c=>{all.push(c);S.staff.filter(v=>v.chwId===c.id).forEach(v=>all.push(v));});
   const st=all.map(w=>[w,qStat(w)]),lt=y=>y[1].L[y[1].L.length-1],mean=r=>{const x=st.filter(y=>y[0].role===r&&y[1].n);return x.length?Math.round(x.reduce((m,y)=>m+lt(y).score,0)/x.length)+"%":"–";};
@@ -1191,7 +1213,7 @@ function vSet(){
     sw("mv","<b>Malaria vaccine</b> is in the immunization schedule here.",!!S.cfg.mv)+sw("yf","<b>Yellow fever vaccine</b> is in the immunization schedule here.",!!S.cfg.yf)+(adm?"":'<p class="small muted">Only the administrator can change these.</p>')+"</div>";
   h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
   h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
-  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.6.1. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.7.0. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
   return h;}
 
 /* ---------- actions ---------- */
