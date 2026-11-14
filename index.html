@@ -214,7 +214,7 @@ const SW={"Due list":"Orodha ya kazi","Register":"Rejesta","Referrals":"Rufaa","
 "Mother danger signs (tick any present)":"Dalili za hatari kwa mama (chagua zilizopo)","Heavy bleeding":"Kutoka damu nyingi","Fever or chills":"Homa au baridi kali","Foul-smelling discharge":"Uchafu wenye harufu mbaya",
 "Severe headache or convulsions":"Kichwa kuuma sana au degedege","Painful, hot or swollen breast":"Titi lenye maumivu, joto au uvimbe","Feeling very sad or unable to care for baby":"Huzuni kubwa au kushindwa kumtunza mtoto",
 "Only breast milk in the last 24 hours":"Maziwa ya mama pekee saa 24 zilizopita","What is on the cord?":"Kitovu kimepakwa nini?","Chlorhexidine":"Chlorhexidine","Nothing (kept dry)":"Hakuna (kikavu)","Other substance":"Kitu kingine",
-"Baby kept warm, skin-to-skin":"Mtoto anawekwa joto, ngozi kwa ngozi","Kangaroo care most of the day and night":"Malezi ya kangaroo muda mwingi mchana na usiku",
+"Baby kept warm, and skin-to-skin if s/he was preterm or underweight":"Mtoto anawekwa joto, na ngozi kwa ngozi ikiwa alizaliwa kabla ya wakati au ana uzito mdogo","Kangaroo care most of the day and night":"Malezi ya kangaroo muda mwingi mchana na usiku",
 "Mother and baby checked by a health worker within 48 hours of birth":"Mama na mtoto walikaguliwa na mhudumu wa afya ndani ya saa 48 baada ya kuzaliwa",
 "Baby slept under a treated net last night":"Mtoto alilala ndani ya chandarua chenye dawa jana usiku","Weight (grams)":"Uzito (gramu)","Temperature (°C)":"Joto la mwili (°C)","Breaths per minute":"Pumzi kwa dakika",
 "Count breaths":"Hesabu pumzi","Tap once for each breath":"Gusa mara moja kwa kila pumzi","seconds left":"sekunde zimebaki",
@@ -352,7 +352,7 @@ const QS=[
  ["m_danger","multi","Mother danger signs (tick any present)",["N1","N3","N7","W6"],"chv",MD],
  ["n_ebf","yn","Only breast milk in the last 24 hours",["N1","N3","N7","W6","W14"],"chv"],
  ["n_cord","pick","What is on the cord?",NB,"chv",["Chlorhexidine","Nothing (kept dry)","Other substance"]],
- ["n_warm","yn","Baby kept warm, skin-to-skin",["N1","N3"],"chv"],
+ ["n_warm","yn","Baby kept warm, and skin-to-skin if s/he was preterm or underweight",["N1","N3"],"chv"],
  ["n_kmc","yn","Kangaroo care most of the day and night",NB,"chv",null,(a,s)=>s&&s.small],
  ["n_pnc","yn","Mother and baby checked by a health worker within 48 hours of birth",["N3"],"chv"],
  ["n_wt","num","Weight (grams)",["N1","FC"],"chw"],
@@ -1048,24 +1048,30 @@ function qStat(w,R){ // judged on the checklist (home visit or group session) wi
 function qMean(role){const x=S.staff.filter(w=>w.role===role).map(w=>{const L=qOf(w.id);return L[L.length-1];}).filter(Boolean);return x.length?Math.round(x.reduce((m,q)=>m+q.score,0)/x.length)+"% ("+x.length+" observed)":"–";}
 function qCan(){const s=S.sess;return s.role==="chw"?S.staff.filter(x=>x.chwId===s.id):["admin","sup"].includes(s.role)?S.staff.filter(x=>x.role==="chw"||x.role==="chv"):[];}
 // Supervision schedule: one home-visit and one group-session QIVC for each volunteer every 6 months (by her CHW), and for each CHW every 3 months (by the Supervisor).
-const qCycle=role=>role==="chv"?183:91;
+// A worker whose latest score on a checklist is below target (70% volunteers, 80% CHWs) is observed again on that checklist after QFU days, ahead of the routine schedule.
+// Limits: a CHW is prompted for at most 2 supervision visits in 7 days; a Supervisor for at most 3 in 7 days and 12 in 30 days.
+const qCycle=role=>role==="chv"?183:91,QFU=28;
 const qHash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
 function qPlan(){const s=S.sess,T=s.role==="chw"?S.staff.filter(x=>x.chwId===s.id):s.role==="sup"?S.staff.filter(x=>x.role==="chw"):[];if(!T.length)return null;
-  const cyc=qCycle(T[0].role),P=[];
-  for(const w of T)for(const kind of ["home","group"]){const L=S.q.filter(q=>q.wid===w.id&&q.kind===kind&&q.score!==null&&q.date<=TODAY).map(q=>q.date).sort(),last=L.length?L[L.length-1]:null;
-    P.push({w,kind,last,due:!last||diff(TODAY,last)>cyc,next:last?addD(last,cyc):null,h:qHash((s.id||"")+w.id+kind)});}
-  // never observed first, in an arbitrary order that differs between observers but does not change from day to day; then the longest since the last QIVC of that kind
+  const role=T[0].role,cyc=qCycle(role),tg=qTarget(role),P=[];
+  for(const w of T)for(const kind of ["home","group"]){const L=S.q.filter(q=>q.wid===w.id&&q.kind===kind&&q.score!==null&&q.date<=TODAY).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0),lq=L.length?L[L.length-1]:null,last=lq?lq.date:null,low=!!lq&&lq.score<tg;
+    P.push({w,kind,last,score:lq?lq.score:null,low,fu:low&&diff(TODAY,last)>=QFU,due:!last||diff(TODAY,last)>cyc,next:last?addD(last,low?QFU:cyc):null,h:qHash((s.id||"")+w.id+kind)});}
+  // routine order: never observed first, in an arbitrary order that differs between observers but does not change from day to day; then the longest since the last QIVC of that kind
   P.sort((a,b)=>(a.last||"")<(b.last||"")?-1:(a.last||"")>(b.last||"")?1:a.h-b.h);
-  const ids=new Set(T.map(w=>w.id)),week=S.q.filter(q=>ids.has(q.wid)&&q.score!==null&&diff(TODAY,q.date)>=0&&diff(TODAY,q.date)<=6).length;
-  return {T,P,cyc,week,per:Math.max(1,Math.ceil(P.length*7/cyc)),due:P.filter(x=>x.due).length};}
-function qDue(){const p=qPlan();if(!p)return "";const chv=p.T[0].role==="chv",mo=chv?6:3,D=p.P.filter(x=>x.due),left=Math.max(0,p.per-p.week),seen=new Set(),pick=[];
-  for(const x of D){if(pick.length>=left)break;if(seen.has(x.w.id))continue;seen.add(x.w.id);pick.push(x);}
-  const what=x=>x.kind==="home"?"Observe a home visit":chv?"Observe a group session":"Observe a Care Group meeting";
-  const card=(x,pri)=>'<div class="card task '+(pri?"p2":"p3")+'"><div class="row"><div class="grow"><b>'+esc(x.w.name)+'</b> <span class="muted small">'+(chv?"CGV":"CHW")+'</span><div class="small muted">'+esc((x.w.cg?"Care Group "+x.w.cg:"")+(x.w.village?" · "+x.w.village:""))+'</div></div><button'+(pri?' class="pri"':"")+' data-act="qnew" data-id="'+x.w.id+'" data-kind="'+x.kind+'">Observe</button></div><div class="row"><span class="chip '+(pri?"warn":"info")+'">'+what(x)+'</span><span class="chip">'+
-    (x.last?"Last QIVC of this kind: "+x.last:"Not yet observed")+"</span>"+(x.due?"":'<span class="chip good">Next due '+x.next+"</span>")+"</div></div>";
-  let h='<div class="row" style="margin-top:18px"><h2 class="grow">Priority supervision visits</h2><span class="chip '+(p.due?"warn":"good")+'">'+p.due+' due</span><span class="chip '+(p.week>=p.per?"good":"")+'">'+p.week+" of "+p.per+' this week</span></div><p class="small muted">One home-visit QIVC and one '+(chv?"group-session":"Care Group meeting")+" QIVC for each "+(chv?"volunteer":"CHW")+" every "+mo+" months: "+p.P.length+" in "+mo+" months, about "+p.per+" a week. A QIVC is due when none of that kind was done in the last "+mo+" months.</p>";
-  if(pick.length)h+=pick.map(x=>card(x,1)).join("");
-  else{const nx=D[0]||p.P[0];h+='<div class="card"><p>'+(D.length?"This week's supervision is done. "+D.length+" still due in this "+mo+"-month period. Next:":"No supervision visit is due. Every "+(chv?"volunteer":"CHW")+" has had both QIVCs in the last "+mo+" months. Next:")+"</p></div>"+card(nx,0);}
+  const ids=new Set(T.map(w=>w.id)),cnt=d=>S.q.filter(q=>ids.has(q.wid)&&q.score!==null&&diff(TODAY,q.date)>=0&&diff(TODAY,q.date)<d).length,week=cnt(7),month=cnt(30);
+  const F=P.filter(x=>x.fu).sort((a,b)=>a.score-b.score||(a.last<b.last?-1:1)),D=P.filter(x=>x.due&&!x.fu),per=Math.max(1,Math.ceil(P.length*7/cyc)),cap=role==="chv"?2:3,capM=role==="chv"?null:12;
+  const lim=F.length?cap:per,left=Math.max(0,Math.min(lim-week,capM===null?99:capM-month)),seen=new Set(),pick=[];
+  const take=(L,n)=>{for(const x of L){if(n<=0||pick.length>=left)break;if(seen.has(x.w.id))continue;seen.add(x.w.id);pick.push(x);n--;}};
+  take(F,D.length?lim-1:lim);take(D,lim);take(F,lim); // below-target workers first, but one visit a week is kept for the routine schedule
+  return {T,P,F,D,pick,cyc,tg,week,month,per,cap,capM,lim,role};}
+function qDue(){const p=qPlan();if(!p)return "";const chv=p.role==="chv",mo=chv?6:3,one=chv?"volunteer":"CHW";
+  const what=x=>(x.kind==="home"?"Observe a home visit":chv?"Observe a group session":"Observe a Care Group meeting")+(x.low?" again":"");
+  const card=(x,pri)=>'<div class="card task '+(pri?(x.fu?"p1":"p2"):"p3")+'"><div class="row"><div class="grow"><b>'+esc(x.w.name)+'</b> <span class="muted small">'+(chv?"CGV":"CHW")+'</span><div class="small muted">'+esc((x.w.cg?"Care Group "+x.w.cg:"")+(x.w.village?" · "+x.w.village:""))+'</div></div><button'+(pri?' class="pri"':"")+' data-act="qnew" data-id="'+x.w.id+'" data-kind="'+x.kind+'">Observe</button></div><div class="row"><span class="chip '+(pri?(x.fu?"bad":"warn"):"info")+'">'+what(x)+"</span>"+
+    (x.low?'<span class="chip bad">Below target: '+x.score+"% on "+x.last+"</span>":'<span class="chip">'+(x.last?"Last QIVC of this kind: "+x.last:"Not yet observed")+"</span>")+(x.fu||x.due?"":'<span class="chip good">Next due '+x.next+"</span>")+"</div></div>";
+  let h='<div class="row" style="margin-top:18px"><h2 class="grow">Priority supervision visits</h2>'+(p.F.length?'<span class="chip bad">'+p.F.length+" below target</span>":"")+'<span class="chip '+(p.D.length?"warn":"good")+'">'+p.D.length+' due</span><span class="chip '+(p.week>=p.lim?"good":"")+'">'+p.week+" of "+p.lim+' this week</span></div><p class="small muted">One home-visit QIVC and one '+(chv?"group-session":"Care Group meeting")+" QIVC for each "+one+" every "+mo+" months: "+p.P.length+" in "+mo+" months, about "+p.per+" a week. A "+one+" who scored below "+p.tg+"% is observed again on the same checklist after "+(QFU/7)+" weeks, before the others. No more than "+p.cap+" supervision visits a week"+(p.capM?", or "+p.capM+" a month":"")+".</p>";
+  if(p.pick.length)h+=p.pick.map(x=>card(x,1)).join("");
+  else{const all=p.F.concat(p.D),nx=all[0]||p.P.filter(x=>x.next).sort((a,b)=>a.next<b.next?-1:1)[0]||p.P[0];
+    h+='<div class="card"><p>'+(all.length?(p.capM&&p.month>=p.capM?"This month's":"This week's")+" supervision is done. "+all.length+" still to do. Next:":"No supervision visit is due. Next:")+"</p></div>"+card(nx,0);}
   return h;}
 const qWho=w=>(w.role==="chv"?"CGV":"CHW")+" · "+w.name;
 function vQivc(){const s=S.sess,chws=S.staff.filter(x=>x.role==="chw"&&(s.role!=="chw"||x.id===s.id)),can=new Set(qCan().map(w=>w.id)),all=[];chws.forEach(c=>{all.push(c);S.staff.filter(v=>v.chwId===c.id).forEach(v=>all.push(v));});
@@ -1213,7 +1219,7 @@ function vSet(){
     sw("mv","<b>Malaria vaccine</b> is in the immunization schedule here.",!!S.cfg.mv)+sw("yf","<b>Yellow fever vaccine</b> is in the immunization schedule here.",!!S.cfg.yf)+(adm?"":'<p class="small muted">Only the administrator can change these.</p>')+"</div>";
   h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
   h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
-  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.7.0. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.7.1. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
   return h;}
 
 /* ---------- actions ---------- */

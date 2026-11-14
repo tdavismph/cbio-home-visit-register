@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "shots"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "CBIO_Home_Visit_Register_User_Manual.pdf"
 HERE = os.path.dirname(os.path.abspath(__file__)); JPG = os.path.join(HERE, "shots"); os.makedirs(JPG, exist_ok=True)
-VER, DATE = "0.7.0", "14 November 2026"
+VER, DATE = "0.7.1", "14 November 2026"
 URL = "https://tdavismph.github.io/cbio-home-visit-register/"
 INK, MUTED, LINE, BAND, ACC = colors.HexColor("#16302b"), colors.HexColor("#5b6b68"), colors.HexColor("#c9d3d1"), colors.HexColor("#e6eeec"), colors.HexColor("#1f66a8")
 st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Helvetica"), textColor=k.pop("color", INK), **k)
@@ -369,16 +369,19 @@ A(bullets("A <b>CHW</b> observes the volunteers of her own Care Group.", "A <b>S
           "The <b>Administrator</b> can observe any worker. No worker can fill out or change a QIVC about herself."))
 A(Paragraph("Whom to observe next: the supervision schedule", H2))
 A(Paragraph("The <b>Due list</b> tells each observer whom to observe next. The schedule is one home-visit QIVC and one group-session QIVC for every worker in each period:", P))
-A(table(["Observer", "Workers observed", "Period", "QIVCs in the period", "Pace"],
-        [["CHW", "The volunteers of her Care Group (12 in the example)", "6 months", "24", "About 1 a week"],
-         ["Supervisor", "The CHWs of the programme (8 in the Kenya example)", "3 months", "16", "1 to 2 a week"]], [W * .14, W * .36, W * .14, W * .18, W * .18]))
+A(table(["Observer", "Workers observed", "Period", "QIVCs in the period", "Routine pace", "Most the list asks for"],
+        [["CHW", "The volunteers of her Care Group (12 in the example)", "6 months", "24", "About 1 a week", "2 a week"],
+         ["Supervisor", "The CHWs of the programme (8 in the Kenya example)", "3 months", "16", "1 to 2 a week", "3 a week and 12 a month"]], [W * .12, W * .28, W * .11, W * .14, W * .15, W * .20]))
 A(bullets("A QIVC is <b>due</b> when the worker has had none of that kind (home visit or group session) within the period. A QIVC filled out by any observer counts.",
           "Workers never observed come first. Their order is arbitrary, differs from one observer to another, and does not change from day to day. After that, the list offers the worker whose last QIVC of that kind is oldest.",
-          "The list shows only as many supervision visits as the weekly pace requires. The two chips at the right give the number still due and the number done in the last 7 days.",
+          "<b>Workers below target come before the others.</b> A volunteer whose latest score on a checklist is below 70%, or a CHW whose latest score is below 80%, is offered again for the same checklist once 4 weeks have passed since that QIVC, lowest score first. Her card is marked in red and shows the score. She stays on this 4-week cycle until a QIVC on that checklist reaches the target.",
+          "When a worker below target is waiting, the list asks for more visits that week (up to the limit in the table), and one visit a week is still kept for the routine schedule so that workers not yet observed are not pushed back indefinitely.",
+          "The list shows only as many supervision visits as the pace requires. The chips at the right give the number of follow-up observations waiting for workers below target, the number of routine QIVCs still due, and the number done in the last 7 days.",
           "When the week's supervision is done, or nothing is due, the list still names the next worker and the date her QIVC falls due.",
           "On a CHW's Due list, the supervision visits appear below the home visits marked Urgent or Needs attention and above the other home visits that are due. The Supervisor's Due list holds supervision visits only.",
           "<b>Observe</b> opens the checklist with the worker and the kind of observation already chosen."))
-A(fig("Priority supervision visits on a CHW's Due list (left) and on the Supervisor's (right).", ("58_due_sup_chw", (560, 1010)), ("59_due_sup", (330, 940)), maxh=70 * mm))
+A(fig("Priority supervision visits on a CHW's Due list. Two volunteers below target are offered first.", ("58_due_sup_chw", (405, 775)), maxh=70 * mm))
+A(fig("Priority supervision visits on the Supervisor's Due list.", ("59_due_sup", (285, 640)), maxh=70 * mm))
 A(Paragraph("Filling out a QIVC", H2))
 A(steps("Tap <b>Observe</b> on the Due list, or open the <b>QIVC</b> tab and tap <b>Observe</b> beside the worker, or <b>New QIVC</b>.", "Choose what was observed (home visit or group session) and the date.",
         "Watch the whole visit or session without interrupting. Mark each step <b>Yes</b>, <b>No</b>, or <b>N/A</b> where the step did not apply (for example, no danger sign was found).",
