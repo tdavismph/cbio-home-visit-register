@@ -172,7 +172,7 @@ begin
   if v_role = 'admin' then   -- a programme administrator, created by the country administrator
     if me.prog is not null or v_prog is null then return jsonb_build_object('ok', false, 'error', 'country_admin_only'); end if;
     v_chw := null; v_cg := null;
-  elsif v_role = 'sup' then   -- a supervisor: observes workers and fills out QIVCs; sees no household records
+  elsif v_role = 'sup' then   -- a supervisor: observes workers, fills out QIVCs and reads the programme's reports; cannot write household records
     v_chw := null; v_cg := null;
   elsif v_role = 'chv' then
     select cg, prog into v_cg, v_prog from public.cbio_workers where id = v_chw and role = 'chw' and (me.prog is null or prog is not distinct from me.prog);
@@ -240,7 +240,7 @@ begin
     from (select * from public.cbio_records t
            where t.seq > p_since
              and ((me.role = 'admin' and (me.prog is null or t.prog is not distinct from me.prog)) or (me.role = 'chw' and t.chw = me.id) or (me.role = 'chv' and t.cgv = me.id)
-                  or (me.role = 'sup' and t.ty = 'q' and (me.prog is null or t.prog is not distinct from me.prog)))
+                  or (me.role = 'sup' and (me.prog is null or t.prog is not distinct from me.prog)))   -- a supervisor reads the programme's records for the Reports, and writes only QIVCs
            order by t.seq limit 1000) q;
   return out_;
 end $$;

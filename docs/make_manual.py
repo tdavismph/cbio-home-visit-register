@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "shots"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "CBIO_Home_Visit_Register_User_Manual.pdf"
 HERE = os.path.dirname(os.path.abspath(__file__)); JPG = os.path.join(HERE, "shots"); os.makedirs(JPG, exist_ok=True)
-VER, DATE = "0.6.0", "13 November 2026"
+VER, DATE = "0.6.1", "14 November 2026"
 URL = "https://tdavismph.github.io/cbio-home-visit-register/"
 INK, MUTED, LINE, BAND, ACC = colors.HexColor("#16302b"), colors.HexColor("#5b6b68"), colors.HexColor("#c9d3d1"), colors.HexColor("#e6eeec"), colors.HexColor("#1f66a8")
 st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Helvetica"), textColor=k.pop("color", INK), **k)
@@ -87,7 +87,7 @@ A(table(["User", "What she or he does in the app", "Sees"], [
      "and checks for danger signs. She carries a MUAC tape and the tablet only.", "Her own 12 households"],
     ["Community Health Worker (CHW)", "One paid CHW supports one Care Group of 12 volunteers (144 households). The CHW makes 10 scheduled visits to each household: 2 in pregnancy, then at day 1-2, day 3, day 7, 6 weeks, 14 weeks, 6, 9 and 18 months. "
      "Each takes about 15 minutes and includes measurements. The CHW also manages referrals and carries out verbal autopsies (structured interviews with the family after a death).", "All 144 households of the Care Group"],
-    ["Supervisor", "Observes CHWs and volunteers at work and fills out a QIVC (Quality Improvement and Verification Checklist) for each observation (section 9).", "Workers and their QIVC scores; no household records"],
+    ["Supervisor", "Observes CHWs and volunteers at work and fills out a QIVC (Quality Improvement and Verification Checklist) for each observation (section 9).", "Workers, their QIVC scores, and the Reports for the programme (read only)"],
     ["Administrator", "Creates the worker accounts, reads the dashboards and reports, and adjusts the settings of the lives-saved model.", "Everything"]], [W * .22, W * .58, W * .20]))
 A(Paragraph("Main functions", H2))
 A(bullets("<b>Census form.</b> Adds a household, its pregnant women and children under 24 months, a few risk questions, and a short set of questions on births and deaths in the last 5 years (used to estimate baseline mortality).",
@@ -365,7 +365,7 @@ A(table(["Checklist", "Used when", "Steps"], [
      "A few steps apply only to CHWs (other measurements, referrals) or only to volunteers (asking for CHW support)."],
     ["Group session", "The observer watches a volunteer lead a practice promotion session, or a CHW lead a Care Group meeting.", "42 steps: set-up, overall communication, beginning, middle and end of the session."]], [W * .16, W * .34, W * .5]))
 A(Paragraph("Who can observe whom", H2))
-A(bullets("A <b>CHW</b> observes the volunteers of her own Care Group.", "A <b>Supervisor</b> observes CHWs and volunteers. The Supervisor has a separate sign-in, sees the workers and their scores, and does not see household records.",
+A(bullets("A <b>CHW</b> observes the volunteers of her own Care Group.", "A <b>Supervisor</b> observes CHWs and volunteers. The Supervisor has a separate sign-in with two working tabs: QIVC, and Reports for the programme (section 6), which the Supervisor can read but not change.",
           "The <b>Administrator</b> can observe any worker. No worker can fill out or change a QIVC about herself."))
 A(Paragraph("Filling out a QIVC", H2))
 A(steps("Open the <b>QIVC</b> tab and tap <b>Observe</b> beside the worker, or <b>New QIVC</b>.", "Choose what was observed (home visit or group session) and the date.",
