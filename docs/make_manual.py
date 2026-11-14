@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "shots"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "CBIO_Home_Visit_Register_User_Manual.pdf"
 HERE = os.path.dirname(os.path.abspath(__file__)); JPG = os.path.join(HERE, "shots"); os.makedirs(JPG, exist_ok=True)
-VER, DATE = "0.7.3", "14 November 2026"
+VER, DATE = "0.7.4", "14 November 2026"
 URL = "https://tdavismph.github.io/cbio-home-visit-register/"
 INK, MUTED, LINE, BAND, ACC = colors.HexColor("#16302b"), colors.HexColor("#5b6b68"), colors.HexColor("#c9d3d1"), colors.HexColor("#e6eeec"), colors.HexColor("#1f66a8")
 st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Helvetica"), textColor=k.pop("color", INK), **k)
@@ -291,7 +291,7 @@ A(Paragraph("<b>Steps most often not done.</b> Every step of the two checklists,
             "The steps at the top are the subjects for refresher training and for the next supervision visits.", P))
 A(fig("Steps most often not done (left) and workers who need the most support (right).", ("56_rep_q2", (130, 900)), ("57_rep_q3", (130, 900)), maxh=120 * mm))
 A(Paragraph("<b>Workers who need the most support.</b> Each worker is judged on whichever checklist has her lower latest score. She is listed when that score is below target (70% for volunteers, 80% for CHWs) or has fallen by 10 points or more. "
-            "The table gives her first, previous and latest scores on that checklist and the change. Those below target and not improving come first, lowest score first; not improving means the latest score is less than 5 points above the one before, or there has been only one observation.", P))
+            "The table gives her first, previous and latest scores on that checklist and the change. Where she has had only one QIVC of that kind, Previous and Change show NA, because one score cannot show a change, and her status reads <b>observed once</b>. The order is: very low scores first (30 points or more below target, that is under 40% for volunteers and under 50% for CHWs); then below target and not improving (the latest score is less than 5 points above the one before); then below target and observed once; then below target and improving; then at target but falling. Within each group the lowest score comes first.", P))
 A(Paragraph("<b>What it cannot tell you.</b> A QIVC records one observed visit or session, and a worker may perform differently when watched. Scores from different observers are comparable only if the observers mark the steps the same way, "
             "so observers should practise together on the same visit before scores are compared across areas. One low score is a reason to observe again and coach.", P))
 A(Paragraph("Report 6. Action lists", H2))
