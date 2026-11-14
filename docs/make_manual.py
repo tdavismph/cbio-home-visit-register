@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "shots"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "CBIO_Home_Visit_Register_User_Manual.pdf"
 HERE = os.path.dirname(os.path.abspath(__file__)); JPG = os.path.join(HERE, "shots"); os.makedirs(JPG, exist_ok=True)
-VER, DATE = "0.7.1", "14 November 2026"
+VER, DATE = "0.7.3", "14 November 2026"
 URL = "https://tdavismph.github.io/cbio-home-visit-register/"
 INK, MUTED, LINE, BAND, ACC = colors.HexColor("#16302b"), colors.HexColor("#5b6b68"), colors.HexColor("#c9d3d1"), colors.HexColor("#e6eeec"), colors.HexColor("#1f66a8")
 st = lambda n, **k: ParagraphStyle(n, fontName=k.pop("font", "Helvetica"), textColor=k.pop("color", INK), **k)
@@ -378,7 +378,7 @@ A(bullets("A QIVC is <b>due</b> when the worker has had none of that kind (home 
           "When a worker below target is waiting, the list asks for more visits that week (up to the limit in the table), and one visit a week is still kept for the routine schedule so that workers not yet observed are not pushed back indefinitely.",
           "The list shows only as many supervision visits as the pace requires. The chips at the right give the number of follow-up observations waiting for workers below target, the number of routine QIVCs still due, and the number done in the last 7 days.",
           "When the week's supervision is done, or nothing is due, the list still names the next worker and the date her QIVC falls due.",
-          "On a CHW's Due list, the supervision visits appear below the home visits marked Urgent or Needs attention and above the other home visits that are due. The Supervisor's Due list holds supervision visits only.",
+          "On a CHW's Due list, the supervision visits appear below the home visits marked Urgent or Needs attention and above the other home visits that are due. The link <b>Skip to supervision list</b> under the Due list heading scrolls straight to them. The Supervisor's Due list holds supervision visits only.",
           "<b>Observe</b> opens the checklist with the worker and the kind of observation already chosen."))
 A(fig("Priority supervision visits on a CHW's Due list. Two volunteers below target are offered first.", ("58_due_sup_chw", (405, 775)), maxh=70 * mm))
 A(fig("Priority supervision visits on the Supervisor's Due list.", ("59_due_sup", (285, 640)), maxh=70 * mm))
