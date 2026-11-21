@@ -166,7 +166,7 @@ const GH_CFG=(()=>{const c=clone(DEFAULT_CFG);c.country="Ghana";c.langs=["en"];
   c.iv.forEach(r=>{if(B[r[0]]){r[6]=B[r[0]][0];r[7]=B[r[0]][1];r[8]=B[r[0]][2];}});return c;})();
 const CFGS={Kenya:DEFAULT_CFG,Ghana:GH_CFG};
 // Settings saved before the area switches existed gain them here.
-function fixCfg(c){if(!c)return c;const d=CFGS[c.country]||DEFAULT_CFG;for(const k of ["malaria","yf","mv"])if(c[k]===undefined)c[k]=d[k];if(!c.optVax)c.optVax=clone(d.optVax);return c;}
+function fixCfg(c){if(!c)return c;const d=CFGS[c.country]||DEFAULT_CFG;if(!c.dhis2)c.dhis2={scheme:"code",de:{},ou:{}};for(const k of ["malaria","yf","mv"])if(c[k]===undefined)c[k]=d[k];if(!c.optVax)c.optVax=clone(d.optVax);return c;}
 // Rebuilds the immunization schedule from the two vaccine switches.
 function applyOpts(c){const o=c.optVax,ids=new Set(o.yf.concat(o.mv).map(x=>x[0]));let v=c.vax.filter(x=>!ids.has(x[0]));if(c.yf)v=v.concat(o.yf);if(c.mv)v=v.concat(o.mv);
   c.vax=v.map((x,i)=>[x,i]).sort((a,b)=>a[0][1]-b[0][1]||a[1]-b[1]).map(x=>x[0]);return c;}
@@ -861,6 +861,50 @@ function covP(P,R){ // coverage measured inside a period
     ["Nutrition","Vitamin A in the last 6 months (6-23 months)",ans("c_vita"),bl("vita")],["Nutrition","5 or more of 8 food groups yesterday",ans("c_mdd",x=>x>=5)],
     ["Family planning","Mothers using a modern method",ans("c_fp")],["System","Referrals that reached the facility",[RF.filter(r=>r.st==="arrived"||r.st==="done").length,RF.length]]
   ].map(x=>({g:x[0],label:x[1],n:x[2][0],d:x[2][1],base:x[3]}));}
+/* ---------- DHIS2 monthly export ----------
+   One value per indicator per community unit per month, in the DHIS2 data value set format.
+   Each Care Group is reported as one community unit (organisation unit). The administrator enters, in Settings,
+   the DHIS2 code (or UID) of each data element and of each Care Group's community unit; the defaults below are placeholders. */
+const DHIS2_IND=[
+ ["hh_reg","CBIO_HH_REGISTERED","Households","Households registered (census)",x=>x.CEN.length],
+ ["hh_vis","CBIO_HH_VISITED","Households","Households visited",x=>new Set(x.V.map(v=>v.hhId)).size],
+ ["v_chw","CBIO_VISITS_CHW","Households","Home visits by CHWs",x=>x.V.filter(v=>v.role==="chw").length],
+ ["v_cgv","CBIO_VISITS_CGV","Households","Home visits by Care Group Volunteers",x=>x.V.filter(v=>v.role==="chv").length],
+ ["p_new","CBIO_PREG_NEW","Pregnancy and birth","New pregnant women registered",x=>x.W.filter(w=>w.edd&&inR(w.reg,x.R)).length],
+ ["p_vis","CBIO_PREG_VISITED","Pregnancy and birth","Pregnant women visited",x=>new Set(x.V.filter(v=>v.kind==="w"&&/^P/.test(v.slot||"")).map(v=>v.subj)).size],
+ ["b_all","CBIO_LIVE_BIRTHS","Pregnancy and birth","Live births",x=>x.B.length],
+ ["b_fac","CBIO_BIRTHS_FACILITY","Pregnancy and birth","Live births in a health facility",x=>x.B.filter(c=>c.place==="f").length],
+ ["b_home","CBIO_BIRTHS_HOME","Pregnancy and birth","Live births outside a health facility",x=>x.B.filter(c=>c.place!=="f").length],
+ ["b_anc4","CBIO_BIRTHS_ANC4","Pregnancy and birth","Live births whose mother had 4 or more antenatal contacts",x=>x.B.filter(c=>c.mAnc>=4).length],
+ ["n_48h","CBIO_NEWBORN_VISIT_48H","Newborns and children","Newborns visited within 48 hours of birth",x=>x.B.filter(c=>visitsOf(c.id).some(v=>diff(v.date,c.dob)<=2)).length],
+ ["c_ors","CBIO_DIARRHOEA_ORS","Newborns and children","Children with diarrhoea given ORS",x=>new Set(x.V.filter(v=>v.a.c_ors===1).map(v=>v.subj)).size],
+ ["c_zinc","CBIO_DIARRHOEA_ZINC","Newborns and children","Children with diarrhoea given zinc",x=>new Set(x.V.filter(v=>v.a.c_zinc===1).map(v=>v.subj)).size],
+ ["c_pneu","CBIO_PNEUMONIA_CARE","Newborns and children","Children with suspected pneumonia who received care",x=>new Set(x.V.filter(v=>v.a.c_pneu===1).map(v=>v.subj)).size],
+ ["c_red","CBIO_MUAC_RED","Newborns and children","Children with MUAC under 11.5 cm",x=>new Set(x.V.filter(v=>v.a.c_muac!==undefined&&v.a.c_muac<11.5).map(v=>v.subj)).size],
+ ["c_yel","CBIO_MUAC_YELLOW","Newborns and children","Children with MUAC 11.5 to 12.4 cm",x=>new Set(x.V.filter(v=>v.a.c_muac!==undefined&&v.a.c_muac>=11.5&&v.a.c_muac<12.5).map(v=>v.subj)).size],
+ ["c_zero","CBIO_ZERO_DOSE","Newborns and children","Zero-dose children at the end of the month",x=>x.C.filter(c=>c.dob<=x.R.b&&(!c.death||c.death>x.R.b)&&diff(x.R.b,c.dob)>70&&diff(x.R.b,c.dob)<730&&(cardSeen(c)||c.cNoVax)&&!((c.vax||{}).PENTA1&&c.vax.PENTA1<=x.R.b)).length],
+ ["r_all","CBIO_REFERRALS","Referrals","Referrals made",x=>x.RF.length],
+ ["r_w","CBIO_REFERRALS_WOMEN","Referrals","Referrals of pregnant or recently delivered women",x=>x.RF.filter(r=>r.kind==="w").length],
+ ["r_c","CBIO_REFERRALS_CHILDREN","Referrals","Referrals of children",x=>x.RF.filter(r=>r.kind==="c").length],
+ ["r_ok","CBIO_REFERRALS_COMPLETED","Referrals","Referrals made in the month that reached the facility",x=>x.RF.filter(r=>r.st==="arrived"||r.st==="done").length],
+ ["d_neo","CBIO_DEATHS_0_27D","Deaths","Deaths of newborns (0-27 days)",x=>x.D.filter(d=>{const c=d.kind==="c"&&by("c",d.subj);return c&&diff(d.date,c.dob)<28;}).length],
+ ["d_ch","CBIO_DEATHS_1_23M","Deaths","Deaths of children 1-23 months",x=>x.D.filter(d=>{const c=d.kind==="c"&&by("c",d.subj);return c&&diff(d.date,c.dob)>=28;}).length],
+ ["d_mat","CBIO_DEATHS_MATERNAL","Deaths","Maternal deaths",x=>x.D.filter(d=>d.kind==="w").length],
+ ["d_sb","CBIO_STILLBIRTHS","Deaths","Stillbirths",x=>x.W.filter(w=>w.sb&&inR(w.del,x.R)).length]];
+const lastMonth=()=>{const d=new Date();return iso(new Date(d.getFullYear(),d.getMonth()-1,1)).slice(0,7);};
+const dhisCfg=()=>{const c=S.cfg.dhis2=S.cfg.dhis2||{scheme:"code",de:{},ou:{}};c.de=c.de||{};c.ou=c.ou||{};return c;};
+const dhisDe=id=>{const c=dhisCfg(),i=DHIS2_IND.find(x=>x[0]===id);return (c.de[id]||"").trim()||i[1];};
+const dhisOu=w=>(dhisCfg().ou[w.id]||"").trim()||"CBIO_CG"+(w.cg||"");
+function dhis2Rows(month,chws){ // -> [{ou,cg,de,id,label,g,value}] merged by organisation unit and data element
+  const [y,m]=month.split("-").map(Number),R={a:iso(new Date(y,m-1,1)),b:iso(new Date(y,m,0))},out=new Map();
+  for(const w of chws){const team=S.staff.filter(x=>x.chwId===w.id).map(x=>x.id).concat(w.id),hhs=S.hh.filter(h=>team.includes(h.chvId)),P=people(hhs);
+    const hid=new Set(hhs.map(h=>h.id)),ids=new Set(P.C.map(c=>c.id).concat(P.W.map(x=>x.id)));
+    const x={R,W:P.W,C:P.C,V:S.v.filter(v=>ids.has(v.subj)&&inR(v.date,R)),B:P.C.filter(c=>c.place&&inR(c.dob,R)),RF:S.r.filter(r=>ids.has(r.subj)&&inR(r.date,R)),
+      D:S.d.filter(d=>ids.has(d.subj)&&inR(d.date,R)),CEN:S.cen.filter(c=>hid.has(c.hhId)&&inR(c.date,R))};
+    const ou=dhisOu(w);
+    for(const i of DHIS2_IND){const de=dhisDe(i[0]),k=ou+"|"+de,v=i[4](x),o=out.get(k);
+      if(o){o.value+=v;if(!o.cg.includes(w.cg))o.cg.push(w.cg);}else out.set(k,{ou,cg:[w.cg],de,id:i[0],label:i[3],g:i[2],value:v});}}
+  return {R,rows:[...out.values()]};}
 function tbl(id,title,head,rows,opt){opt=opt||{};REPDATA[id]={title,head,rows};const cap=opt.cap||9999,num=opt.num||[];
   return '<div class="tblwrap"><table><tr>'+head.map((h,i)=>'<th'+(num.includes(i)?' class="n"':"")+">"+esc(h)+"</th>").join("")+"</tr>"+
     rows.slice(0,cap).map(r=>"<tr>"+r.map((c,i)=>"<td"+(num.includes(i)?' class="n"':"")+">"+esc(c)+"</td>").join("")+"</tr>").join("")+"</table></div>"+
@@ -920,6 +964,13 @@ function vRep(){REPDATA={};const IG=S.sess.role==="igha";if(IG){if(!PGD[REP.prog
     '<div class="card"><h3>Open referrals ('+act2.length+")</h3>"+tbl("openrefs","Open referrals",AH,act2,{cap:25})+"</div>"+
     '<div class="card"><h3>Zero-dose and under-immunized children ('+act3.length+")</h3>"+tbl("vaccines","Zero-dose and under-immunized children",AH,act3,{cap:25})+"</div>"+
     '<div class="card"><h3>Children with low MUAC ('+act4.length+")</h3>"+tbl("muac","Children with low MUAC",AH,act4,{cap:25})+"</div>";
+  // 7 monthly report for DHIS2
+  REP.dm=REP.dm||lastMonth();const DX=dhis2Rows(REP.dm,chws),per=REP.dm.replace("-","");
+  h+='<h2 class="rep">7. Monthly report for DHIS2</h2><div class="card"><div class="row noprint"><div class="q"><label class="t" for="rp_dm">Month</label><input type="month" id="rp_dm" data-rep="dm" value="'+REP.dm+'" max="'+TODAY.slice(0,7)+'"></div></div>'+
+    '<p class="small">'+DX.rows.length+" values for "+new Set(DX.rows.map(r=>r.ou)).size+" community units, period "+per+" ("+DX.R.a+" to "+DX.R.b+"). Each Care Group is reported as one community unit. The month is chosen here, separately from the period at the top of the page.</p>"+
+    tbl("dhis2","Monthly report for DHIS2",["Community unit","Care Group","Indicator","DHIS2 data element","Value"],DX.rows.map(r=>[r.ou,r.cg.join(", "),r.label,r.de,r.value]),{cap:30,num:[4]})+
+    '<div class="row noprint"><button class="pri" data-act="dhis2" data-fmt="csv">Download for DHIS2 import (CSV)</button><button data-act="dhis2" data-fmt="json">Download for DHIS2 import (JSON)</button></div>'+
+    '<p class="small muted">Import the file in DHIS2 with the Import/Export app (Data import), choosing <b>'+(dhisCfg().scheme==="uid"?"UID":"Code")+'</b> as the ID scheme for data elements and organisation units, and run it first as a dry run. The data element and community unit codes are set by the administrator in Settings; until they are, the file uses placeholder codes beginning CBIO_, which DHIS2 will reject.</p></div>';
   return h;}
 /* ---------- IGHA level: each country shown separately, without names ---------- */
 function vIgha(){REPDATA={};const R=repRange(),PG=S.progs||[],pc=(n,d)=>d?Math.round(100*n/d)+"%":"–";
@@ -1228,7 +1279,13 @@ function vSet(){
     sw("mv","<b>Malaria vaccine</b> is in the immunization schedule here.",!!S.cfg.mv)+sw("yf","<b>Yellow fever vaccine</b> is in the immunization schedule here.",!!S.cfg.yf)+(adm?"":'<p class="small muted">Only the administrator can change these.</p>')+"</div>";
   h+='<div class="card"><h3>Visit schedule ('+S.cfg.country+')</h3><div class="tblwrap"><table><tr><th>Visit</th><th>Timing</th></tr>'+S.cfg.slots.map(s=>"<tr><td>"+esc(t(SLOTNAME[s[0]]))+"</td><td>"+(s[1]==="reg"?"At registration":s[1]==="edd"?"6 weeks before due date":"Day "+s[2]+" after birth")+"</td></tr>").join("")+'</table></div><p class="small muted">The CHW makes these 10 visits to every household and takes the measurements. Each Care Group Volunteer also visits her 12 households every 2 weeks, with the questions for the woman\'s or child\'s current stage, and asks the CHW for support when she finds a problem.</p></div>';
   h+='<div class="card"><h3>Immunization schedule ('+S.cfg.country+')</h3><div class="row">'+S.cfg.vax.map(x=>'<span class="chip">'+x[0]+" · "+(x[1]<200?Math.round(x[1]/7)+" wk":Math.round(x[1]/30.44)+" mo")+"</span>").join("")+"</div></div>";
-  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.7.4. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
+  {const c=dhisCfg(),adm2=S.sess.role==="admin",dis=adm2?"":" disabled",inp=(k,v,ph)=>'<input data-dhis="'+k+'" value="'+esc(v||"")+'" placeholder="'+esc(ph)+'"'+dis+' style="width:100%">';
+  h+='<div class="card"><h3>DHIS2 codes ('+S.cfg.country+')</h3><p class="small">For the monthly report on the Reports page. Enter the codes (or UIDs) that the national DHIS2 uses. Ask the county or district health records officer for them; leave a box empty to use the placeholder shown.</p>'+
+    '<div class="q"><label class="t" for="dx_scheme">The values entered below are</label><select id="dx_scheme" data-dhis="scheme"'+dis+'><option value="code"'+(c.scheme!=="uid"?" selected":"")+'>Codes</option><option value="uid"'+(c.scheme==="uid"?" selected":"")+'>UIDs (11-character identifiers)</option></select></div>'+
+    '<h3>Community unit of each Care Group</h3><div class="tblwrap"><table><tr><th>Care Group</th><th>DHIS2 organisation unit</th></tr>'+S.staff.filter(x=>x.role==="chw").sort((a,b)=>(a.cg||0)-(b.cg||0)).map(w=>"<tr><td>Care Group "+(w.cg||"")+" · "+esc(w.name)+"</td><td>"+inp("ou|"+w.id,c.ou[w.id],"CBIO_CG"+(w.cg||""))+"</td></tr>").join("")+"</table></div>"+
+    '<h3>Data elements</h3><div class="tblwrap"><table><tr><th>Indicator</th><th>DHIS2 data element</th></tr>'+DHIS2_IND.map(i=>"<tr><td>"+esc(i[3])+"</td><td>"+inp("de|"+i[0],c.de[i[0]],i[1])+"</td></tr>").join("")+"</table></div>"+
+    (adm2?'<p class="small muted">Saved as you type, with the programme\'s other settings.</p>':'<p class="small muted">Only the administrator can change these.</p>')+"</div>";}
+  h+='<div class="card"><h3>Data</h3><p class="small muted">Pilot build 0.8.0. '+(S.mode==="live"?"Records are kept on this tablet and sent to the server when a connection is available."+(S.auth&&S.auth.last?" Last sync: "+new Date(S.auth.last).toLocaleString()+".":"")+" "+dirtyN()+" records waiting to be sent.":"Example mode: nothing is sent to the server, and example records are rebuilt each time the app opens.")+'</p><div class="row"><button data-act="export">Export records from this tablet (file)</button>'+(S.mode==="live"?'<button data-act="sync">'+esc(t("Sync now"))+'</button><button data-act="signout">'+esc(t("Sign out"))+"</button>":'<button data-act="cleardemo">'+esc(t("Leave example mode"))+"</button>")+'</div><p class="small muted" id="outmsg"></p></div>';
   return h;}
 
 /* ---------- actions ---------- */
@@ -1299,6 +1356,10 @@ document.addEventListener("click",e=>{
   if(A==="export"){const o={exported:new Date().toISOString(),cfg:S.cfg};for(const ty of TYPES)o[ty]=S[ty].filter(r=>!r.demo);
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:"application/json"}));a.download="cbio-register-"+TODAY+".json";document.body.appendChild(a);a.click();a.remove();return;}
   if(A==="print"){try{window.print();}catch(e){}return;}
+  if(A==="dhis2"){const {chws}=repArea(),DX=dhis2Rows(REP.dm||lastMonth(),chws),per=(REP.dm||lastMonth()).replace("-",""),code=dhisCfg().scheme!=="uid";let body,type,ext;
+    if(d.fmt==="json"){const o=code?{dataElementIdScheme:"CODE",orgUnitIdScheme:"CODE"}:{};o.dataValues=DX.rows.map(r=>({dataElement:r.de,period:per,orgUnit:r.ou,value:String(r.value)}));body=JSON.stringify(o,null,1);type="application/json";ext="json";}
+    else{body="dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value\r\n"+DX.rows.map(r=>[r.de,per,r.ou,"","",r.value].map(x=>/[",\r\n]/.test(String(x))?'"'+String(x).replace(/"/g,'""')+'"':x).join(",")).join("\r\n")+"\r\n";type="text/csv";ext="csv";}
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([body],{type}));a.download="cbio-dhis2-"+(S.cfg.country||"").toLowerCase()+"-"+per+"."+ext;document.body.appendChild(a);a.click();a.remove();return;}
   if(A==="csv"){const D=REPDATA[d.id];if(!D)return;const q=x=>'"'+String(x??"").replace(/"/g,'""')+'"',csv="\ufeff"+[D.head].concat(D.rows).map(r=>r.map(q).join(",")).join("\r\n");
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="cbio-"+d.id+"-"+TODAY+".csv";document.body.appendChild(a);a.click();a.remove();return;}
   if(A==="census")return go("census",{a:{},m:[],d:[]});
@@ -1327,6 +1388,7 @@ document.addEventListener("change",e=>{const el=e.target,d=el.dataset;
   if(el.id==="role"&&S.mode==="example"){const [r,id,pg]=el.value.split("|");S.sess={role:r,id:id||null,prog:pg||null};if(pg)setProg(pg);save();go(r==="igha"?"igha":r==="admin"?"admin":r==="sup"?"qivc":"due");}
   if(d.qsel){stash();UI.f[d.qsel]=el.value;if(d.qsel==="wid"||d.qsel==="kind")UI.f.a={};return keep();}
   if(d.opt){if(S.sess.role!=="admin")return;S.cfg[d.opt]=el.checked;applyOpts(S.cfg);save();if(live())pushCfg();render();return;}
+  if(d.dhis){if(S.sess.role!=="admin")return;const c=dhisCfg();if(d.dhis==="scheme")c.scheme=el.value;else{const [k,id]=d.dhis.split("|");c[k][id]=el.value.trim();}save();pushCfg();return;}
   if(d.rep){REP[d.rep]=el.value;if(d.rep==="prog")REP.area="";const y=window.scrollY;render();window.scrollTo(0,y);return;}
   if(d.num&&UI.view==="visit")keep();
   if(d.cfg){const path=d.cfg.split("."),v=+el.value;if(isNaN(v))return;let o=S.cfg;for(let i=0;i<path.length-1;i++)o=o[path[i]];o[path[path.length-1]]=v;save();pushCfg();const y=window.scrollY;render();window.scrollTo(0,y);}});
