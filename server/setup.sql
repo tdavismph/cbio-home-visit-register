@@ -346,6 +346,17 @@ begin
                   from public.cbio_workers w where w.role <> 'admin' and w.active));
 end $$;
 
+-- Keep-alive: a small read that a scheduled job (.github/workflows/keepalive.yml) calls every few days,
+-- so that a Free Plan project is not paused for inactivity. Returns no data. Added in version 0.8.1.
+create or replace function public.cbio_ping()
+returns jsonb language plpgsql security definer set search_path = public, extensions as $$
+begin
+  perform count(*) from public.cbio_workers;
+  return jsonb_build_object('ok', true, 'at', now());
+end $$;
+revoke execute on function public.cbio_ping() from public;
+grant execute on function public.cbio_ping() to anon, authenticated;
+
 revoke execute on function public.cbio_me(text) from public, anon, authenticated;
 revoke execute on function public.cbio_worker_json(public.cbio_workers, boolean) from public, anon, authenticated;
 revoke execute on function public.cbio_deid(jsonb, text, int) from public, anon, authenticated;

@@ -53,6 +53,10 @@ Not yet built:
 
 An existing database needs `server/setup.sql` run again to gain the programme functions. The app also works with a database that has not been updated; the programme features are then hidden.
 
+## Keeping the database awake
+
+Supabase pauses a Free Plan project after about 7 days without database activity. The workflow in `.github/workflows/keepalive.yml` calls the small `cbio_ping` function every 3 days, which counts as activity. Until `server/setup.sql` has been run again (to add `cbio_ping`), it falls back to another harmless call. Run it by hand from the Actions tab (Keep the database awake, then Run workflow). GitHub turns off scheduled workflows in a repository with no commits for 60 days and sends an email first; turning it back on is one click on the Actions tab. A paid Supabase plan is never paused and also has daily backups.
+
 ## Documents
 
 - `docs/CBIO_Home_Visit_Register_User_Manual.pdf`: user manual with screenshots (built by `docs/make_manual.py`)

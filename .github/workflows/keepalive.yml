@@ -1,0 +1,27 @@
+# Keeps the Supabase database of this app from being paused for inactivity (Free Plan projects
+# are paused after about 7 days without database activity). Every 3 days it makes one small read.
+# Run it by hand from the Actions tab with "Run workflow".
+name: Keep the database awake
+on:
+  schedule:
+    - cron: "23 5 */3 * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the database
+        env:
+          # Public values: the same address and publishable key every visitor's browser receives (index.html).
+          URL: https://gfnsviikjfczavcgpiok.supabase.co
+          KEY: sb_publishable_yOmoOtyENRLgPBzt4W8u2Q_LoQ7nN-x
+        run: |
+          call() { curl -s -o out.txt -w "%{http_code}" -X POST "$URL/rest/v1/rpc/$1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d "$2"; }
+          code=$(call cbio_ping '{}'); echo "cbio_ping: HTTP $code $(cat out.txt)"
+          if [ "$code" != "200" ]; then
+            # Before server/setup.sql has been run again, cbio_ping does not exist yet. Any query keeps the
+            # database awake, so fall back to a call that reads the sessions table and answers "not signed in".
+            code=$(call cbio_settings_get '{"p_token":"keep-alive"}'); echo "cbio_settings_get: HTTP $code $(cat out.txt)"
+            case "$code" in 200|400) ;; *) echo "The database did not answer. If the project is paused, resume it in the Supabase dashboard."; exit 1;; esac
+          fi
